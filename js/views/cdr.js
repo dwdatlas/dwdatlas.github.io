@@ -113,7 +113,7 @@ const CDRView = {
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
           <td>
             <div class="flex gap-1">
-              <button class="btn btn-secondary btn-sm" onclick="CDRView.openDetail('${r.id}')">View</button>
+              <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
               <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${r.id}')">Print</button>
               <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
             </div>
@@ -208,16 +208,24 @@ const CDRView = {
     await this.load();
   },
 
-  // ---- Detail / Entry view ----
-  async openDetail(id) {
+  // ---- Detail view (full-page, inline form) ----
+  async showDetail(id) {
+    this._detailId = id;
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
     const entries = entriesRes.data || [];
     if (!header) { App.toast('CDR not found', 'error'); return; }
 
     const school = this._getSchool(header.school_id);
+    const el = document.getElementById('view-container');
+    if (!el) return;
 
-    // Compute running balance
+    const pt = document.getElementById('page-title');
+    const ps = document.getElementById('page-subtitle');
+    if (pt) pt.textContent = 'Cash Disbursement Register';
+    if (ps) ps.textContent = `${school.name || ''} — ${header.year} ${header.quarter}`;
+
+    // Running balance
     let balance = parseFloat(header.opening_balance) || 0;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
@@ -226,135 +234,155 @@ const CDRView = {
       return { ...e, running_balance: balance };
     });
 
-    // Recapitulation by UACS
-    const recap = {};
-    entries.forEach(e => {
-      const code = e.uacs_code || 'Unclassified';
-      const desc = e.uacs_desc || UACS_CODES.find(u => u.code === code)?.desc || code;
-      if (!recap[code]) recap[code] = { code, desc, total: 0 };
-      recap[code].total += parseFloat(e.payment) || 0;
-    });
-
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
     const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment) || 0), 0);
+    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : (parseFloat(header.opening_balance) || 0);
 
-    const html = `
-    <div class="mb-4 flex flex-wrap gap-3 items-center justify-between">
-      <div>
-        <div class="font-bold text-gray-800">${school.name || '—'} — ${header.year} ${header.quarter}</div>
-        <div class="text-xs text-gray-500">${header.fund_type || ''} | Opening Balance: ${fmt(header.opening_balance)}</div>
-      </div>
-      <div class="flex gap-2">
-        <button class="btn btn-primary btn-sm" onclick="CDRView.openAddEntry('${id}')">+ Add Entry</button>
-        <button class="btn btn-secondary btn-sm" onclick="CDRView.printCDR('${id}')">Print</button>
-        <button class="btn btn-secondary btn-sm" onclick="App.closeModal()">Close</button>
-      </div>
-    </div>
-
-    <div class="table-scroll mb-4">
-      <table class="data-table">
-        <thead><tr>
-          <th>#</th><th>Date</th><th>Particulars</th><th>UACS Code</th>
-          <th class="text-right">Advances</th><th class="text-right">Payment</th>
-          <th class="text-right">Balance</th><th>Actions</th>
-        </tr></thead>
-        <tbody>
-          <tr class="bg-blue-50">
-            <td colspan="4" class="font-semibold text-xs">Opening Balance</td>
-            <td></td><td></td>
-            <td class="text-right font-bold">${fmt(header.opening_balance)}</td>
-            <td></td>
-          </tr>
-          ${rows.length === 0 ? `<tr><td colspan="8" class="text-center text-gray-400 py-6 text-sm">No entries yet.</td></tr>` : ''}
-          ${rows.map((e, i) => `
-          <tr>
-            <td class="text-xs text-gray-400">${i + 1}</td>
-            <td class="text-xs">${formatDate(e.entry_date)}</td>
-            <td class="text-xs">${e.particulars || '—'}</td>
-            <td class="font-mono text-xs text-gray-600">${e.uacs_code || '—'}</td>
-            <td class="text-right text-xs">${e.advances > 0 ? fmt(e.advances) : ''}</td>
-            <td class="text-right text-xs font-semibold">${e.payment > 0 ? fmt(e.payment) : ''}</td>
-            <td class="text-right text-xs font-bold">${fmt(e.running_balance)}</td>
-            <td>
-              <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
-            </td>
-          </tr>`).join('')}
-          <tr class="bg-gray-50 font-bold">
-            <td colspan="4" class="text-xs">TOTAL</td>
-            <td class="text-right text-xs">${fmt(totalAdv)}</td>
-            <td class="text-right text-xs">${fmt(totalPay)}</td>
-            <td class="text-right text-xs">${fmt(rows.length > 0 ? rows[rows.length-1].running_balance : header.opening_balance)}</td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    ${Object.keys(recap).length > 0 ? `
-    <div class="border-t pt-3">
-      <div class="font-bold text-xs text-gray-600 mb-2 uppercase tracking-wide">Recapitulation</div>
-      <table class="data-table">
-        <thead><tr><th>UACS Code</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
-        <tbody>
-          ${Object.values(recap).map(r => `
-          <tr>
-            <td class="font-mono text-xs">${r.code}</td>
-            <td class="text-xs">${r.desc}</td>
-            <td class="text-right text-xs font-semibold">${fmt(r.total)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>` : ''}
-    `;
-
-    App.openModal(`CDR — ${school.name || '—'} ${header.year} ${header.quarter}`, html);
-  },
-
-  openAddEntry(cdr_id) {
     const uacsOpts = UACS_CODES.map(u =>
       `<option value="${u.code}" data-desc="${u.desc}">${u.code} — ${u.desc}</option>`
     ).join('');
 
-    const html = `
-    <form id="entry-form" onsubmit="CDRView.saveEntry(event,'${cdr_id}')">
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label class="form-label">Date *</label>
-          <input id="entry-date" type="date" class="form-input" required value="${new Date().toISOString().slice(0,10)}" />
-        </div>
-        <div>
-          <label class="form-label">DV/Payroll/Check No.</label>
-          <input id="entry-ref-no" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
-        </div>
-        <div class="col-span-2">
-          <label class="form-label">Particulars / Description *</label>
-          <input id="entry-particulars" type="text" class="form-input" required placeholder="Brief description of expense" />
-        </div>
-        <div class="col-span-2">
-          <label class="form-label">UACS Object Code</label>
-          <select id="entry-uacs" class="form-select" onchange="CDRView.onUACSChange(this)">
-            <option value="">Select UACS code…</option>${uacsOpts}
-          </select>
-        </div>
-        <div class="col-span-2" id="uacs-desc-row" style="display:none">
-          <label class="form-label">Account Description (auto-filled)</label>
-          <input id="entry-uacs-desc" type="text" class="form-input" />
-        </div>
-        <div>
-          <label class="form-label">Cash Advance Received (₱)</label>
-          <input id="entry-advances" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
-        </div>
-        <div>
-          <label class="form-label">Payment / Disbursement (₱)</label>
-          <input id="entry-payment" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
+    el.innerHTML = `
+    <!-- Top bar -->
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
+        ← Back to CDR List
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${id}')">
+        Print CDR (Appendix 43)
+      </button>
+    </div>
+
+    <!-- CDR Info -->
+    <div class="section-card mb-4">
+      <div class="section-card-body py-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div><span class="text-gray-500 text-xs block">School</span><strong>${school.name || '—'}</strong></div>
+          <div><span class="text-gray-500 text-xs block">Year / Quarter</span><strong>${header.year} ${header.quarter}</strong></div>
+          <div><span class="text-gray-500 text-xs block">Fund Type</span><strong>${header.fund_type || '—'}</strong></div>
+          <div><span class="text-gray-500 text-xs block">Opening Balance</span><strong class="text-blue-700">${fmt(header.opening_balance)}</strong></div>
         </div>
       </div>
-      <div class="flex gap-2 justify-end">
-        <button type="button" class="btn btn-secondary" onclick="App.closeModal(); CDRView.openDetail('${cdr_id}')">Back</button>
-        <button type="submit" class="btn btn-primary">Save Entry</button>
+    </div>
+
+    <!-- Add Transaction Form -->
+    <div class="section-card mb-4">
+      <div class="section-card-header">
+        <h3>Add Transaction</h3>
       </div>
-    </form>`;
-    App.openModal('Add CDR Entry', html);
+      <div class="section-card-body">
+        <form id="cdr-entry-form" onsubmit="CDRView.saveInlineEntry(event,'${id}')">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+            <div>
+              <label class="form-label">Date *</label>
+              <input id="ei-date" type="date" class="form-input" required value="${new Date().toISOString().slice(0,10)}" />
+            </div>
+            <div>
+              <label class="form-label">DV / Check No.</label>
+              <input id="ei-ref" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">Particulars *</label>
+              <input id="ei-particulars" type="text" class="form-input" required placeholder="Description of transaction" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+            <div>
+              <label class="form-label">Cash Advance (₱)</label>
+              <input id="ei-advance" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" />
+              <p class="text-xs text-gray-400 mt-1">For MOOE advances received only</p>
+            </div>
+            <div>
+              <label class="form-label">Payment (₱)</label>
+              <input id="ei-payment" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="form-label">UACS Object Code & Name</label>
+              <select id="ei-uacs" class="form-select">
+                <option value="">— Select UACS (required for payments) —</option>
+                ${uacsOpts}
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">
+              + Add Transaction
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Transactions</h3>
+        <span class="text-xs text-gray-500">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>DV / Check No.</th>
+            <th>Particulars</th>
+            <th>UACS Code</th>
+            <th class="text-right">Cash Advance</th>
+            <th class="text-right">Payment</th>
+            <th class="text-right">Balance</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            <tr class="bg-blue-50 text-xs font-semibold">
+              <td colspan="7">Opening Balance</td>
+              <td class="text-right font-bold">${fmt(header.opening_balance)}</td>
+              <td></td>
+            </tr>
+            ${rows.length === 0
+              ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
+              : rows.map((e, i) => {
+                  const uacsLabel = e.uacs_code
+                    ? `<span class="font-mono" title="${e.uacs_desc || ''}">${e.uacs_code}</span>`
+                    : '—';
+                  return `
+                  <tr>
+                    <td class="text-xs text-gray-400">${i + 1}</td>
+                    <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
+                    <td class="text-xs text-gray-600">${e.ref_no || '—'}</td>
+                    <td class="text-xs">${e.particulars || '—'}</td>
+                    <td class="text-xs">${uacsLabel}</td>
+                    <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
+                    <td class="text-right text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
+                    <td class="text-right text-xs font-bold">${fmt(e.running_balance)}</td>
+                    <td>
+                      <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
+                    </td>
+                  </tr>`;
+                }).join('')
+            }
+            ${entries.length > 0 ? `
+            <tr class="bg-gray-50 font-bold text-xs">
+              <td colspan="5" class="text-right pr-2">TOTAL</td>
+              <td class="text-right">${fmt(totalAdv)}</td>
+              <td class="text-right text-blue-700">${fmt(totalPay)}</td>
+              <td class="text-right">${fmt(finalBal)}</td>
+              <td></td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  },
+
+  async backToList() {
+    this._detailId = null;
+    const el = document.getElementById('view-container');
+    const pt = document.getElementById('page-title');
+    const ps = document.getElementById('page-subtitle');
+    if (pt) pt.textContent = 'Cash Disbursement Register';
+    if (ps) ps.textContent = 'Appendix 43 — per school per quarter';
+    if (el) el.innerHTML = await this.render();
+    await this.afterRender();
   },
 
   onUACSChange(sel) {
@@ -362,45 +390,46 @@ const CDRView = {
     const desc = opt?.dataset?.desc || '';
     const row = document.getElementById('uacs-desc-row');
     const inp = document.getElementById('entry-uacs-desc');
-    if (desc) {
-      row.style.display = '';
-      inp.value = desc;
-    } else {
-      row.style.display = 'none';
-      inp.value = '';
-    }
+    if (row) row.style.display = desc ? '' : 'none';
+    if (inp) inp.value = desc;
   },
 
-  async saveEntry(e, cdr_id) {
+  async saveInlineEntry(e, cdr_id) {
     e.preventDefault();
-    const uacsEl = document.getElementById('entry-uacs');
-    const uacs_code = uacsEl.value;
+    const uacs_code = document.getElementById('ei-uacs').value;
     const uacs_desc = uacs_code
-      ? (document.getElementById('entry-uacs-desc').value || UACS_CODES.find(u => u.code === uacs_code)?.desc || '')
+      ? (UACS_CODES.find(u => u.code === uacs_code)?.desc || '')
       : '';
+    const advances = parseFloat(document.getElementById('ei-advance').value) || 0;
+    const payment  = parseFloat(document.getElementById('ei-payment').value)  || 0;
+
+    if (advances === 0 && payment === 0) {
+      App.toast('Enter a Cash Advance or Payment amount.', 'error'); return;
+    }
+    if (payment > 0 && !uacs_code) {
+      App.toast('Please select a UACS code for the payment.', 'error'); return;
+    }
 
     const row = {
       id: DB.newId(),
       cdr_id,
-      entry_date: document.getElementById('entry-date').value,
-      particulars: document.getElementById('entry-particulars').value,
+      entry_date:  document.getElementById('ei-date').value,
+      particulars: document.getElementById('ei-particulars').value.trim(),
       uacs_code,
       uacs_desc,
-      advances: parseFloat(document.getElementById('entry-advances').value) || 0,
-      payment: parseFloat(document.getElementById('entry-payment').value) || 0,
-      ref_no: document.getElementById('entry-ref-no').value,
+      advances,
+      payment,
+      ref_no: document.getElementById('ei-ref').value.trim(),
       sort_order: Date.now(),
     };
     const { error } = await DB.upsertCDREntry(row);
     if (error) { App.toast('Error: ' + error, 'error'); return; }
 
-    // Update entry_count on header
     const { data: existing } = await DB.getCDREntries(cdr_id);
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
 
-    App.toast('Entry saved!');
-    App.closeModal();
-    await this.openDetail(cdr_id);
+    App.toast('Transaction added!');
+    await this.showDetail(cdr_id);
   },
 
   async deleteEntry(entry_id, cdr_id) {
@@ -409,8 +438,7 @@ const CDRView = {
     const { data: existing } = await DB.getCDREntries(cdr_id);
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
-    App.closeModal();
-    await this.openDetail(cdr_id);
+    await this.showDetail(cdr_id);
   },
 
   // ---- Print Appendix 43 (matches Google Sheets template) ----
