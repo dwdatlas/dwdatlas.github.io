@@ -114,7 +114,7 @@ const CDRView = {
           <td>
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${r.id}')">Print</button>
+              <button class="btn btn-primary btn-sm" onclick="CDRView.downloadExcel('${r.id}')">Download</button>
               <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
             </div>
           </td>
@@ -248,8 +248,8 @@ const CDRView = {
       <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
         ← Back to CDR List
       </button>
-      <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${id}')">
-        Print CDR (Appendix 43)
+      <button class="btn btn-primary btn-sm" onclick="CDRView.downloadExcel('${id}')">
+        ⬇ Download Excel
       </button>
     </div>
 
@@ -439,6 +439,119 @@ const CDRView = {
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
     await this.showDetail(cdr_id);
+  },
+
+  // ---- Download as Excel (Appendix 43 format) ----
+  async downloadExcel(id) {
+    if (typeof XLSX === 'undefined') { App.toast('Excel library not loaded. Please refresh the page.', 'error'); return; }
+
+    const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
+    const header = headerRes.data;
+    const entries = entriesRes.data || [];
+    if (!header) { App.toast('CDR not found', 'error'); return; }
+
+    const school = this._getSchool(header.school_id);
+
+    let balance = parseFloat(header.opening_balance) || 0;
+    const rows = entries.map(e => {
+      const adv = parseFloat(e.advances) || 0;
+      const pay = parseFloat(e.payment)  || 0;
+      balance = balance + adv - pay;
+      return { ...e, running_balance: balance };
+    });
+
+    const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
+    const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
+    const finalBal = rows.length > 0 ? rows[rows.length-1].running_balance : (parseFloat(header.opening_balance) || 0);
+
+    const COL_OFFICE = '5020301000';
+    const COL_GENSVC = '5021299000';
+    const COL_JANIT  = '5021202000';
+
+    const totOffice = entries.filter(e => e.uacs_code === COL_OFFICE).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
+    const totGenSvc = entries.filter(e => e.uacs_code === COL_GENSVC).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
+    const totJanit  = entries.filter(e => e.uacs_code === COL_JANIT ).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
+
+    const schoolName = (school.name || '').toUpperCase();
+
+    // Build sheet as array-of-arrays
+    const aoa = [
+      // Row 1-2: Title
+      ['DEPED LEYTE DIVISION', '', '', '', '', '', '', '', '', '', '', ''],
+      [schoolName, '', '', '', '', '', '', '', '', '', 'Appendix 43', ''],
+      ['', '', '', '', '', '', '', '', '', '', '', ''],
+      ['CASH DISBURSEMENTS REGISTER', '', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', '', ''],
+      // Row 6-10: Entity info (left) + Accountable Officer (right)
+      [`Entity Name: ${schoolName}`, '', '', '', '', '', `Name of Accountable Officer: ${school.school_head || ''}`, '', '', '', '', ''],
+      [`Sub-Office/District/Division: DULAG WEST DISTRICT`, '', '', '', '', '', `Official Designation: ${school.designation || ''}`, '', '', '', '', ''],
+      [`Municipality/City/Province: DULAG, LEYTE`, '', '', '', '', '', `Station: ${school.short_name || school.name || ''}`, '', '', '', '', ''],
+      [`Fund Cluster: 01-REGULAR`, '', '', '', '', '', 'Register No.: ________________________', '', '', '', '', ''],
+      ['', '', '', '', '', '', 'Sheet No.: ________________________', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', '', ''],
+      // Header rows (4 rows matching template)
+      ['', '', '', 'Advances for Operating Expenses', '', '', 'BREAKDOWN OF PAYMENTS', '', '', '', '', ''],
+      ['', '', '', '-19901010', '', '', '', '', '', '', '', ''],
+      ['', '', '', 'Amount', '', '', 'Office Supplies Expenses', 'Other General', 'Janitorial Services', 'O T H E R S', '', ''],
+      ['Date', 'DV/Payroll/ Check No.', 'Particulars', 'Cash Advance', 'Payments', 'Balance', '5020301000', '5021299000', '5021202000', 'Account Description', 'UACS Object Code', 'Amount'],
+    ];
+
+    // Data rows
+    rows.forEach(e => {
+      const adv = parseFloat(e.advances) || 0;
+      const pay = parseFloat(e.payment)  || 0;
+      const isOffice = e.uacs_code === COL_OFFICE;
+      const isGenSvc = e.uacs_code === COL_GENSVC;
+      const isJanit  = e.uacs_code === COL_JANIT;
+      const isOthers = !isOffice && !isGenSvc && !isJanit && pay > 0;
+      aoa.push([
+        e.entry_date ? _fd(e.entry_date) : '',
+        e.ref_no || '',
+        e.particulars || '',
+        adv > 0 ? adv : '',
+        pay > 0 ? pay : '',
+        e.running_balance,
+        isOffice ? pay : '',
+        isGenSvc ? pay : '',
+        isJanit  ? pay : '',
+        isOthers ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || '') : '',
+        isOthers ? (e.uacs_code || '') : '',
+        isOthers ? pay : '',
+      ]);
+    });
+
+    // Total row
+    aoa.push(['', '', 'TOTAL', totalAdv || '', totalPay || '', finalBal, totOffice || '', totGenSvc || '', totJanit || '', '', '', '']);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // Column widths
+    ws['!cols'] = [
+      {wch:12},{wch:22},{wch:38},{wch:14},{wch:12},{wch:14},
+      {wch:14},{wch:14},{wch:12},{wch:28},{wch:14},{wch:12}
+    ];
+
+    // Cell merges
+    ws['!merges'] = [
+      {s:{r:0,c:0},e:{r:0,c:11}},  // DEPED LEYTE DIVISION
+      {s:{r:1,c:0},e:{r:1,c:9}},   // School name
+      {s:{r:3,c:0},e:{r:3,c:11}},  // CASH DISBURSEMENTS REGISTER
+      {s:{r:5,c:0},e:{r:5,c:5}},   {s:{r:5,c:6},e:{r:5,c:11}},
+      {s:{r:6,c:0},e:{r:6,c:5}},   {s:{r:6,c:6},e:{r:6,c:11}},
+      {s:{r:7,c:0},e:{r:7,c:5}},   {s:{r:7,c:6},e:{r:7,c:11}},
+      {s:{r:8,c:0},e:{r:8,c:5}},   {s:{r:8,c:6},e:{r:8,c:11}},
+      {s:{r:9,c:0},e:{r:9,c:5}},   {s:{r:9,c:6},e:{r:9,c:11}},
+      {s:{r:11,c:0},e:{r:11,c:2}}, {s:{r:11,c:3},e:{r:11,c:5}}, {s:{r:11,c:6},e:{r:11,c:11}},
+      {s:{r:12,c:0},e:{r:12,c:2}}, {s:{r:12,c:3},e:{r:12,c:5}}, {s:{r:12,c:6},e:{r:12,c:11}},
+      {s:{r:13,c:0},e:{r:13,c:2}}, {s:{r:13,c:3},e:{r:13,c:5}}, {s:{r:13,c:9},e:{r:13,c:11}},
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${header.year} ${header.quarter}`);
+
+    const filename = `CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    App.toast('Excel file downloaded!');
   },
 
   // ---- Print Appendix 43 ----
