@@ -249,6 +249,41 @@ const DB = (() => {
     return { url: urlData.publicUrl, error: null };
   }
 
+  // ============================================================
+  // DOWNLOADED FUNDS
+  // ============================================================
+  async function getFunds(filters = {}) {
+    if (useLocal) {
+      let rows = lsGet('funds');
+      if (filters.school_id) rows = rows.filter(r => r.school_id === filters.school_id);
+      if (filters.year)      rows = rows.filter(r => r.year == filters.year);
+      if (filters.status)    rows = rows.filter(r => r.status === filters.status);
+      rows.sort((a,b) => (a.ada_date||'').localeCompare(b.ada_date||''));
+      return { data: rows, error: null };
+    }
+    let q = sb.from('downloaded_funds').select('*').order('ada_date');
+    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    if (filters.year)      q = q.eq('year', filters.year);
+    if (filters.status)    q = q.eq('status', filters.status);
+    const { data, error } = await q;
+    return { data, error };
+  }
+  async function upsertFund(row) {
+    if (useLocal) {
+      const rows = lsGet('funds');
+      const idx = rows.findIndex(r => r.id === row.id);
+      if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('funds', rows); return { data: rows[idx], error: null }; }
+      return lsInsert('funds', row);
+    }
+    const { data, error } = await sb.from('downloaded_funds').upsert(row).select().single();
+    return { data, error };
+  }
+  async function deleteFund(id) {
+    if (useLocal) return lsDelete('funds', id);
+    const { error } = await sb.from('downloaded_funds').delete().eq('id', id);
+    return { error };
+  }
+
   return {
     init, isLocal: () => useLocal,
     // schools
@@ -262,6 +297,8 @@ const DB = (() => {
     getBankRecon, upsertBankRecon,
     // resources
     getResources, upsertResource, deleteResource,
+    // downloaded funds
+    getFunds, upsertFund, deleteFund,
     // files
     uploadFile,
     // helpers

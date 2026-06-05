@@ -1,0 +1,363 @@
+// ============================================================
+// DOWNLOADED FUNDS VIEW
+// Tracks ADA disbursements per school with liquidation status
+// ============================================================
+const FundsView = {
+  _schoolId: null,
+  _schools: [],
+
+  async render() {
+    this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
+    const isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
+    const [schoolsRes] = await Promise.all([DB.getSchools()]);
+    this._schools = schoolsRes.data || [];
+
+    const yr = new Date().getFullYear();
+    const years = [];
+    for (let y = yr; y >= yr - 3; y--) years.push(y);
+
+    const schoolOpts = this._schools.map(s =>
+      `<option value="${s.id}">${s.name}</option>`
+    ).join('');
+
+    const schoolFilter = this._schoolId
+      ? `<input type="hidden" id="f-school" value="${this._schoolId}" /><div class="text-sm font-semibold text-gray-700">${this._schools.find(s=>s.id===this._schoolId)?.name||'My School'}</div>`
+      : `<select id="f-school" class="form-select" onchange="FundsView.load()">
+           <option value="">All Schools</option>${schoolOpts}
+         </select>`;
+
+    return `
+    <div class="page-header">
+      <h2>Downloaded Funds</h2>
+      <p>ADA monitoring — liquidation status per school</p>
+    </div>
+
+    <div class="section-card mb-4">
+      <div class="section-card-header"><h3>Filters</h3></div>
+      <div class="section-card-body">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div>
+            <label class="form-label">School</label>
+            ${schoolFilter}
+          </div>
+          <div>
+            <label class="form-label">Year</label>
+            <select id="f-year" class="form-select" onchange="FundsView.load()">
+              <option value="">All Years</option>
+              ${years.map(y=>`<option value="${y}" ${y===yr?'selected':''}>${y}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select id="f-status" class="form-select" onchange="FundsView.load()">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="submitted_to_sou">Submitted to SOU</option>
+              <option value="liquidated">Liquidated</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Fund Type</label>
+            <select id="f-fund" class="form-select" onchange="FundsView.load()">
+              <option value="">All Fund Types</option>
+              ${FUND_TYPES.map(f=>`<option value="${f}">${f}</option>`).join('')}
+            </select>
+          </div>
+          ${isAdmin ? `
+          <div class="flex items-end gap-2">
+            <button class="btn btn-primary flex-1" onclick="FundsView.openForm()">+ Add</button>
+            <button class="btn btn-secondary" onclick="FundsView.seedDefaults()" title="Load default MOOE data">Seed</button>
+          </div>` : '<div></div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Fund Records</h3>
+        <div id="funds-summary" class="text-xs text-gray-500"></div>
+      </div>
+      <div id="funds-body" class="table-scroll">
+        <div class="flex justify-center py-10"><div class="spinner"></div></div>
+      </div>
+    </div>`;
+  },
+
+  async afterRender() {
+    await this.load();
+  },
+
+  async load() {
+    const school_id = this._schoolId || document.getElementById('f-school')?.value || '';
+    const year      = document.getElementById('f-year')?.value   || '';
+    const status    = document.getElementById('f-status')?.value || '';
+    const fundType  = document.getElementById('f-fund')?.value   || '';
+
+    const filters = {};
+    if (school_id) filters.school_id = school_id;
+    if (year)      filters.year = year;
+    if (status)    filters.status = status;
+
+    const { data } = await DB.getFunds(filters);
+    let rows = data || [];
+    if (fundType) rows = rows.filter(r => r.fund_type === fundType);
+
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
+    const el = document.getElementById('funds-body');
+    const sumEl = document.getElementById('funds-summary');
+    if (!el) return;
+
+    // Summary counts
+    const total     = rows.length;
+    const liquid    = rows.filter(r=>r.status==='liquidated').length;
+    const sou       = rows.filter(r=>r.status==='submitted_to_sou').length;
+    const pending   = rows.filter(r=>r.status==='pending').length;
+    const totalAmt  = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+    if (sumEl) sumEl.textContent = `${total} records | Total: ${fmt(totalAmt)} | Liquidated: ${liquid} | SOU: ${sou} | Pending: ${pending}`;
+
+    if (!rows.length) {
+      el.innerHTML = emptyState('No fund records found. Click "+ Add" to add a record or "Seed" to load MOOE defaults.');
+      return;
+    }
+
+    el.innerHTML = `
+    <table class="data-table">
+      <thead><tr>
+        <th>ADA No.</th>
+        <th>ADA Date</th>
+        <th>Fund Type</th>
+        ${!this._schoolId ? '<th>School</th>' : ''}
+        <th class="text-right">Amount</th>
+        <th>Status</th>
+        <th>Remarks</th>
+        ${isAdmin ? '<th>Actions</th>' : ''}
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => {
+          const school = this._schools.find(s=>s.id===r.school_id);
+          const badge = r.status === 'liquidated'
+            ? `<span class="badge badge-liquidated">Liquidated</span>`
+            : r.status === 'submitted_to_sou'
+            ? `<span class="badge badge-submitted">Submitted to SOU</span>`
+            : `<span class="badge badge-missing">Pending</span>`;
+          return `
+          <tr>
+            <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
+            <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
+            <td class="text-xs">${r.fund_type || '—'}</td>
+            ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
+            <td class="text-right font-semibold">${fmt(r.amount)}</td>
+            <td>${badge}</td>
+            <td class="text-xs text-gray-500">${r.remarks || ''}</td>
+            ${isAdmin ? `
+            <td>
+              <div class="flex gap-1">
+                <button class="btn btn-secondary btn-sm" onclick="FundsView.openForm('${r.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="FundsView.deleteFund('${r.id}')">Del</button>
+              </div>
+            </td>` : ''}
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  },
+
+  openForm(id) {
+    const schools = this._schools;
+    const existing = id ? (DB.getFunds ? null : null) : null;
+
+    DB.getFunds().then(({ data }) => {
+      const rec = id ? (data||[]).find(r=>r.id===id) : null;
+      const yr  = new Date().getFullYear();
+      const years = [];
+      for (let y = yr; y >= yr - 3; y--) years.push(y);
+
+      const schoolOpts = schools.map(s =>
+        `<option value="${s.id}" ${rec?.school_id===s.id?'selected':''}>${s.name}</option>`
+      ).join('');
+
+      const fundOpts = FUND_TYPES.map(f =>
+        `<option value="${f}" ${rec?.fund_type===f?'selected':''}>${f}</option>`
+      ).join('');
+
+      const html = `
+      <form id="fund-form" onsubmit="FundsView.saveFund(event,'${id||''}')">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div class="col-span-2">
+            <label class="form-label">School *</label>
+            <select id="fd-school" class="form-select" required>
+              <option value="">Select school…</option>${schoolOpts}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">ADA Number *</label>
+            <input id="fd-ada-no" type="text" class="form-input" required placeholder="e.g. 2626003" value="${rec?.ada_no||''}" />
+          </div>
+          <div>
+            <label class="form-label">ADA Date *</label>
+            <input id="fd-ada-date" type="date" class="form-input" required value="${rec?.ada_date||''}" />
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">Fund Type *</label>
+            <select id="fd-fund" class="form-select" required>
+              <option value="">Select fund type…</option>${fundOpts}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Amount (₱) *</label>
+            <input id="fd-amount" type="number" step="0.01" min="0" class="form-input" required value="${rec?.amount||''}" placeholder="0.00" />
+          </div>
+          <div>
+            <label class="form-label">Year</label>
+            <select id="fd-year" class="form-select">
+              ${years.map(y=>`<option value="${y}" ${(rec?.year||yr)==y?'selected':''}>${y}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">Status *</label>
+            <select id="fd-status" class="form-select" required>
+              <option value="pending"          ${rec?.status==='pending'?'selected':''}>Pending</option>
+              <option value="submitted_to_sou" ${rec?.status==='submitted_to_sou'?'selected':''}>Submitted to SOU</option>
+              <option value="liquidated"       ${rec?.status==='liquidated'?'selected':''}>Liquidated</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="form-label">Remarks</label>
+            <input id="fd-remarks" type="text" class="form-input" placeholder="e.g. submitted 4/4/2025" value="${rec?.remarks||''}" />
+          </div>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">${id?'Update':'Add'} Record</button>
+        </div>
+      </form>`;
+      App.openModal(id ? 'Edit Fund Record' : 'Add Fund Record', html);
+    });
+  },
+
+  async saveFund(e, id) {
+    e.preventDefault();
+    const row = {
+      id: id || DB.newId(),
+      school_id:  document.getElementById('fd-school').value,
+      ada_no:     document.getElementById('fd-ada-no').value.trim(),
+      ada_date:   document.getElementById('fd-ada-date').value,
+      fund_type:  document.getElementById('fd-fund').value,
+      amount:     parseFloat(document.getElementById('fd-amount').value) || 0,
+      year:       parseInt(document.getElementById('fd-year').value),
+      status:     document.getElementById('fd-status').value,
+      remarks:    document.getElementById('fd-remarks').value.trim(),
+    };
+    const { error } = await DB.upsertFund(row);
+    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    App.closeModal();
+    App.toast(id ? 'Record updated!' : 'Record added!');
+    await this.load();
+  },
+
+  async deleteFund(id) {
+    if (!confirm('Delete this fund record?')) return;
+    await DB.deleteFund(id);
+    App.toast('Record deleted.');
+    await this.load();
+  },
+
+  async seedDefaults() {
+    if (!confirm('Load Regular MOOE seed data for all 14 schools (2025 Q1–Q4 and 2026 Q1)? This will add missing records only.')) return;
+
+    const { data: existing } = await DB.getFunds();
+    const existingKeys = new Set((existing||[]).map(r=>`${r.school_id}_${r.ada_no}_${r.fund_type}`));
+
+    const seeds = [
+      // ── Regular MOOE 2025 Q1 (ADA 2501012, LBP, 2025-02-03) ──
+      { school_id:'s_alegre',     ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:150000,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_arado',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:132250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_batug',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:145500,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_cabacungan', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:206250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_cabarasan',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:137250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_cabatoan',   ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:149250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_calipayan',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:138750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_delcarmen',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:130250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_genroxas',   ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:136250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_mhdelpilar', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:144250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_maricum',    ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:126250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/11/2025' },
+      { school_id:'s_rawis',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:155750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_sanantonio', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:153750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+      { school_id:'s_tabu',       ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:139500,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
+
+      // ── Regular MOOE 2025 Q2 (ADA 2504026, 2025-04-10) ──
+      { school_id:'s_alegre',     ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:149974.71, year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_arado',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_batug',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_cabacungan', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_cabarasan',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_cabatoan',   ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_calipayan',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_delcarmen',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_genroxas',   ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_mhdelpilar', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_maricum',    ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:126250,    year:2025, status:'liquidated',        remarks:'Liquidated' },
+      { school_id:'s_rawis',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_sanantonio', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+      { school_id:'s_tabu',       ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
+
+      // ── Regular MOOE 2025 Q3 (ADA 2507057, LBP, 2025-07-24) ──
+      { school_id:'s_alegre',     ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:159999.15, year:2025, status:'liquidated', remarks:'liquidated with MATATAG fund' },
+      { school_id:'s_arado',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_batug',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabacungan', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabarasan',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabatoan',   ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_calipayan',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_delcarmen',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_genroxas',   ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_mhdelpilar', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_maricum',    ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:126250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_rawis',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'liquidated', remarks:'Liquidated' },
+      { school_id:'s_sanantonio', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_tabu',       ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'liquidated', remarks:'liquidated' },
+
+      // ── Regular MOOE 2025 Q4 (ADA 2510110, LBP, 2025-11-12) ──
+      { school_id:'s_alegre',     ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:149901.26, year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_arado',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_batug',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabacungan', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabarasan',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabatoan',   ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'liquidated', remarks:'LIquidated' },
+      { school_id:'s_calipayan',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_delcarmen',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_genroxas',   ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_mhdelpilar', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_maricum',    ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:126249.92, year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_rawis',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'liquidated', remarks:'LIQUIDATED' },
+      { school_id:'s_sanantonio', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_tabu',       ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'liquidated', remarks:'liquidated' },
+
+      // ── Regular MOOE 2026 Q1 (ADA 2626003, LBP, 2026-01-29) ──
+      { school_id:'s_alegre',     ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:180750,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_arado',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:161750,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_batug',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:177000,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabacungan', ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:253750,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabarasan',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:170000,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_cabatoan',   ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:186250,   year:2026, status:'liquidated', remarks:'LIquidated' },
+      { school_id:'s_calipayan',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:173000,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_delcarmen',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:160250,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_genroxas',   ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:165750,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_maricum',    ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:156250,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_rawis',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:193250,   year:2026, status:'liquidated', remarks:'LIQUIdated' },
+      { school_id:'s_sanantonio', ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:201750,   year:2026, status:'liquidated', remarks:'liquidated' },
+      { school_id:'s_tabu',       ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:171750,   year:2026, status:'liquidated', remarks:'liquidated' },
+    ];
+
+    let added = 0;
+    for (const s of seeds) {
+      const key = `${s.school_id}_${s.ada_no}_${s.fund_type}`;
+      if (existingKeys.has(key)) continue;
+      s.id = DB.newId();
+      await DB.upsertFund(s);
+      added++;
+    }
+    App.toast(`Loaded ${added} fund records!`);
+    await this.load();
+  },
+};
