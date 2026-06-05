@@ -445,7 +445,7 @@ const CDRView = {
     await this.showDetail(cdr_id);
   },
 
-  // ---- Download as Excel (Appendix 43 format with full formatting) ----
+  // ---- Download as Excel (matches CDR 2026 template exactly) ----
   async downloadExcel(id) {
     if (typeof ExcelJS === 'undefined') { App.toast('Excel library not loaded. Please refresh the page.', 'error'); return; }
 
@@ -454,176 +454,224 @@ const CDRView = {
     const entries = entriesRes.data || [];
     if (!header) { App.toast('CDR not found', 'error'); return; }
 
-    const school = this._getSchool(header.school_id);
-    const schoolName = (school.name || '').toUpperCase();
+    const school   = this._getSchool(header.school_id);
+    const sName    = (school.name || '').toUpperCase();
+    const COL_OFF  = '5020301000';
+    const COL_GEN  = '5021299000';
+    const COL_JAN  = '5021202000';
+    const numFmt   = '#,##0.00';
 
-    let balance = parseFloat(header.opening_balance) || 0;
+    let bal = parseFloat(header.opening_balance) || 0;
     const rows = entries.map(e => {
-      const adv = parseFloat(e.advances) || 0;
-      const pay = parseFloat(e.payment)  || 0;
-      balance = balance + adv - pay;
-      return { ...e, running_balance: balance };
+      bal += (parseFloat(e.advances)||0) - (parseFloat(e.payment)||0);
+      return { ...e, running_balance: bal };
     });
 
-    const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
-    const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
-    const finalBal = rows.length > 0 ? rows[rows.length-1].running_balance : (parseFloat(header.opening_balance) || 0);
+    const totalAdv  = entries.reduce((s,e)=>s+(parseFloat(e.advances)||0),0);
+    const totalPay  = entries.reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const finalBal  = rows.length ? rows[rows.length-1].running_balance : (parseFloat(header.opening_balance)||0);
+    const totOff    = entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const totGen    = entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const totJan    = entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
 
-    const COL_OFFICE = '5020301000';
-    const COL_GENSVC = '5021299000';
-    const COL_JANIT  = '5021202000';
-    const totOffice = entries.filter(e => e.uacs_code === COL_OFFICE).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
-    const totGenSvc = entries.filter(e => e.uacs_code === COL_GENSVC).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
-    const totJanit  = entries.filter(e => e.uacs_code === COL_JANIT ).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
+    // Recapitulation
+    const recap = {};
+    entries.forEach(e => {
+      const p = parseFloat(e.payment)||0; if (!p) return;
+      const code = e.uacs_code||'';
+      const desc = e.uacs_desc || UACS_CODES.find(u=>u.code===code)?.desc || code;
+      if (!recap[code]) recap[code]={code,desc,total:0};
+      recap[code].total += p;
+    });
 
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet(`${header.year} ${header.quarter}`, { pageSetup: { paperSize: 14, orientation: 'landscape' } });
+    const ws = wb.addWorksheet(`${header.year} ${header.quarter}`,
+      { pageSetup:{ paperSize:14, orientation:'landscape', fitToPage:true, fitToWidth:1 } });
 
-    // Column widths (12 columns A-L)
     ws.columns = [
-      {width:12},{width:22},{width:38},{width:14},{width:13},{width:14},
-      {width:15},{width:14},{width:13},{width:28},{width:14},{width:13}
+      {width:10},{width:22},{width:40},{width:14},{width:13},{width:14},
+      {width:15},{width:15},{width:13},{width:28},{width:14},{width:13}
     ];
 
-    const center = { horizontal:'center', vertical:'middle', wrapText:true };
-    const left   = { horizontal:'left',   vertical:'middle', wrapText:true };
-    const right  = { horizontal:'right',  vertical:'middle' };
-    const thin   = { style:'thin', color:{ argb:'FF000000' } };
-    const border = { top:thin, left:thin, bottom:thin, right:thin };
-    const titleFont  = { name:'Arial', bold:true, size:12 };
-    const boldFont   = { name:'Arial', bold:true, size:9 };
-    const normalFont = { name:'Arial', size:9 };
-    const headerFill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFD9D9D9' } };
+    // Styles
+    const thin  = { style:'thin', color:{argb:'FF000000'} };
+    const bord  = { top:thin, left:thin, bottom:thin, right:thin };
+    const hFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'} };
+    const C = (h,a,f,b) => ({ font:{name:'Arial',...h}, alignment:a, fill:f||undefined, border:b||undefined });
+    const AL = { horizontal:'left',   vertical:'middle', wrapText:true };
+    const AC = { horizontal:'center', vertical:'middle', wrapText:true };
+    const AR = { horizontal:'right',  vertical:'middle' };
 
-    const merge = (r1,c1,r2,c2) => ws.mergeCells(r1,c1,r2,c2);
-    const cell  = (r,c) => ws.getCell(r,c);
-    const setCell = (r,c,val,font,align,fill,bord) => {
-      const cl = cell(r,c);
-      cl.value = val;
-      if (font)  cl.font      = font;
-      if (align) cl.alignment = align;
-      if (fill)  cl.fill      = fill;
-      if (bord)  cl.border    = bord;
+    const mc  = (r1,c1,r2,c2) => ws.mergeCells(r1,c1,r2,c2);
+    const sc  = (r,c,v,font,align,fill,border) => {
+      const cl = ws.getCell(r,c);
+      cl.value = v;
+      if (font)   cl.font      = font;
+      if (align)  cl.alignment = align;
+      if (fill)   cl.fill      = fill;
+      if (border) cl.border    = border;
     };
+    const bold   = (sz=9) => ({ name:'Arial', bold:true, size:sz });
+    const normal = (sz=9) => ({ name:'Arial', size:sz });
 
-    // Row 1: DEPED LEYTE DIVISION
-    merge(1,1,1,12); setCell(1,1,'DEPED LEYTE DIVISION', titleFont, center);
+    // ── Rows 1-2: Division / School / Appendix 43 ──
+    mc(1,1,1,12); sc(1,1,'DEPED LEYTE DIVISION', bold(12), AC);
+    mc(2,1,2,11); sc(2,1, sName, bold(12), AC);
+    sc(2,12,'Appendix 43', {name:'Arial',italic:true,size:10}, {horizontal:'right',vertical:'middle'});
+    ws.getRow(1).height = 18; ws.getRow(2).height = 18;
 
-    // Row 2: School name + Appendix 43
-    merge(2,1,2,11); setCell(2,1,schoolName, titleFont, center);
-    setCell(2,12,'Appendix 43', {name:'Arial',italic:true,size:10}, {horizontal:'right',vertical:'middle'});
+    // ── Row 4: CASH DISBURSEMENTS REGISTER ──
+    mc(4,1,4,12);
+    sc(4,1,'CASH DISBURSEMENTS REGISTER', {name:'Arial',bold:true,size:13,underline:true}, AC);
+    ws.getRow(4).height = 22;
 
-    // Row 3: empty
-
-    // Row 4: CASH DISBURSEMENTS REGISTER
-    merge(4,1,4,12); setCell(4,1,'CASH DISBURSEMENTS REGISTER', {name:'Arial',bold:true,size:13,underline:true}, center);
-
-    // Row 5: empty
-
-    // Rows 6-10: Entity info (left A-F) + Accountable Officer (right G-L)
-    const infoData = [
-      [`Entity Name: ${schoolName}`,                        `Name of Accountable Officer: ${school.school_head||''}`],
+    // ── Rows 6-10: Entity info (A-H) + Accountable Officer (I-L) ──
+    const info = [
+      [`Entity Name: ${sName}`,                             `Name of Accountable Officer: ${school.school_head||''}`],
       [`Sub-Office/District/Division: DULAG WEST DISTRICT`, `Official Designation: ${school.designation||''}`],
       [`Municipality/City/Province: DULAG, LEYTE`,          `Station: ${school.short_name||school.name||''}`],
-      [`Fund Cluster: 01-REGULAR`,                          `Register No.: ___________________________`],
-      [``,                                                   `Sheet No.: ___________________________`],
+      [`Fund Cluster : 01-REGULAR`,                         `Register No. : __________________________________`],
+      [``,                                                    `Sheet No. : ____________________________________`],
     ];
-    infoData.forEach(([lft, rgt], i) => {
-      const r = 6 + i;
-      merge(r,1,r,6);  setCell(r,1,lft, boldFont, left);
-      merge(r,7,r,12); setCell(r,7,rgt, boldFont, left);
+    info.forEach(([l,r],i) => {
+      const row = 6+i;
+      mc(row,1,row,8); sc(row,1,l, bold(9), AL);
+      mc(row,9,row,12); sc(row,9,r, bold(9), AL);
+      ws.getRow(row).height = 15;
     });
 
-    // Row 11: empty
+    // ── Rows 13-17: 5-row table header ──
+    // Date / DV / Particulars span all 5 rows
+    mc(13,1,17,1); sc(13,1,'Date', bold(8), AC, hFill, bord);
+    mc(13,2,17,2); sc(13,2,'DV/Payroll/ Check No.', bold(8), AC, hFill, bord);
+    mc(13,3,17,3); sc(13,3,'Particulars', bold(8), AC, hFill, bord);
 
-    // Rows 12-15: Table headers
-    // Row 12
-    merge(12,1,12,3); setCell(12,1,'', normalFont, center, headerFill, border);
-    merge(12,4,12,6); setCell(12,4,'Advances for Operating Expenses', boldFont, center, headerFill, border);
-    merge(12,7,12,12); setCell(12,7,'BREAKDOWN OF PAYMENTS', boldFont, center, headerFill, border);
+    // Row 13: Advances / Breakdown
+    mc(13,4,13,6); sc(13,4,'Advances for\nOperating Expenses', bold(8), AC, hFill, bord);
+    mc(13,7,13,12); sc(13,7,'BREAKDOWN OF PAYMENTS', bold(8), AC, hFill, bord);
+    ws.getRow(13).height = 22;
 
-    // Row 13
-    merge(13,1,13,3); setCell(13,1,'', normalFont, center, headerFill, border);
-    merge(13,4,13,6); setCell(13,4,'-19901010', boldFont, center, headerFill, border);
-    merge(13,7,13,12); setCell(13,7,'', normalFont, center, headerFill, border);
+    // Row 14: -19901010
+    mc(14,4,14,6); sc(14,4,'-19901010', bold(8), AC, hFill, bord);
+    mc(14,7,14,12); sc(14,7,'', normal(8), AC, hFill, bord);
+    ws.getRow(14).height = 15;
 
-    // Row 14
-    merge(14,1,14,3); setCell(14,1,'', normalFont, center, headerFill, border);
-    merge(14,4,14,6); setCell(14,4,'Amount', boldFont, center, headerFill, border);
-    setCell(14,7,'Office Supplies Expenses', boldFont, center, headerFill, border);
-    setCell(14,8,'Other General', boldFont, center, headerFill, border);
-    setCell(14,9,'Janitorial Services', boldFont, center, headerFill, border);
-    merge(14,10,14,12); setCell(14,10,'O T H E R S', boldFont, center, headerFill, border);
+    // Row 15: Amount / fixed cols / O T H E R S
+    mc(15,4,15,6); sc(15,4,'Amount', bold(8), AC, hFill, bord);
+    mc(15,7,16,7); sc(15,7,'Office Supplies\nExpenses', bold(8), AC, hFill, bord);  // rowspan 2
+    mc(15,8,16,8); sc(15,8,'Other General\nServices', bold(8), AC, hFill, bord);     // rowspan 2
+    mc(15,9,16,9); sc(15,9,'Janitorial\nServices', bold(8), AC, hFill, bord);        // rowspan 2
+    mc(15,10,15,12); sc(15,10,'O T H E R S', bold(8), AC, hFill, bord);
+    ws.getRow(15).height = 26;
 
-    // Row 15: column labels
-    const hdr15 = ['Date','DV/Payroll/ Check No.','Particulars','Cash Advance','Payments','Balance','5020301000','5021299000','5021202000','Account Description','UACS Object Code','Amount'];
-    hdr15.forEach((v,i) => setCell(15, i+1, v, boldFont, center, headerFill, border));
+    // Row 16: Cash Advance / Payments / Balance / Account Desc / UACS / Amount
+    sc(16,4,'Cash Advance', bold(8), AC, hFill, bord);
+    sc(16,5,'Payments',     bold(8), AC, hFill, bord);
+    sc(16,6,'Balance',      bold(8), AC, hFill, bord);
+    sc(16,10,'Account Description', bold(8), AC, hFill, bord);
+    sc(16,11,'UACS Object Code',    bold(8), AC, hFill, bord);
+    sc(16,12,'Amount',              bold(8), AC, hFill, bord);
+    ws.getRow(16).height = 26;
 
-    // Set row heights for header rows
-    ws.getRow(12).height = 20;
-    ws.getRow(13).height = 16;
-    ws.getRow(14).height = 28;
-    ws.getRow(15).height = 28;
+    // Row 17: UACS codes for fixed columns
+    [4,5,6].forEach(c => sc(17,c,'', normal(7), AC, hFill, bord));
+    sc(17,7,'5020301000', bold(7), AC, hFill, bord);
+    sc(17,8,'5021299000', bold(7), AC, hFill, bord);
+    sc(17,9,'5021202000', bold(7), AC, hFill, bord);
+    [10,11,12].forEach(c => sc(17,c,'', normal(7), AC, hFill, bord));
+    ws.getRow(17).height = 15;
 
-    // Data rows
-    let dataRowNum = 16;
+    // ── Data rows starting at row 18 ──
+    let dr = 18;
     rows.forEach(e => {
-      const adv = parseFloat(e.advances) || 0;
-      const pay = parseFloat(e.payment)  || 0;
-      const isOffice = e.uacs_code === COL_OFFICE;
-      const isGenSvc = e.uacs_code === COL_GENSVC;
-      const isJanit  = e.uacs_code === COL_JANIT;
-      const isOthers = !isOffice && !isGenSvc && !isJanit && pay > 0;
-      const othDesc  = isOthers ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || '') : '';
-      const numFmt   = '#,##0.00';
+      const adv = parseFloat(e.advances)||0;
+      const pay = parseFloat(e.payment)||0;
+      const isOff = e.uacs_code===COL_OFF;
+      const isGen = e.uacs_code===COL_GEN;
+      const isJan = e.uacs_code===COL_JAN;
+      const isOth = !isOff && !isGen && !isJan && pay>0;
+      const desc  = isOth ? (e.uacs_desc||UACS_CODES.find(u=>u.code===e.uacs_code)?.desc||'') : '';
 
-      const rowData = [
-        e.entry_date ? _fd(e.entry_date) : '',
-        e.ref_no || '',
-        e.particulars || '',
-        adv > 0 ? adv : '',
-        pay > 0 ? pay : '',
-        e.running_balance,
-        isOffice ? pay : '',
-        isGenSvc ? pay : '',
-        isJanit  ? pay : '',
-        othDesc,
-        isOthers ? (e.uacs_code||'') : '',
-        isOthers ? pay : '',
+      const vals = [
+        {v: e.entry_date?_fd(e.entry_date):'', a:AC},
+        {v: e.ref_no||'',                       a:AL},
+        {v: e.particulars||'',                  a:AL},
+        {v: adv>0?adv:'',    a:AR, n:true},
+        {v: pay>0?pay:'',    a:AR, n:true},
+        {v: e.running_balance, a:AR, n:true},
+        {v: isOff?pay:'',    a:AR, n:true},
+        {v: isGen?pay:'',    a:AR, n:true},
+        {v: isJan?pay:'',    a:AR, n:true},
+        {v: desc,             a:AL},
+        {v: isOth?(e.uacs_code||''):'', a:AC},
+        {v: isOth?pay:'',    a:AR, n:true},
       ];
-
-      rowData.forEach((v, i) => {
-        const cl = ws.getCell(dataRowNum, i+1);
-        cl.value = v;
-        cl.font  = normalFont;
-        cl.border = border;
-        cl.alignment = (i >= 3 && i <= 5) || i === 6 || i === 7 || i === 8 || i === 11
-          ? right : (i === 0 ? center : left);
-        if (typeof v === 'number') cl.numFmt = numFmt;
+      vals.forEach(({v,a,n},i) => {
+        const cl = ws.getCell(dr, i+1);
+        cl.value = v; cl.font = normal(9); cl.border = bord; cl.alignment = a;
+        if (n && typeof v==='number') cl.numFmt = numFmt;
       });
-      ws.getRow(dataRowNum).height = 18;
-      dataRowNum++;
+      ws.getRow(dr).height = 18;
+      dr++;
     });
 
-    // Total row
-    const tr = dataRowNum;
-    const totData = ['','','TOTAL', totalAdv||'', totalPay||'', finalBal, totOffice||'', totGenSvc||'', totJanit||'','','',''];
-    totData.forEach((v,i) => {
-      const cl = ws.getCell(tr, i+1);
-      cl.value = v;
-      cl.font  = boldFont;
-      cl.border = border;
-      cl.alignment = i === 2 ? center : right;
-      if (typeof v === 'number') cl.numFmt = '#,##0.00';
+    // ── Totals row ──
+    const totVals = ['','','Totals','','','',
+      totOff||'', totGen||'', totJan||'', '', '', totalPay||''];
+    totVals.forEach((v,i) => {
+      const cl = ws.getCell(dr,i+1);
+      cl.value = v; cl.font = bold(9); cl.border = bord;
+      cl.alignment = i===2 ? AC : AR;
+      if (typeof v==='number') cl.numFmt = numFmt;
     });
-    ws.getRow(tr).height = 18;
+    ws.getRow(dr).height = 18;
+    dr += 2;
 
-    // Download
-    const buf = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    // ── Recapitulation (cols J-L) ──
+    mc(dr,10,dr,12); sc(dr,10,'Recapitulation:', bold(9), AL);
+    dr++;
+    sc(dr,10,'Account Description', bold(8), AC, hFill, bord);
+    sc(dr,11,'UACS Object Code',    bold(8), AC, hFill, bord);
+    sc(dr,12,'Amount',              bold(8), AC, hFill, bord);
+    dr++;
+    Object.values(recap).forEach(r => {
+      sc(dr,10,r.desc,  normal(9), AL, null, bord);
+      sc(dr,11,r.code,  normal(9), AC, null, bord);
+      const cl=ws.getCell(dr,12); cl.value=r.total; cl.font=normal(9);
+      cl.border=bord; cl.alignment=AR; cl.numFmt=numFmt;
+      ws.getRow(dr).height=16; dr++;
+    });
+    sc(dr,10,'Total', bold(9), AR, null, bord);
+    sc(dr,11,'',      bold(9), AC, null, bord);
+    const tc=ws.getCell(dr,12); tc.value=totalPay; tc.font=bold(9);
+    tc.border=bord; tc.alignment=AR; tc.numFmt=numFmt;
+    dr += 2;
+
+    // ── Note ──
+    mc(dr,1,dr,12);
+    sc(dr,1,"The total of the 'Advances for Operating Expenses – Payments' column must always be equal to the sum of the totals of the 'Breakdown of Payments' columns.",
+      {name:'Arial',italic:true,size:8}, {horizontal:'left',vertical:'middle',wrapText:true});
+    ws.getRow(dr).height = 24; dr += 2;
+
+    // ── Signature block ──
+    mc(dr,2,dr,6); sc(dr,2,'CERTIFIED CORRECT:', bold(9), AL);
+    mc(dr,9,dr,12); sc(dr,9,'RECEIVED BY:', bold(9), AL);
+    dr += 2;
+    mc(dr,2,dr,6); sc(dr,2,school.school_head||'', {name:'Arial',bold:true,size:10,underline:true}, AC);
+    mc(dr,9,dr,12); sc(dr,9,BOOKKEEPER, {name:'Arial',bold:true,size:10,underline:true}, AC);
+    dr++;
+    mc(dr,2,dr,6); sc(dr,2,school.designation||'', normal(9), AC);
+    mc(dr,9,dr,12); sc(dr,9,BOOKKEEPER_TITLE, normal(9), AC);
+    dr += 2;
+    mc(dr,2,dr,6); sc(dr,2,'Date: ____________________', normal(9), AL);
+    mc(dr,9,dr,12); sc(dr,9,'Date: ______________________', normal(9), AL);
+
+    // ── Download ──
+    const buf  = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href     = url;
+    a.href = url;
     a.download = `CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
