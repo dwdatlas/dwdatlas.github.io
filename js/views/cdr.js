@@ -114,7 +114,8 @@ const CDRView = {
           <td>
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              <button class="btn btn-primary btn-sm" onclick="CDRView.downloadExcel('${r.id}')">Download</button>
+              <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadExcel('${r.id}')">Excel</button>
+              <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${r.id}')">Print</button>
               <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
             </div>
           </td>
@@ -248,8 +249,11 @@ const CDRView = {
       <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
         ← Back to CDR List
       </button>
-      <button class="btn btn-primary btn-sm" onclick="CDRView.downloadExcel('${id}')">
+      <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadExcel('${id}')">
         ⬇ Download Excel
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${id}')">
+        Print CDR
       </button>
     </div>
 
