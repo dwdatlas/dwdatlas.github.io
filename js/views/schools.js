@@ -148,30 +148,25 @@ const SchoolsView = {
     if (!confirm('Load all 14 Dulag West District schools? Existing school records with the same name will be updated.')) return;
 
     const defaults = [
-      { name: 'Alegre Elementary School', short_name: 'Alegre ES', school_head: 'CONSUELO V. HINAY', designation: 'Head Teacher III', confirmation_expiry: '2027-01-09' },
-      { name: 'Arado Elementary School', short_name: 'Arado ES', school_head: 'RIZALINA B. ARIAS', designation: 'Head Teacher III', confirmation_expiry: '2026-09-29' },
-      { name: 'Batug Elementary School', short_name: 'Batug ES', school_head: 'EMY T. ELIZARDE', designation: 'Head Teacher III', confirmation_expiry: '2026-05-05' },
-      { name: 'Cabacungan Elementary School', short_name: 'Cabacungan ES', school_head: 'ROSALIE C. PALAÑA', designation: 'Head Teacher III', confirmation_expiry: '2026-05-05' },
-      { name: 'Cabarasan Elementary School', short_name: 'Cabarasan ES', school_head: 'GLORIA L. PATAWE', designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
-      { name: 'Cabatoan Elementary School', short_name: 'Cabatoan ES', school_head: 'ROLEXAN L. MERCADO', designation: 'Head Teacher III', confirmation_expiry: '2027-02-17' },
-      { name: 'Calipayan Elementary School', short_name: 'Calipayan ES', school_head: 'LIGAYA L. SAÑO', designation: 'Head Teacher III', confirmation_expiry: null },
-      { name: 'Del Carmen Elementary School', short_name: 'Del Carmen ES', school_head: 'MARVY D. ABAD', designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
-      { name: 'Gen. Roxas Elementary School', short_name: 'Gen. Roxas ES', school_head: 'CRISMERALDA R. BOLLENA', designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
-      { name: 'M.H. Del Pilar Elementary School', short_name: 'M.H Del Pilar ES', school_head: 'REMINA RIVAS', designation: 'Head Teacher III', confirmation_expiry: null },
-      { name: 'Maricum Elementary School', short_name: 'Maricum ES', school_head: 'EFREN V. GENOTIVA', designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
-      { name: 'Rawis Elementary School', short_name: 'Rawis ES', school_head: 'BELEN S. GRADO', designation: 'Head Teacher III', confirmation_expiry: '2027-02-15' },
-      { name: 'San Antonio Elementary School', short_name: 'San Antonio ES', school_head: 'RETCHIE G. BRECIO', designation: 'Head Teacher III', confirmation_expiry: '2027-01-12' },
-      { name: 'Tabu Elementary School', short_name: 'Tabu ES', school_head: 'GLENDA L. YU', designation: 'Head Teacher III', confirmation_expiry: '2026-03-27' },
+      { id: 's_alegre',     name: 'Alegre Elementary School',       short_name: 'Alegre ES',      school_head: 'CONSUELO V. HINAY',       designation: 'Head Teacher III', confirmation_expiry: '2027-01-09' },
+      { id: 's_arado',      name: 'Arado Elementary School',        short_name: 'Arado ES',       school_head: 'RIZALINA B. ARIAS',       designation: 'Head Teacher III', confirmation_expiry: '2026-09-29' },
+      { id: 's_batug',      name: 'Batug Elementary School',        short_name: 'Batug ES',       school_head: 'EMY T. ELIZARDE',         designation: 'Head Teacher III', confirmation_expiry: '2026-05-05' },
+      { id: 's_cabacungan', name: 'Cabacungan Elementary School',   short_name: 'Cabacungan ES',  school_head: 'ROSALIE C. PALAÑA',       designation: 'Head Teacher III', confirmation_expiry: '2026-05-05' },
+      { id: 's_cabarasan',  name: 'Cabarasan Elementary School',    short_name: 'Cabarasan ES',   school_head: 'GLORIA L. PATAWE',        designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
+      { id: 's_cabatoan',   name: 'Cabatoan Elementary School',     short_name: 'Cabatoan ES',    school_head: 'ROLEXAN L. MERCADO',      designation: 'Head Teacher III', confirmation_expiry: '2027-02-17' },
+      { id: 's_calipayan',  name: 'Calipayan Elementary School',    short_name: 'Calipayan ES',   school_head: 'LIGAYA L. SAÑO',          designation: 'Head Teacher III', confirmation_expiry: null },
+      { id: 's_delcarmen',  name: 'Del Carmen Elementary School',   short_name: 'Del Carmen ES',  school_head: 'MARVY D. ABAD',           designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
+      { id: 's_genroxas',   name: 'Gen. Roxas Elementary School',   short_name: 'Gen. Roxas ES',  school_head: 'CRISMERALDA R. BOLLENA',  designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
+      { id: 's_mhdelpilar', name: 'M.H. Del Pilar Elementary School',short_name: 'M.H Del Pilar ES',school_head: 'REMINA RIVAS',         designation: 'Head Teacher III', confirmation_expiry: null },
+      { id: 's_maricum',    name: 'Maricum Elementary School',      short_name: 'Maricum ES',     school_head: 'EFREN V. GENOTIVA',       designation: 'Head Teacher III', confirmation_expiry: '2026-09-30' },
+      { id: 's_rawis',      name: 'Rawis Elementary School',        short_name: 'Rawis ES',       school_head: 'BELEN S. GRADO',          designation: 'Head Teacher III', confirmation_expiry: '2027-02-15' },
+      { id: 's_sanantonio', name: 'San Antonio Elementary School',  short_name: 'San Antonio ES', school_head: 'RETCHIE G. BRECIO',       designation: 'Head Teacher III', confirmation_expiry: '2027-01-12' },
+      { id: 's_tabu',       name: 'Tabu Elementary School',         short_name: 'Tabu ES',        school_head: 'GLENDA L. YU',            designation: 'Head Teacher III', confirmation_expiry: '2026-03-27' },
     ];
-
-    const { data: existing } = await DB.getSchools();
-    const existingMap = {};
-    (existing || []).forEach(s => { existingMap[s.name] = s.id; });
 
     let count = 0;
     for (const s of defaults) {
-      const id = existingMap[s.name] || DB.newId();
-      await DB.upsertSchool({ id, ...s });
+      await DB.upsertSchool(s);
       count++;
     }
     App.toast(`Loaded ${count} schools!`);

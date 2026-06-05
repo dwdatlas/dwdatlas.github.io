@@ -68,6 +68,10 @@ const SetupView = {
       <div id="users-list" class="table-scroll">
         <div class="flex justify-center py-6"><div class="spinner"></div></div>
       </div>
+      <div class="px-5 pb-4 border-t pt-3 bg-gray-50">
+        <p class="text-xs text-gray-500 mb-2">After adding/removing accounts, export and send the file to your developer to publish the changes for all devices.</p>
+        <button class="btn btn-secondary btn-sm" onclick="SetupView.exportUsers()">Export Users File</button>
+      </div>
     </div>
 
     <!-- Change Password -->
@@ -247,6 +251,20 @@ const SetupView = {
     Auth.updateUserPassword(id, document.getElementById('reset-pw').value);
     App.closeModal();
     App.toast('Password reset!');
+  },
+
+  exportUsers() {
+    const users = Auth.getUsers();
+    const lines = users.map(u => `  ${JSON.stringify(u)},`).join('\n');
+    const content = `// ============================================================\n// USERS DATA — committed to GitHub so all devices share accounts\n// Passwords are hashed — actual passwords never stored here\n// ============================================================\nconst USERS_DATA = [\n${lines}\n];\n`;
+    const blob = new Blob([content], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'users-data.js';
+    a.click();
+    URL.revokeObjectURL(url);
+    App.toast('users-data.js downloaded! Send this file to your developer.');
   },
 
   deleteUser(id) {

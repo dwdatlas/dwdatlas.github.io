@@ -26,6 +26,8 @@ const Auth = {
       const stored = localStorage.getItem(this.USERS_KEY);
       if (stored) return JSON.parse(stored);
     } catch {}
+    // Fall back to committed users-data.js (works across all devices)
+    if (typeof USERS_DATA !== 'undefined' && USERS_DATA.length) return USERS_DATA;
     return [{
       id: 'admin',
       username: 'admin',
