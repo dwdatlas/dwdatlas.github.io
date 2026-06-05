@@ -541,10 +541,11 @@ const CDRView = {
     });
 
     // ── Rows 13-17: 5-row table header ──
-    // Date / DV / Particulars span all 5 rows
-    mc(13,1,17,1); sc(13,1,'Date', bold(8), AC, hFill, bord);
-    mc(13,2,17,2); sc(13,2,'DV/Payroll/ Check No.', bold(8), AC, hFill, bord);
-    mc(13,3,17,3); sc(13,3,'Particulars', bold(8), AC, hFill, bord);
+    // Date / DV / Particulars span all 5 rows — text pinned to bottom
+    const AB = { horizontal:'center', vertical:'bottom', wrapText:true };
+    mc(13,1,17,1); sc(13,1,'Date', bold(8), AB, hFill, bord);
+    mc(13,2,17,2); sc(13,2,'DV/Payroll/ Check No.', bold(8), AB, hFill, bord);
+    mc(13,3,17,3); sc(13,3,'Particulars', bold(8), AB, hFill, bord);
 
     // Row 13: Advances / Breakdown
     mc(13,4,13,6); sc(13,4,'Advances for\nOperating Expenses', bold(8), AC, hFill, bord);
@@ -615,14 +616,28 @@ const CDRView = {
       dr++;
     });
 
-    // ── Totals row ──
-    const totVals = ['','','Totals','','','',
-      totOff||'', totGen||'', totJan||'', '', '', totalPay||''];
-    totVals.forEach((v,i) => {
+    // ── Totals row (matches template: label in C, fixed col totals in G/H/I, others total in L) ──
+    const totVals = [
+      {v:'',         a:AC},
+      {v:'',         a:AC},
+      {v:'Totals',   a:AC, b:true},
+      {v:'',         a:AR},
+      {v:'',         a:AR},
+      {v:'',         a:AR},
+      {v:totOff||'', a:AR, n:true},
+      {v:totGen||'', a:AR, n:true},
+      {v:totJan||'', a:AR, n:true},
+      {v:'',         a:AR},
+      {v:'',         a:AR},
+      {v:totalPay||'', a:AR, n:true},
+    ];
+    totVals.forEach(({v,a,b,n},i) => {
       const cl = ws.getCell(dr,i+1);
-      cl.value = v; cl.font = bold(9); cl.border = bord;
-      cl.alignment = i===2 ? AC : AR;
-      if (typeof v==='number') cl.numFmt = numFmt;
+      cl.value = v;
+      cl.font = b ? bold(9) : normal(9);
+      cl.border = bord;
+      cl.alignment = {horizontal:a.replace('AR','right').replace('AC','center'), vertical:'middle'};
+      if (n && typeof v==='number') cl.numFmt = numFmt;
     });
     ws.getRow(dr).height = 18;
     dr += 2;
