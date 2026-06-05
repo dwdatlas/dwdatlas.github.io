@@ -711,3 +711,14 @@ const CDRView = {
   },
 };
 
+// Helpers used inside printCDR template literals
+function _fp(n) {
+  const v = parseFloat(n) || 0;
+  return v === 0 ? '' : v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function _fd(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + dt.getFullYear();
+}
+
