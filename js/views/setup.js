@@ -59,6 +59,29 @@ const SetupView = {
       </div>
     </div>
 
+    <!-- Change Password -->
+    <div class="section-card mb-4">
+      <div class="section-card-header"><h3>Change Login Credentials</h3></div>
+      <div class="section-card-body">
+        <form id="change-creds-form" onsubmit="SetupView.saveCredentials(event)" class="max-w-sm">
+          <div class="mb-3">
+            <label class="form-label">New Username</label>
+            <input id="new-username" type="text" class="form-input" placeholder="Enter new username" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input id="new-password" type="password" class="form-input" placeholder="Enter new password" required minlength="6" />
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Confirm New Password</label>
+            <input id="confirm-password" type="password" class="form-input" placeholder="Re-enter new password" required minlength="6" />
+          </div>
+          <button type="submit" class="btn btn-primary">Update Credentials</button>
+        </form>
+        <p class="text-xs text-gray-400 mt-2">Default login: username <strong>admin</strong> / password <strong>mooe2024</strong></p>
+      </div>
+    </div>
+
     <!-- Storage Bucket -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Storage Bucket Setup</h3></div>
@@ -111,6 +134,19 @@ const SetupView = {
     localStorage.setItem('sb_key', key);
     App.toast('Supabase credentials saved! Reloading…');
     setTimeout(() => location.reload(), 1000);
+  },
+
+  saveCredentials(e) {
+    e.preventDefault();
+    const username = document.getElementById('new-username').value.trim();
+    const password = document.getElementById('new-password').value;
+    const confirm = document.getElementById('confirm-password').value;
+    if (!username) { App.toast('Username cannot be empty.', 'error'); return; }
+    if (password !== confirm) { App.toast('Passwords do not match.', 'error'); return; }
+    if (password.length < 6) { App.toast('Password must be at least 6 characters.', 'error'); return; }
+    Auth.changeCredentials(username, password);
+    App.toast('Credentials updated! Use them on next login.');
+    document.getElementById('change-creds-form').reset();
   },
 
   disconnectSupabase() {

@@ -116,5 +116,7 @@ document.getElementById('modal').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) App.closeModal();
 });
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => App.init());
+// Boot — only start app if already authenticated (Auth.guard handles the rest)
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) App.init();
+});
