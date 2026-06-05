@@ -443,10 +443,18 @@ const CDRView = {
 
   // ---- Print Appendix 43 (matches Google Sheets template) ----
   async printCDR(id) {
+    // Open window immediately (must be synchronous from user gesture)
+    const w = window.open('', '_blank');
+    if (!w) {
+      App.toast('Pop-up blocked! Please allow pop-ups for this site and try again.', 'error');
+      return;
+    }
+    w.document.write('<html><body style="font-family:Arial;text-align:center;padding:40px">Loading CDR...</body></html>');
+
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
     const entries = entriesRes.data || [];
-    if (!header) { App.toast('CDR not found', 'error'); return; }
+    if (!header) { w.close(); App.toast('CDR not found', 'error'); return; }
 
     const school = this._getSchool(header.school_id);
 
