@@ -8,7 +8,6 @@ const App = {
     dashboard:  { title: 'Dashboard',                 subtitle: 'Overview',                  obj: () => DashboardView },
     mooe:       { title: 'MOOE Monitoring',           subtitle: 'Disbursement tracking',     obj: () => MOOEView },
     cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
-    funds:      { title: 'Downloaded Funds',          subtitle: 'ADA monitoring & liquidation', obj: () => FundsView },
     resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
     schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
     setup:      { title: 'Setup / Config',            subtitle: 'Supabase & Settings',       obj: () => SetupView },

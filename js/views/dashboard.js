@@ -1,139 +1,171 @@
 // ============================================================
-// DASHBOARD VIEW
+// DASHBOARD — Fund Monitor
+// Shows per-fund liquidation status for all schools
 // ============================================================
 const DashboardView = {
-  async render() {
-    const schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
-    const disbFilters = { year: new Date().getFullYear().toString() };
-    if (schoolId) disbFilters.school_id = schoolId;
+  _schools: [],
+  _schoolId: null,
+  _isAdmin: false,
+  _allFunds: [],
 
-    const [schoolsRes, disbRes] = await Promise.all([
+  async render() {
+    this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
+    this._isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin()    : false;
+
+    const [schoolsRes, fundsRes] = await Promise.all([
       DB.getSchools(),
-      DB.getDisbursements(disbFilters),
+      DB.getFunds(),
     ]);
 
-    const allSchools = schoolsRes.data || [];
-    const schools = schoolId ? allSchools.filter(s => s.id === schoolId) : allSchools;
-    const disb = disbRes.data || [];
+    this._schools  = schoolsRes.data || [];
+    this._allFunds = fundsRes.data   || [];
 
-    const total = disb.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
-    const liquidated = disb.filter(r => r.status === 'liquidated').reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
-    const submitted = disb.filter(r => r.status?.startsWith('submitted')).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
-    const pending = disb.filter(r => !r.status || r.status === 'pending').reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+    // Get unique fund types from the data
+    const fundTypes = [...new Set(this._allFunds.map(f => f.fund_type))].sort();
 
-    // Count expiring confirmation letters (within 60 days)
-    const today = new Date();
-    const expiring = schools.filter(s => {
-      if (!s.confirmation_expiry) return false;
-      const diff = (new Date(s.confirmation_expiry) - today) / 86400000;
-      return diff >= 0 && diff <= 60;
-    });
+    const fundOpts = fundTypes.map(f =>
+      `<option value="${f}">${f}</option>`
+    ).join('');
 
     return `
     <div class="page-header">
-      <h2>Dashboard</h2>
-      <p>Overview of MOOE disbursements — ${new Date().getFullYear()}</p>
+      <h2>Fund Monitor</h2>
+      <p>Liquidation status per fund — select a fund type to view all schools</p>
     </div>
 
-    <!-- Stat cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      ${statCard('Total Disbursed', fmt(total), '#0038A8', `${disb.length} transactions`)}
-      ${statCard('Liquidated', fmt(liquidated), '#166534', `${disb.filter(r => r.status === 'liquidated').length} records`)}
-      ${statCard('Submitted', fmt(submitted), '#1e40af', `${disb.filter(r => r.status?.startsWith('submitted')).length} records`)}
-      ${statCard('Pending / For Action', fmt(pending), '#b45309', `${disb.filter(r => !r.status || r.status === 'pending').length} records`)}
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-      <!-- Chart -->
-      <div class="section-card lg:col-span-2">
-        <div class="section-card-header"><h3>Status Breakdown by Fund Type</h3></div>
-        <div class="section-card-body">
-          <canvas id="status-chart" height="200"></canvas>
-        </div>
-      </div>
-
-      <!-- Quick info -->
-      <div class="section-card">
-        <div class="section-card-header"><h3>Schools Summary</h3></div>
-        <div class="section-card-body p-0">
-          <div class="px-5 py-3 flex items-center justify-between border-b">
-            <span class="text-sm text-gray-600">Total Schools</span>
-            <span class="font-bold text-gray-800">${schools.length}</span>
-          </div>
-          <div class="px-5 py-3 flex items-center justify-between border-b">
-            <span class="text-sm text-gray-600">Confirmation Expiring (60 days)</span>
-            <span class="font-bold ${expiring.length > 0 ? 'text-red-600' : 'text-green-600'}">${expiring.length}</span>
-          </div>
-          ${expiring.length > 0 ? `
-          <div class="px-5 py-2">
-            ${expiring.map(s => `
-            <div class="flex items-center justify-between py-1">
-              <span class="text-xs text-gray-700">${s.name}</span>
-              <span class="text-xs font-semibold text-red-600">${formatDate(s.confirmation_expiry)}</span>
-            </div>`).join('')}
-          </div>` : ''}
+    <!-- Fund type selector -->
+    <div class="section-card mb-4">
+      <div class="section-card-body">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="form-label mb-0 whitespace-nowrap font-semibold">Fund Type:</label>
+          <select id="dash-fund-select" class="form-select max-w-sm" onchange="DashboardView.loadFund()">
+            <option value="">— Select a fund type —</option>
+            ${fundOpts}
+          </select>
+          ${this._isAdmin ? `
+          <button class="btn btn-secondary btn-sm" onclick="FundsView.seedDefaults()" title="Load seed data from CSV">
+            Load Seed Data
+          </button>` : ''}
         </div>
       </div>
     </div>
 
-    <!-- Recent disbursements -->
+    <!-- Summary cards -->
+    <div id="dash-summary" class="grid grid-cols-3 gap-4 mb-6"></div>
+
+    <!-- Schools table -->
     <div class="section-card">
       <div class="section-card-header">
-        <h3>Recent Disbursements</h3>
-        <a href="#" class="btn btn-secondary btn-sm" onclick="App.navigate('mooe'); return false;">View All</a>
+        <h3 id="dash-fund-title">Select a fund type above</h3>
       </div>
-      <div class="table-scroll">
-        ${disb.length === 0 ? emptyState('No disbursements recorded yet.') : `
-        <table class="data-table">
-          <thead><tr>
-            <th>ADA No.</th><th>ADA Date</th><th>Fund Type</th><th>School</th>
-            <th class="text-right">Amount</th><th>Status</th>
-          </tr></thead>
-          <tbody>
-            ${disb.slice(0, 10).map(r => `
-            <tr>
-              <td class="font-mono text-xs">${r.ada_no || '—'}</td>
-              <td>${formatDate(r.ada_date)}</td>
-              <td>${r.fund_type || '—'}</td>
-              <td>${schoolName(r, schools)}</td>
-              <td class="text-right font-semibold">${fmt(r.amount)}</td>
-              <td>${statusBadge(r.status)}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>`}
+      <div id="dash-fund-body">
+        <div class="py-12 text-center text-gray-400 text-sm">
+          Select a fund type from the dropdown to view school liquidation status
+        </div>
       </div>
-    </div>
-    `;
+    </div>`;
   },
 
-  afterRender() {
-    DB.getDisbursements({ year: new Date().getFullYear().toString() }).then(({ data }) => {
-      if (!data || !data.length) return;
-      const counts = {};
-      data.forEach(r => { counts[r.status || 'pending'] = (counts[r.status || 'pending'] || 0) + 1; });
-      const ctx = document.getElementById('status-chart');
-      if (!ctx) return;
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Liquidated', 'Submitted to Division', 'Submitted to SOU', 'Pending'],
-          datasets: [{
-            data: [
-              counts['liquidated'] || 0,
-              counts['submitted_to_division'] || 0,
-              counts['submitted_to_sou'] || 0,
-              counts['pending'] || 0,
-            ],
-            backgroundColor: ['#16a34a', '#2563eb', '#7c3aed', '#d97706'],
-            borderWidth: 0,
-          }]
-        },
-        options: { plugins: { legend: { position: 'bottom' } }, cutout: '60%' }
-      });
-    });
-  }
+  async afterRender() {
+    // Auto-select first fund type
+    const sel = document.getElementById('dash-fund-select');
+    if (sel && sel.options.length > 1) {
+      sel.selectedIndex = 1;
+      await this.loadFund();
+    }
+  },
+
+  async loadFund() {
+    const fundType = document.getElementById('dash-fund-select')?.value;
+    if (!fundType) return;
+
+    // Refresh fund data
+    const { data } = await DB.getFunds();
+    this._allFunds = data || [];
+
+    let funds = this._allFunds.filter(f => f.fund_type === fundType);
+
+    // School filter for school users
+    if (this._schoolId) {
+      funds = funds.filter(f => f.school_id === this._schoolId);
+    }
+
+    // Summary counts
+    const total       = funds.length;
+    const liquidated  = funds.filter(f => f.status === 'liquidated').length;
+    const unliquidated = total - liquidated;
+
+    const summaryEl = document.getElementById('dash-summary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        ${statCard('Total Schools', total,        '#0038A8', 'with this fund')}
+        ${statCard('Liquidated',    liquidated,   '#166534', 'completed')}
+        ${statCard('Unliquidated',  unliquidated, '#b91c1c', 'needs action')}`;
+    }
+
+    const titleEl = document.getElementById('dash-fund-title');
+    if (titleEl) titleEl.textContent = fundType;
+
+    const bodyEl = document.getElementById('dash-fund-body');
+    if (!bodyEl) return;
+
+    if (!funds.length) {
+      bodyEl.innerHTML = emptyState('No records found for this fund type. Click "Load Seed Data" to populate.');
+      return;
+    }
+
+    bodyEl.innerHTML = `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr>
+          <th>#</th>
+          <th>School Name</th>
+          <th>ADA No.</th>
+          <th>ADA Date</th>
+          <th class="text-right">Amount</th>
+          <th>Status</th>
+          ${this._isAdmin ? '<th>Action</th>' : ''}
+        </tr></thead>
+        <tbody>
+          ${funds.map((f, i) => {
+            const school = this._schools.find(s => s.id === f.school_id);
+            const isLiq  = f.status === 'liquidated';
+            const badge  = isLiq
+              ? `<span class="badge badge-liquidated">✓ Liquidated</span>`
+              : `<span class="badge badge-missing">⚠ Unliquidated</span>`;
+            return `
+            <tr class="${!isLiq ? 'bg-red-50' : ''}">
+              <td class="text-xs text-gray-400">${i + 1}</td>
+              <td class="font-medium">${school?.name || f.school_id}</td>
+              <td class="font-mono text-xs">${f.ada_no || '—'}</td>
+              <td class="text-xs whitespace-nowrap">${formatDate(f.ada_date)}</td>
+              <td class="text-right font-semibold">${fmt(f.amount)}</td>
+              <td>${badge}</td>
+              ${this._isAdmin ? `
+              <td>
+                <button class="btn btn-sm ${isLiq ? 'btn-secondary' : 'btn-primary'}"
+                  onclick="DashboardView.toggleStatus('${f.id}', '${f.status}')">
+                  ${isLiq ? 'Mark Unliquidated' : 'Mark Liquidated'}
+                </button>
+              </td>` : ''}
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  },
+
+  async toggleStatus(id, currentStatus) {
+    const newStatus = currentStatus === 'liquidated' ? 'unliquidated' : 'liquidated';
+    const fund = this._allFunds.find(f => f.id === id);
+    if (!fund) return;
+    await DB.upsertFund({ ...fund, status: newStatus });
+    App.toast(`Marked as ${newStatus === 'liquidated' ? 'Liquidated' : 'Unliquidated'}!`);
+    await this.loadFund();
+  },
 };
 
+// ---- Global helpers (used by other views) ----
 function statCard(title, value, color, sub) {
   return `
   <div class="stat-card border-l-4" style="border-color:${color}">
@@ -148,21 +180,21 @@ function fmt(n) {
 }
 function formatDate(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 function statusBadge(s) {
   const map = {
-    liquidated: ['badge-liquidated', '✓ Liquidated'],
-    submitted_to_division: ['badge-submitted', '↑ Submitted to Division'],
-    submitted_to_sou: ['badge-submitted', '↑ Submitted to SOU'],
-    pending: ['badge-pending', '● Pending'],
+    liquidated:           ['badge-liquidated', '✓ Liquidated'],
+    submitted_to_division:['badge-submitted',  '↑ Submitted to Division'],
+    submitted_to_sou:     ['badge-submitted',  '↑ Submitted to SOU'],
+    pending:              ['badge-pending',    '● Pending'],
   };
   const [cls, label] = map[s] || ['badge-pending', '● Pending'];
   return `<span class="badge ${cls}">${label}</span>`;
 }
 function schoolName(row, schools) {
   if (row.schools) return row.schools.name;
-  const s = schools.find(s => s.id === row.school_id);
+  const s = (schools || []).find(s => s.id === row.school_id);
   return s ? s.name : '—';
 }
 function emptyState(msg) {
