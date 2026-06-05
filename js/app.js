@@ -1,1 +1,120 @@
-Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIE1BSU4gQVBQIOKAlCByb3V0aW5nLCBuYXZpZ2F0aW9uLCB1dGlsaXRpZXMKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CmNvbnN0IEFwcCA9IHsKICBjdXJyZW50VmlldzogbnVsbCwKCiAgdmlld3M6IHsKICAgIGRhc2hib2FyZDogIHsgdGl0bGU6ICdEYXNoYm9hcmQnLCAgICAgICAgICAgICAgICAgc3VidGl0bGU6ICdPdmVydmlldycsICAgICAgICAgICAgICAgICAgb2JqOiAoKSA9PiBEYXNoYm9hcmRWaWV3IH0sCiAgICBtb29lOiAgICAgICB7IHRpdGxlOiAnTU9PRSBNb25pdG9yaW5nJywgICAgICAgICAgIHN1YnRpdGxlOiAnRGlzYnVyc2VtZW50IHRyYWNraW5nJywgICAgIG9iajogKCkgPT4gTU9PRVZpZXcgfSwKICAgIGNkcjogICAgICAgIHsgdGl0bGU6ICdDYXNoIERpc2J1cnNlbWVudCBSZWdpc3Rlcicsc3VidGl0bGU6ICdBcHBlbmRpeCA0MycsICAgICAgICAgICAgICAgb2JqOiAoKSA9PiBDRFJWaWV3IH0sCiAgICByZXNvdXJjZXM6ICB7IHRpdGxlOiAnUmVzb3VyY2VzJywgICAgICAgICAgICAgICAgc3VidGl0bGU6ICdEb2N1bWVudHMgJiBMaW5rcycsICAgICAgICAgIG9iajogKCkgPT4gUmVzb3VyY2VzVmlldyB9LAogICAgc2Nob29sczogICAgeyB0aXRsZTogJ1NjaG9vbHMnLCAgICAgICAgICAgICAgICAgICBzdWJ0aXRsZTogJ0FjY291bnRhYmxlIE9mZmljZXJzJywgICAgICBvYmo6ICgpID0+IFNjaG9vbHNWaWV3IH0sCiAgICBzZXR1cDogICAgICB7IHRpdGxlOiAnU2V0dXAgLyBDb25maWcnLCAgICAgICAgICAgIHN1YnRpdGxlOiAnU3VwYWJhc2UgJiBTZXR0aW5ncycsICAgICAgIG9iajogKCkgPT4gU2V0dXBWaWV3IH0sCiAgfSwKCiAgYXN5bmMgaW5pdCgpIHsKICAgIGNvbnN0IGNvbm5lY3RlZCA9IERCLmluaXQoKTsKICAgIHRoaXMudXBkYXRlQ29ubmVjdGlvblN0YXR1cyhjb25uZWN0ZWQpOwoKICAgIC8vIEhhbmRsZSBuYXYgY2xpY2tzCiAgICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcubmF2LWxpbmsnKS5mb3JFYWNoKGVsID0+IHsKICAgICAgZWwuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCAoZSkgPT4gewogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgICAgICB0aGlzLm5hdmlnYXRlKGVsLmRhdGFzZXQudmlldyk7CiAgICAgICAgdGhpcy5jbG9zZVNpZGViYXIoKTsKICAgICAgfSk7CiAgICB9KTsKCiAgICAvLyBOYXZpZ2F0ZSB0byBoYXNoIG9yIGRlZmF1bHQKICAgIGNvbnN0IGhhc2ggPSBsb2NhdGlvbi5oYXNoLnNsaWNlKDEpIHx8ICdkYXNoYm9hcmQnOwogICAgdGhpcy5uYXZpZ2F0ZSh0aGlzLnZpZXdzW2hhc2hdID8gaGFzaCA6ICdkYXNoYm9hcmQnKTsKICB9LAoKICBhc3luYyBuYXZpZ2F0ZSh2aWV3TmFtZSkgewogICAgaWYgKCF0aGlzLnZpZXdzW3ZpZXdOYW1lXSkgcmV0dXJuOwogICAgdGhpcy5jdXJyZW50VmlldyA9IHZpZXdOYW1lOwogICAgbG9jYXRpb24uaGFzaCA9IHZpZXdOYW1lOwoKICAgIC8vIFVwZGF0ZSBuYXYgYWN0aXZlIHN0YXRlCiAgICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcubmF2LWxpbmsnKS5mb3JFYWNoKGVsID0+IHsKICAgICAgZWwuY2xhc3NMaXN0LnRvZ2dsZSgnYWN0aXZlJywgZWwuZGF0YXNldC52aWV3ID09PSB2aWV3TmFtZSk7CiAgICB9KTsKCiAgICAvLyBVcGRhdGUgaGVhZGVyCiAgICBjb25zdCB2ID0gdGhpcy52aWV3c1t2aWV3TmFtZV07CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncGFnZS10aXRsZScpLnRleHRDb250ZW50ID0gdi50aXRsZTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwYWdlLXN1YnRpdGxlJykudGV4dENvbnRlbnQgPSB2LnN1YnRpdGxlOwoKICAgIC8vIFJlbmRlciB2aWV3CiAgICBjb25zdCBjb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndmlldy1jb250YWluZXInKTsKICAgIGNvbnRhaW5lci5pbm5lckhUTUwgPSAnPGRpdiBjbGFzcz0iZmxleCBqdXN0aWZ5LWNlbnRlciBweS0yMCI+PGRpdiBjbGFzcz0ic3Bpbm5lciI+PC9kaXY+PC9kaXY+JzsKCiAgICB0cnkgewogICAgICBjb25zdCB2aWV3T2JqID0gdi5vYmooKTsKICAgICAgY29uc3QgaHRtbCA9IGF3YWl0IHZpZXdPYmoucmVuZGVyKCk7CiAgICAgIGNvbnRhaW5lci5pbm5lckhUTUwgPSBodG1sOwogICAgICBpZiAodmlld09iai5hZnRlclJlbmRlcikgYXdhaXQgdmlld09iai5hZnRlclJlbmRlcigpOwogICAgfSBjYXRjaCAoZXJyKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoZXJyKTsKICAgICAgY29udGFpbmVyLmlubmVySFRNTCA9IGA8ZGl2IGNsYXNzPSJzZWN0aW9uLWNhcmQgc2VjdGlvbi1jYXJkLWJvZHkgdGV4dC1yZWQtNjAwIj4KICAgICAgICA8cCBjbGFzcz0iZm9udC1ib2xkIj5FcnJvciBsb2FkaW5nIHZpZXc8L3A+CiAgICAgICAgPHAgY2xhc3M9InRleHQtc20gbXQtMSI+JHtlcnIubWVzc2FnZX08L3A+CiAgICAgIDwvZGl2PmA7CiAgICB9CiAgfSwKCiAgdXBkYXRlQ29ubmVjdGlvblN0YXR1cyhjb25uZWN0ZWQpIHsKICAgIGNvbnN0IGVsID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2Nvbm4tc3RhdHVzJyk7CiAgICBpZiAoIWVsKSByZXR1cm47CiAgICBpZiAoY29ubmVjdGVkKSB7CiAgICAgIGVsLmNsYXNzTmFtZSA9ICd0ZXh0LXhzIHB4LTIgcHktMSByb3VuZGVkLWZ1bGwgYmctZ3JlZW4tMTAwIHRleHQtZ3JlZW4tNzAwIGZvbnQtbWVkaXVtJzsKICAgICAgZWwudGV4dENvbnRlbnQgPSAn4pePIFN1cGFiYXNlJzsKICAgIH0gZWxzZSB7CiAgICAgIGVsLmNsYXNzTmFtZSA9ICd0ZXh0LXhzIHB4LTIgcHktMSByb3VuZGVkLWZ1bGwgYmcteWVsbG93LTEwMCB0ZXh0LXllbGxvdy03MDAgZm9udC1tZWRpdW0nOwogICAgICBlbC50ZXh0Q29udGVudCA9ICfil48gTG9jYWwgb25seSc7CiAgICB9CiAgfSwKCiAgb3Blbk1vZGFsKHRpdGxlLCBib2R5SHRtbCkgewogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ21vZGFsLXRpdGxlJykudGV4dENvbnRlbnQgPSB0aXRsZTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdtb2RhbC1ib2R5JykuaW5uZXJIVE1MID0gYm9keUh0bWw7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbW9kYWwnKS5jbGFzc0xpc3QucmVtb3ZlKCdoaWRkZW4nKTsKICB9LAoKICBjbG9zZU1vZGFsKCkgewogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ21vZGFsJykuY2xhc3NMaXN0LmFkZCgnaGlkZGVuJyk7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbW9kYWwtYm9keScpLmlubmVySFRNTCA9ICcnOwogIH0sCgogIHRvYXN0KG1zZywgdHlwZSA9ICdzdWNjZXNzJykgewogICAgY29uc3QgZWwgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndG9hc3QnKTsKICAgIGVsLnRleHRDb250ZW50ID0gbXNnOwogICAgZWwuY2xhc3NOYW1lID0gYGZpeGVkIGJvdHRvbS01IHJpZ2h0LTUgei01MCB0ZXh0LXNtIHB4LTQgcHktMyByb3VuZGVkLWxnIHNoYWRvdy1sZyBtYXgtdy14cyB0cmFuc2l0aW9uLW9wYWNpdHkgJHt0eXBlID09PSAnZXJyb3InID8gJ2JnLXJlZC03MDAgdGV4dC13aGl0ZScgOiAnYmctZ3JheS05MDAgdGV4dC13aGl0ZSd9YDsKICAgIGVsLmNsYXNzTGlzdC5yZW1vdmUoJ2hpZGRlbicpOwogICAgY2xlYXJUaW1lb3V0KEFwcC5fdG9hc3RUaW1lcik7CiAgICBBcHAuX3RvYXN0VGltZXIgPSBzZXRUaW1lb3V0KCgpID0+IGVsLmNsYXNzTGlzdC5hZGQoJ2hpZGRlbicpLCAzMDAwKTsKICB9LAoKICB0b2dnbGVTaWRlYmFyKCkgewogICAgY29uc3Qgc2lkZWJhciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzaWRlYmFyJyk7CiAgICBjb25zdCBvdmVybGF5ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NpZGViYXItb3ZlcmxheScpOwogICAgc2lkZWJhci5jbGFzc0xpc3QudG9nZ2xlKCctdHJhbnNsYXRlLXgtZnVsbCcpOwogICAgb3ZlcmxheS5jbGFzc0xpc3QudG9nZ2xlKCdoaWRkZW4nKTsKICB9LAoKICBjbG9zZVNpZGViYXIoKSB7CiAgICBjb25zdCBzaWRlYmFyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NpZGViYXInKTsKICAgIGNvbnN0IG92ZXJsYXkgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnc2lkZWJhci1vdmVybGF5Jyk7CiAgICBzaWRlYmFyLmNsYXNzTGlzdC5hZGQoJy10cmFuc2xhdGUteC1mdWxsJyk7CiAgICBvdmVybGF5LmNsYXNzTGlzdC5hZGQoJ2hpZGRlbicpOwogIH0sCn07CgovLyBDbG9zZSBtb2RhbCBvbiBiYWNrZHJvcCBjbGljawpkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbW9kYWwnKS5hZGRFdmVudExpc3RlbmVyKCdjbGljaycsIChlKSA9PiB7CiAgaWYgKGUudGFyZ2V0ID09PSBlLmN1cnJlbnRUYXJnZXQpIEFwcC5jbG9zZU1vZGFsKCk7Cn0pOwoKLy8gQm9vdApkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdET01Db250ZW50TG9hZGVkJywgKCkgPT4gQXBwLmluaXQoKSk7Cg==
+// ============================================================
+// MAIN APP — routing, navigation, utilities
+// ============================================================
+const App = {
+  currentView: null,
+
+  views: {
+    dashboard:  { title: 'Dashboard',                 subtitle: 'Overview',                  obj: () => DashboardView },
+    mooe:       { title: 'MOOE Monitoring',           subtitle: 'Disbursement tracking',     obj: () => MOOEView },
+    cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
+    resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
+    schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
+    setup:      { title: 'Setup / Config',            subtitle: 'Supabase & Settings',       obj: () => SetupView },
+  },
+
+  async init() {
+    const connected = DB.init();
+    this.updateConnectionStatus(connected);
+
+    // Handle nav clicks
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.navigate(el.dataset.view);
+        this.closeSidebar();
+      });
+    });
+
+    // Navigate to hash or default
+    const hash = location.hash.slice(1) || 'dashboard';
+    this.navigate(this.views[hash] ? hash : 'dashboard');
+  },
+
+  async navigate(viewName) {
+    if (!this.views[viewName]) return;
+    this.currentView = viewName;
+    location.hash = viewName;
+
+    // Update nav active state
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.classList.toggle('active', el.dataset.view === viewName);
+    });
+
+    // Update header
+    const v = this.views[viewName];
+    document.getElementById('page-title').textContent = v.title;
+    document.getElementById('page-subtitle').textContent = v.subtitle;
+
+    // Render view
+    const container = document.getElementById('view-container');
+    container.innerHTML = '<div class="flex justify-center py-20"><div class="spinner"></div></div>';
+
+    try {
+      const viewObj = v.obj();
+      const html = await viewObj.render();
+      container.innerHTML = html;
+      if (viewObj.afterRender) await viewObj.afterRender();
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<div class="section-card section-card-body text-red-600">
+        <p class="font-bold">Error loading view</p>
+        <p class="text-sm mt-1">${err.message}</p>
+      </div>`;
+    }
+  },
+
+  updateConnectionStatus(connected) {
+    const el = document.getElementById('conn-status');
+    if (!el) return;
+    if (connected) {
+      el.className = 'text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium';
+      el.textContent = '● Supabase';
+    } else {
+      el.className = 'text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium';
+      el.textContent = '● Local only';
+    }
+  },
+
+  openModal(title, bodyHtml) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    document.getElementById('modal').classList.remove('hidden');
+  },
+
+  closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('modal-body').innerHTML = '';
+  },
+
+  toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `fixed bottom-5 right-5 z-50 text-sm px-4 py-3 rounded-lg shadow-lg max-w-xs transition-opacity ${type === 'error' ? 'bg-red-700 text-white' : 'bg-gray-900 text-white'}`;
+    el.classList.remove('hidden');
+    clearTimeout(App._toastTimer);
+    App._toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+  },
+
+  toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+  },
+
+  closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+  },
+};
+
+// Close modal on backdrop click
+document.getElementById('modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) App.closeModal();
+});
+
+// Boot
+document.addEventListener('DOMContentLoaded', () => App.init());

@@ -1,1 +1,230 @@
-Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIE1PT0UgTU9OSVRPUklORyBWSUVXCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpjb25zdCBNT09FVmlldyA9IHsKICBmaWx0ZXJzOiB7IHNjaG9vbF9pZDogJycsIHllYXI6IG5ldyBEYXRlKCkuZ2V0RnVsbFllYXIoKS50b1N0cmluZygpLCBzdGF0dXM6ICcnLCBmdW5kX3R5cGU6ICcnIH0sCiAgc2Nob29sczogW10sCgogIGFzeW5jIHJlbmRlcigpIHsKICAgIGNvbnN0IHsgZGF0YTogc2Nob29scyB9ID0gYXdhaXQgREIuZ2V0U2Nob29scygpOwogICAgdGhpcy5zY2hvb2xzID0gc2Nob29scyB8fCBbXTsKCiAgICByZXR1cm4gYAogICAgPGRpdiBjbGFzcz0icGFnZS1oZWFkZXIgZmxleCBpdGVtcy1zdGFydCBqdXN0aWZ5LWJldHdlZW4gZmxleC13cmFwIGdhcC0zIj4KICAgICAgPGRpdj48aDI+TU9PRSBNb25pdG9yaW5nPC9oMj48cD5UcmFjayBhbGwgQURBIGRpc2J1cnNlbWVudHMgcGVyIHNjaG9vbDwvcD48L2Rpdj4KICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi1wcmltYXJ5IiBvbmNsaWNrPSJNT09FVmlldy5vcGVuRm9ybSgpIj4KICAgICAgICA8c3ZnIGNsYXNzPSJ3LTQgaC00IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTEyIDR2MTZtOC04SDQiLz48L3N2Zz4KICAgICAgICBBZGQgRGlzYnVyc2VtZW50CiAgICAgIDwvYnV0dG9uPgogICAgPC9kaXY+CgogICAgPCEtLSBGaWx0ZXJzIC0tPgogICAgPGRpdiBjbGFzcz0ic2VjdGlvbi1jYXJkIG1iLTQiPgogICAgICA8ZGl2IGNsYXNzPSJzZWN0aW9uLWNhcmQtYm9keSI+CiAgICAgICAgPGRpdiBjbGFzcz0iZ3JpZCBncmlkLWNvbHMtMiBtZDpncmlkLWNvbHMtNCBnYXAtMyI+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPlNjaG9vbDwvbGFiZWw+CiAgICAgICAgICAgIDxzZWxlY3QgY2xhc3M9ImZvcm0tc2VsZWN0IiBpZD0iZi1zY2hvb2wiIG9uY2hhbmdlPSJNT09FVmlldy5hcHBseUZpbHRlcigpIj4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPkFsbCBTY2hvb2xzPC9vcHRpb24+CiAgICAgICAgICAgICAgJHt0aGlzLnNjaG9vbHMubWFwKHMgPT4gYDxvcHRpb24gdmFsdWU9IiR7cy5pZH0iICR7dGhpcy5maWx0ZXJzLnNjaG9vbF9pZCA9PT0gcy5pZCA/ICdzZWxlY3RlZCcgOiAnJ30+JHtzLm5hbWV9PC9vcHRpb24+YCkuam9pbignJyl9CiAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPlllYXI8L2xhYmVsPgogICAgICAgICAgICA8c2VsZWN0IGNsYXNzPSJmb3JtLXNlbGVjdCIgaWQ9ImYteWVhciIgb25jaGFuZ2U9Ik1PT0VWaWV3LmFwcGx5RmlsdGVyKCkiPgogICAgICAgICAgICAgICR7WzIwMjYsIDIwMjUsIDIwMjRdLm1hcCh5ID0+IGA8b3B0aW9uIHZhbHVlPSIke3l9IiAke3RoaXMuZmlsdGVycy55ZWFyID09IHkgPyAnc2VsZWN0ZWQnIDogJyd9PiR7eX08L29wdGlvbj5gKS5qb2luKCcnKX0KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxkaXY+CiAgICAgICAgICAgIDxsYWJlbCBjbGFzcz0iZm9ybS1sYWJlbCI+U3RhdHVzPC9sYWJlbD4KICAgICAgICAgICAgPHNlbGVjdCBjbGFzcz0iZm9ybS1zZWxlY3QiIGlkPSJmLXN0YXR1cyIgb25jaGFuZ2U9Ik1PT0VWaWV3LmFwcGx5RmlsdGVyKCkiPgogICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IiI+QWxsIFN0YXR1c2VzPC9vcHRpb24+CiAgICAgICAgICAgICAgJHtTVEFUVVNFUy5tYXAocyA9PiBgPG9wdGlvbiB2YWx1ZT0iJHtzLnZhbHVlfSIgJHt0aGlzLmZpbHRlcnMuc3RhdHVzID09PSBzLnZhbHVlID8gJ3NlbGVjdGVkJyA6ICcnfT4ke3MubGFiZWx9PC9vcHRpb24+YCkuam9pbignJyl9CiAgICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPkZ1bmQgVHlwZTwvbGFiZWw+CiAgICAgICAgICAgIDxzZWxlY3QgY2xhc3M9ImZvcm0tc2VsZWN0IiBpZD0iZi1mdW5kIiBvbmNoYW5nZT0iTU9PRVZpZXcuYXBwbHlGaWx0ZXIoKSI+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iIj5BbGwgRnVuZHM8L29wdGlvbj4KICAgICAgICAgICAgICAke0ZVTkRfVFlQRVMubWFwKGYgPT4gYDxvcHRpb24gdmFsdWU9IiR7Zn0iICR7dGhpcy5maWx0ZXJzLmZ1bmRfdHlwZSA9PT0gZiA/ICdzZWxlY3RlZCcgOiAnJ30+JHtmfTwvb3B0aW9uPmApLmpvaW4oJycpfQogICAgICAgICAgICA8L3NlbGVjdD4KICAgICAgICAgIDwvZGl2PgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICAgIDxkaXYgaWQ9Im1vb2UtdGFibGUtY29udGFpbmVyIj4KICAgICAgPGRpdiBjbGFzcz0iZmxleCBqdXN0aWZ5LWNlbnRlciBweS0xMCI+PGRpdiBjbGFzcz0ic3Bpbm5lciI+PC9kaXY+PC9kaXY+CiAgICA8L2Rpdj4KICAgIGA7CiAgfSwKCiAgYXN5bmMgYWZ0ZXJSZW5kZXIoKSB7CiAgICBhd2FpdCB0aGlzLmxvYWRUYWJsZSgpOwogIH0sCgogIGFwcGx5RmlsdGVyKCkgewogICAgdGhpcy5maWx0ZXJzLnNjaG9vbF9pZCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdmLXNjaG9vbCcpPy52YWx1ZSB8fCAnJzsKICAgIHRoaXMuZmlsdGVycy55ZWFyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2YteWVhcicpPy52YWx1ZSB8fCAnJzsKICAgIHRoaXMuZmlsdGVycy5zdGF0dXMgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZi1zdGF0dXMnKT8udmFsdWUgfHwgJyc7CiAgICB0aGlzLmZpbHRlcnMuZnVuZF90eXBlID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2YtZnVuZCcpPy52YWx1ZSB8fCAnJzsKICAgIHRoaXMubG9hZFRhYmxlKCk7CiAgfSwKCiAgYXN5bmMgbG9hZFRhYmxlKCkgewogICAgY29uc3QgY29udGFpbmVyID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ21vb2UtdGFibGUtY29udGFpbmVyJyk7CiAgICBpZiAoIWNvbnRhaW5lcikgcmV0dXJuOwogICAgY29uc3QgeyBkYXRhLCBlcnJvciB9ID0gYXdhaXQgREIuZ2V0RGlzYnVyc2VtZW50cyh0aGlzLmZpbHRlcnMpOwogICAgY29uc3Qgcm93cyA9IGRhdGEgfHwgW107CgogICAgLy8gQXBwbHkgZnVuZF90eXBlIGZpbHRlciBsb2NhbGx5CiAgICBjb25zdCBmaWx0ZXJlZCA9IHRoaXMuZmlsdGVycy5mdW5kX3R5cGUgPyByb3dzLmZpbHRlcihyID0+IHIuZnVuZF90eXBlID09PSB0aGlzLmZpbHRlcnMuZnVuZF90eXBlKSA6IHJvd3M7CiAgICBjb25zdCB0b3RhbCA9IGZpbHRlcmVkLnJlZHVjZSgocywgcikgPT4gcyArIChwYXJzZUZsb2F0KHIuYW1vdW50KSB8fCAwKSwgMCk7CgogICAgaWYgKGVycm9yKSB7IGNvbnRhaW5lci5pbm5lckhUTUwgPSBgPGRpdiBjbGFzcz0ic2VjdGlvbi1jYXJkIHNlY3Rpb24tY2FyZC1ib2R5IHRleHQtcmVkLTYwMCI+RXJyb3IgbG9hZGluZyBkYXRhOiAke2Vycm9yLm1lc3NhZ2UgfHwgZXJyb3J9PC9kaXY+YDsgcmV0dXJuOyB9CgogICAgY29udGFpbmVyLmlubmVySFRNTCA9IGAKICAgIDxkaXYgY2xhc3M9InNlY3Rpb24tY2FyZCI+CiAgICAgIDxkaXYgY2xhc3M9InNlY3Rpb24tY2FyZC1oZWFkZXIiPgogICAgICAgIDxoMz4ke2ZpbHRlcmVkLmxlbmd0aH0gZGlzYnVyc2VtZW50KHMpIOKAlCBUb3RhbDogPHNwYW4gY2xhc3M9InRleHQtWyMwMDM4QThdIj4ke2ZtdCh0b3RhbCl9PC9zcGFuPjwvaDM+CiAgICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi1zZWNvbmRhcnkgYnRuLXNtIiBvbmNsaWNrPSJNT09FVmlldy5leHBvcnRDU1YoKSI+4qyHIEV4cG9ydCBDU1Y8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICAgICR7ZmlsdGVyZWQubGVuZ3RoID09PSAwID8gZW1wdHlTdGF0ZSgnTm8gZGlzYnVyc2VtZW50cyBmb3VuZC4gQWRkIG9uZSBhYm92ZS4nKSA6IGAKICAgICAgPGRpdiBjbGFzcz0idGFibGUtc2Nyb2xsIj4KICAgICAgICA8dGFibGUgY2xhc3M9ImRhdGEtdGFibGUiPgogICAgICAgICAgPHRoZWFkPjx0cj4KICAgICAgICAgICAgPHRoPkFEQSBOby48L3RoPjx0aD5BREEgRGF0ZTwvdGg+PHRoPkZ1bmQgVHlwZTwvdGg+PHRoPkJhbms8L3RoPgogICAgICAgICAgICA8dGg+U2Nob29sPC90aD48dGggY2xhc3M9InRleHQtcmlnaHQiPkFtb3VudDwvdGg+CiAgICAgICAgICAgIDx0aD5TdGF0dXM8L3RoPjx0aD5SZW1hcmtzPC90aD48dGggY2xhc3M9InRleHQtY2VudGVyIj5BY3Rpb248L3RoPgogICAgICAgICAgPC90cj48L3RoZWFkPgogICAgICAgICAgPHRib2R5PgogICAgICAgICAgICAke2ZpbHRlcmVkLm1hcChyID0+IGAKICAgICAgICAgICAgPHRyPgogICAgICAgICAgICAgIDx0ZCBjbGFzcz0iZm9udC1tb25vIHRleHQteHMiPiR7ci5hZGFfbm8gfHwgJ+KAlCd9PC90ZD4KICAgICAgICAgICAgICA8dGQgY2xhc3M9IndoaXRlc3BhY2Utbm93cmFwIj4ke2Zvcm1hdERhdGUoci5hZGFfZGF0ZSl9PC90ZD4KICAgICAgICAgICAgICA8dGQ+JHtyLmZ1bmRfdHlwZSB8fCAn4oCUJ308L3RkPgogICAgICAgICAgICAgIDx0ZD48c3BhbiBjbGFzcz0iYmFkZ2UgJHtyLmJhbmsgPT09ICdMQlAnID8gJ2JhZGdlLXN1Ym1pdHRlZCcgOiAnYmFkZ2UtcGVuZGluZyd9Ij4ke3IuYmFuayB8fCAn4oCUJ308L3NwYW4+PC90ZD4KICAgICAgICAgICAgICA8dGQ+JHtzY2hvb2xOYW1lQnlJZChyLnNjaG9vbF9pZCwgdGhpcy5zY2hvb2xzKX08L3RkPgogICAgICAgICAgICAgIDx0ZCBjbGFzcz0idGV4dC1yaWdodCBmb250LXNlbWlib2xkIHRhYnVsYXItbnVtcyI+JHtmbXQoci5hbW91bnQpfTwvdGQ+CiAgICAgICAgICAgICAgPHRkPiR7c3RhdHVzQmFkZ2Uoci5zdGF0dXMpfTwvdGQ+CiAgICAgICAgICAgICAgPHRkIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS01MDAgbWF4LXcteHMgdHJ1bmNhdGUiPiR7ci5yZW1hcmtzIHx8ICcnfTwvdGQ+CiAgICAgICAgICAgICAgPHRkIGNsYXNzPSJ0ZXh0LWNlbnRlciB3aGl0ZXNwYWNlLW5vd3JhcCI+CiAgICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzPSJidG4gYnRuLXNlY29uZGFyeSBidG4tc20gbXItMSIgb25jbGljaz0iTU9PRVZpZXcub3BlbkZvcm0oJyR7ci5pZH0nKSI+RWRpdDwvYnV0dG9uPgogICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi1kYW5nZXIgYnRuLXNtIiBvbmNsaWNrPSJNT09FVmlldy5kZWxldGVEaXNidXJzZW1lbnQoJyR7ci5pZH0nKSI+RGVsPC9idXR0b24+CiAgICAgICAgICAgICAgPC90ZD4KICAgICAgICAgICAgPC90cj5gKS5qb2luKCcnKX0KICAgICAgICAgIDwvdGJvZHk+CiAgICAgICAgPC90YWJsZT4KICAgICAgPC9kaXY+YH0KICAgIDwvZGl2PmA7CiAgfSwKCiAgYXN5bmMgb3BlbkZvcm0oaWQgPSBudWxsKSB7CiAgICBjb25zdCB7IGRhdGE6IHNjaG9vbHMgfSA9IGF3YWl0IERCLmdldFNjaG9vbHMoKTsKICAgIGxldCByb3cgPSB7IGFkYV9ubzogJycsIGFkYV9kYXRlOiAnJywgZnVuZF90eXBlOiAnJywgYmFuazogJ0xCUCcsIHNjaG9vbF9pZDogJycsIGFtb3VudDogJycsIHN0YXR1czogJ3BlbmRpbmcnLCByZW1hcmtzOiAnJyB9OwogICAgaWYgKGlkKSB7CiAgICAgIGNvbnN0IHsgZGF0YTogZGlzYiB9ID0gYXdhaXQgREIuZ2V0RGlzYnVyc2VtZW50cygpOwogICAgICBjb25zdCBmb3VuZCA9IChkaXNiIHx8IFtdKS5maW5kKHIgPT4gci5pZCA9PT0gaWQpOwogICAgICBpZiAoZm91bmQpIHJvdyA9IGZvdW5kOwogICAgfQogICAgQXBwLm9wZW5Nb2RhbChpZCA/ICdFZGl0IERpc2J1cnNlbWVudCcgOiAnQWRkIERpc2J1cnNlbWVudCcsIGAKICAgIDxmb3JtIGlkPSJkaXNiLWZvcm0iIG9uc3VibWl0PSJNT09FVmlldy5zYXZlRm9ybShldmVudCwgJyR7aWQgfHwgJyd9JykiPgogICAgICA8ZGl2IGNsYXNzPSJncmlkIGdyaWQtY29scy0xIG1kOmdyaWQtY29scy0yIGdhcC00IG1iLTQiPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPkFEQSBOby48L2xhYmVsPgogICAgICAgICAgPGlucHV0IGNsYXNzPSJmb3JtLWlucHV0IiBuYW1lPSJhZGFfbm8iIHZhbHVlPSIke3Jvdy5hZGFfbm8gfHwgJyd9IiBwbGFjZWhvbGRlcj0iZS5nLiAyNjI2MDAzIiByZXF1aXJlZCAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPkFEQSBEYXRlPC9sYWJlbD4KICAgICAgICAgIDxpbnB1dCBjbGFzcz0iZm9ybS1pbnB1dCIgdHlwZT0iZGF0ZSIgbmFtZT0iYWRhX2RhdGUiIHZhbHVlPSIke3Jvdy5hZGFfZGF0ZSB8fCAnJ30iIHJlcXVpcmVkIC8+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzcz0iZm9ybS1sYWJlbCI+U2Nob29sPC9sYWJlbD4KICAgICAgICAgIDxzZWxlY3QgY2xhc3M9ImZvcm0tc2VsZWN0IiBuYW1lPSJzY2hvb2xfaWQiIHJlcXVpcmVkPgogICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPuKAlCBTZWxlY3QgU2Nob29sIOKAlDwvb3B0aW9uPgogICAgICAgICAgICAkeyhzY2hvb2xzIHx8IFtdKS5tYXAocyA9PiBgPG9wdGlvbiB2YWx1ZT0iJHtzLmlkfSIgJHtyb3cuc2Nob29sX2lkID09PSBzLmlkID8gJ3NlbGVjdGVkJyA6ICcnfT4ke3MubmFtZX08L29wdGlvbj5gKS5qb2luKCcnKX0KICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPkZ1bmQgVHlwZTwvbGFiZWw+CiAgICAgICAgICA8c2VsZWN0IGNsYXNzPSJmb3JtLXNlbGVjdCIgbmFtZT0iZnVuZF90eXBlIiByZXF1aXJlZD4KICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iIj7igJQgU2VsZWN0IOKAlDwvb3B0aW9uPgogICAgICAgICAgICAke0ZVTkRfVFlQRVMubWFwKGYgPT4gYDxvcHRpb24gdmFsdWU9IiR7Zn0iICR7cm93LmZ1bmRfdHlwZSA9PT0gZiA/ICdzZWxlY3RlZCcgOiAnJ30+JHtmfTwvb3B0aW9uPmApLmpvaW4oJycpfQogICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzcz0iZm9ybS1sYWJlbCI+QmFuazwvbGFiZWw+CiAgICAgICAgICA8c2VsZWN0IGNsYXNzPSJmb3JtLXNlbGVjdCIgbmFtZT0iYmFuayI+CiAgICAgICAgICAgICR7QkFOS1MubWFwKGIgPT4gYDxvcHRpb24gdmFsdWU9IiR7Yn0iICR7cm93LmJhbmsgPT09IGIgPyAnc2VsZWN0ZWQnIDogJyd9PiR7Yn08L29wdGlvbj5gKS5qb2luKCcnKX0KICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPkFtb3VudCAo4oKxKTwvbGFiZWw+CiAgICAgICAgICA8aW5wdXQgY2xhc3M9ImZvcm0taW5wdXQiIHR5cGU9Im51bWJlciIgc3RlcD0iMC4wMSIgbmFtZT0iYW1vdW50IiB2YWx1ZT0iJHtyb3cuYW1vdW50IHx8ICcnfSIgcGxhY2Vob2xkZXI9IjAuMDAiIHJlcXVpcmVkIC8+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGRpdj4KICAgICAgICAgIDxsYWJlbCBjbGFzcz0iZm9ybS1sYWJlbCI+U3RhdHVzPC9sYWJlbD4KICAgICAgICAgIDxzZWxlY3QgY2xhc3M9ImZvcm0tc2VsZWN0IiBuYW1lPSJzdGF0dXMiPgogICAgICAgICAgICAke1NUQVRVU0VTLm1hcChzID0+IGA8b3B0aW9uIHZhbHVlPSIke3MudmFsdWV9IiAke3Jvdy5zdGF0dXMgPT09IHMudmFsdWUgPyAnc2VsZWN0ZWQnIDogJyd9PiR7cy5sYWJlbH08L29wdGlvbj5gKS5qb2luKCcnKX0KICAgICAgICAgIDwvc2VsZWN0PgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPlJlbWFya3M8L2xhYmVsPgogICAgICAgICAgPGlucHV0IGNsYXNzPSJmb3JtLWlucHV0IiBuYW1lPSJyZW1hcmtzIiB2YWx1ZT0iJHtyb3cucmVtYXJrcyB8fCAnJ30iIHBsYWNlaG9sZGVyPSJPcHRpb25hbCByZW1hcmtzIiAvPgogICAgICAgIDwvZGl2PgogICAgICA8L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0iZmxleCBqdXN0aWZ5LWVuZCBnYXAtMyI+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIGNsYXNzPSJidG4gYnRuLXNlY29uZGFyeSIgb25jbGljaz0iQXBwLmNsb3NlTW9kYWwoKSI+Q2FuY2VsPC9idXR0b24+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJzdWJtaXQiIGNsYXNzPSJidG4gYnRuLXByaW1hcnkiPlNhdmU8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICA8L2Zvcm0+YCk7CiAgfSwKCiAgYXN5bmMgc2F2ZUZvcm0oZSwgaWQpIHsKICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgIGNvbnN0IGZkID0gbmV3IEZvcm1EYXRhKGUudGFyZ2V0KTsKICAgIGNvbnN0IHJvdyA9IHsKICAgICAgaWQ6IGlkIHx8IERCLm5ld0lkKCksCiAgICAgIGFkYV9ubzogZmQuZ2V0KCdhZGFfbm8nKSwKICAgICAgYWRhX2RhdGU6IGZkLmdldCgnYWRhX2RhdGUnKSwKICAgICAgZnVuZF90eXBlOiBmZC5nZXQoJ2Z1bmRfdHlwZScpLAogICAgICBiYW5rOiBmZC5nZXQoJ2JhbmsnKSwKICAgICAgc2Nob29sX2lkOiBmZC5nZXQoJ3NjaG9vbF9pZCcpLAogICAgICBhbW91bnQ6IHBhcnNlRmxvYXQoZmQuZ2V0KCdhbW91bnQnKSksCiAgICAgIHN0YXR1czogZmQuZ2V0KCdzdGF0dXMnKSwKICAgICAgcmVtYXJrczogZmQuZ2V0KCdyZW1hcmtzJyksCiAgICB9OwogICAgY29uc3QgeyBlcnJvciB9ID0gYXdhaXQgREIudXBzZXJ0RGlzYnVyc2VtZW50KHJvdyk7CiAgICBpZiAoZXJyb3IpIHsgQXBwLnRvYXN0KCdFcnJvciBzYXZpbmc6ICcgKyAoZXJyb3IubWVzc2FnZSB8fCBlcnJvciksICdlcnJvcicpOyByZXR1cm47IH0KICAgIEFwcC5jbG9zZU1vZGFsKCk7CiAgICBBcHAudG9hc3QoJ0Rpc2J1cnNlbWVudCBzYXZlZCEnKTsKICAgIGF3YWl0IHRoaXMubG9hZFRhYmxlKCk7CiAgfSwKCiAgYXN5bmMgZGVsZXRlRGlzYnVyc2VtZW50KGlkKSB7CiAgICBpZiAoIWNvbmZpcm0oJ0RlbGV0ZSB0aGlzIGRpc2J1cnNlbWVudD8nKSkgcmV0dXJuOwogICAgY29uc3QgeyBlcnJvciB9ID0gYXdhaXQgREIuZGVsZXRlRGlzYnVyc2VtZW50KGlkKTsKICAgIGlmIChlcnJvcikgeyBBcHAudG9hc3QoJ0Vycm9yOiAnICsgZXJyb3IsICdlcnJvcicpOyByZXR1cm47IH0KICAgIEFwcC50b2FzdCgnRGVsZXRlZC4nKTsKICAgIGF3YWl0IHRoaXMubG9hZFRhYmxlKCk7CiAgfSwKCiAgYXN5bmMgZXhwb3J0Q1NWKCkgewogICAgY29uc3QgeyBkYXRhIH0gPSBhd2FpdCBEQi5nZXREaXNidXJzZW1lbnRzKHRoaXMuZmlsdGVycyk7CiAgICBjb25zdCByb3dzID0gZGF0YSB8fCBbXTsKICAgIGNvbnN0IGhlYWRlcnMgPSBbJ0FEQSBOby4nLCAnQURBIERhdGUnLCAnRnVuZCBUeXBlJywgJ0JhbmsnLCAnU2Nob29sJywgJ0Ftb3VudCcsICdTdGF0dXMnLCAnUmVtYXJrcyddOwogICAgY29uc3QgY3N2ID0gW2hlYWRlcnMuam9pbignLCcpLCAuLi5yb3dzLm1hcChyID0+IFsKICAgICAgci5hZGFfbm8sIHIuYWRhX2RhdGUsIHIuZnVuZF90eXBlLCByLmJhbmssCiAgICAgIHNjaG9vbE5hbWVCeUlkKHIuc2Nob29sX2lkLCB0aGlzLnNjaG9vbHMpLCByLmFtb3VudCwgci5zdGF0dXMsIHIucmVtYXJrcwogICAgXS5tYXAodiA9PiBgIiR7diB8fCAnJ30iYCkuam9pbignLCcpKV0uam9pbignXG4nKTsKICAgIGNvbnN0IGEgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdhJyk7CiAgICBhLmhyZWYgPSBVUkwuY3JlYXRlT2JqZWN0VVJMKG5ldyBCbG9iKFtjc3ZdLCB7IHR5cGU6ICd0ZXh0L2NzdicgfSkpOwogICAgYS5kb3dubG9hZCA9IGBNT09FLSR7dGhpcy5maWx0ZXJzLnllYXJ9LmNzdmA7CiAgICBhLmNsaWNrKCk7CiAgfQp9OwoKZnVuY3Rpb24gc2Nob29sTmFtZUJ5SWQoaWQsIHNjaG9vbHMpIHsKICBjb25zdCBzID0gKHNjaG9vbHMgfHwgW10pLmZpbmQocyA9PiBzLmlkID09PSBpZCk7CiAgcmV0dXJuIHMgPyBzLm5hbWUgOiAn4oCUJzsKfQo=
+// ============================================================
+// MOOE MONITORING VIEW
+// ============================================================
+const MOOEView = {
+  filters: { school_id: '', year: new Date().getFullYear().toString(), status: '', fund_type: '' },
+  schools: [],
+
+  async render() {
+    const { data: schools } = await DB.getSchools();
+    this.schools = schools || [];
+
+    return `
+    <div class="page-header flex items-start justify-between flex-wrap gap-3">
+      <div><h2>MOOE Monitoring</h2><p>Track all ADA disbursements per school</p></div>
+      <button class="btn btn-primary" onclick="MOOEView.openForm()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Disbursement
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="section-card mb-4">
+      <div class="section-card-body">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <label class="form-label">School</label>
+            <select class="form-select" id="f-school" onchange="MOOEView.applyFilter()">
+              <option value="">All Schools</option>
+              ${this.schools.map(s => `<option value="${s.id}" ${this.filters.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Year</label>
+            <select class="form-select" id="f-year" onchange="MOOEView.applyFilter()">
+              ${[2026, 2025, 2024].map(y => `<option value="${y}" ${this.filters.year == y ? 'selected' : ''}>${y}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select class="form-select" id="f-status" onchange="MOOEView.applyFilter()">
+              <option value="">All Statuses</option>
+              ${STATUSES.map(s => `<option value="${s.value}" ${this.filters.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Fund Type</label>
+            <select class="form-select" id="f-fund" onchange="MOOEView.applyFilter()">
+              <option value="">All Funds</option>
+              ${FUND_TYPES.map(f => `<option value="${f}" ${this.filters.fund_type === f ? 'selected' : ''}>${f}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mooe-table-container">
+      <div class="flex justify-center py-10"><div class="spinner"></div></div>
+    </div>
+    `;
+  },
+
+  async afterRender() {
+    await this.loadTable();
+  },
+
+  applyFilter() {
+    this.filters.school_id = document.getElementById('f-school')?.value || '';
+    this.filters.year = document.getElementById('f-year')?.value || '';
+    this.filters.status = document.getElementById('f-status')?.value || '';
+    this.filters.fund_type = document.getElementById('f-fund')?.value || '';
+    this.loadTable();
+  },
+
+  async loadTable() {
+    const container = document.getElementById('mooe-table-container');
+    if (!container) return;
+    const { data, error } = await DB.getDisbursements(this.filters);
+    const rows = data || [];
+
+    // Apply fund_type filter locally
+    const filtered = this.filters.fund_type ? rows.filter(r => r.fund_type === this.filters.fund_type) : rows;
+    const total = filtered.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+
+    if (error) { container.innerHTML = `<div class="section-card section-card-body text-red-600">Error loading data: ${error.message || error}</div>`; return; }
+
+    container.innerHTML = `
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>${filtered.length} disbursement(s) — Total: <span class="text-[#0038A8]">${fmt(total)}</span></h3>
+        <button class="btn btn-secondary btn-sm" onclick="MOOEView.exportCSV()">⬇ Export CSV</button>
+      </div>
+      ${filtered.length === 0 ? emptyState('No disbursements found. Add one above.') : `
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th>ADA No.</th><th>ADA Date</th><th>Fund Type</th><th>Bank</th>
+            <th>School</th><th class="text-right">Amount</th>
+            <th>Status</th><th>Remarks</th><th class="text-center">Action</th>
+          </tr></thead>
+          <tbody>
+            ${filtered.map(r => `
+            <tr>
+              <td class="font-mono text-xs">${r.ada_no || '—'}</td>
+              <td class="whitespace-nowrap">${formatDate(r.ada_date)}</td>
+              <td>${r.fund_type || '—'}</td>
+              <td><span class="badge ${r.bank === 'LBP' ? 'badge-submitted' : 'badge-pending'}">${r.bank || '—'}</span></td>
+              <td>${schoolNameById(r.school_id, this.schools)}</td>
+              <td class="text-right font-semibold tabular-nums">${fmt(r.amount)}</td>
+              <td>${statusBadge(r.status)}</td>
+              <td class="text-xs text-gray-500 max-w-xs truncate">${r.remarks || ''}</td>
+              <td class="text-center whitespace-nowrap">
+                <button class="btn btn-secondary btn-sm mr-1" onclick="MOOEView.openForm('${r.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="MOOEView.deleteDisbursement('${r.id}')">Del</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </div>`;
+  },
+
+  async openForm(id = null) {
+    const { data: schools } = await DB.getSchools();
+    let row = { ada_no: '', ada_date: '', fund_type: '', bank: 'LBP', school_id: '', amount: '', status: 'pending', remarks: '' };
+    if (id) {
+      const { data: disb } = await DB.getDisbursements();
+      const found = (disb || []).find(r => r.id === id);
+      if (found) row = found;
+    }
+    App.openModal(id ? 'Edit Disbursement' : 'Add Disbursement', `
+    <form id="disb-form" onsubmit="MOOEView.saveForm(event, '${id || ''}')">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="form-label">ADA No.</label>
+          <input class="form-input" name="ada_no" value="${row.ada_no || ''}" placeholder="e.g. 2626003" required />
+        </div>
+        <div>
+          <label class="form-label">ADA Date</label>
+          <input class="form-input" type="date" name="ada_date" value="${row.ada_date || ''}" required />
+        </div>
+        <div>
+          <label class="form-label">School</label>
+          <select class="form-select" name="school_id" required>
+            <option value="">— Select School —</option>
+            ${(schools || []).map(s => `<option value="${s.id}" ${row.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Fund Type</label>
+          <select class="form-select" name="fund_type" required>
+            <option value="">— Select —</option>
+            ${FUND_TYPES.map(f => `<option value="${f}" ${row.fund_type === f ? 'selected' : ''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Bank</label>
+          <select class="form-select" name="bank">
+            ${BANKS.map(b => `<option value="${b}" ${row.bank === b ? 'selected' : ''}>${b}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Amount (₱)</label>
+          <input class="form-input" type="number" step="0.01" name="amount" value="${row.amount || ''}" placeholder="0.00" required />
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            ${STATUSES.map(s => `<option value="${s.value}" ${row.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Remarks</label>
+          <input class="form-input" name="remarks" value="${row.remarks || ''}" placeholder="Optional remarks" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`);
+  },
+
+  async saveForm(e, id) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const row = {
+      id: id || DB.newId(),
+      ada_no: fd.get('ada_no'),
+      ada_date: fd.get('ada_date'),
+      fund_type: fd.get('fund_type'),
+      bank: fd.get('bank'),
+      school_id: fd.get('school_id'),
+      amount: parseFloat(fd.get('amount')),
+      status: fd.get('status'),
+      remarks: fd.get('remarks'),
+    };
+    const { error } = await DB.upsertDisbursement(row);
+    if (error) { App.toast('Error saving: ' + (error.message || error), 'error'); return; }
+    App.closeModal();
+    App.toast('Disbursement saved!');
+    await this.loadTable();
+  },
+
+  async deleteDisbursement(id) {
+    if (!confirm('Delete this disbursement?')) return;
+    const { error } = await DB.deleteDisbursement(id);
+    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    App.toast('Deleted.');
+    await this.loadTable();
+  },
+
+  async exportCSV() {
+    const { data } = await DB.getDisbursements(this.filters);
+    const rows = data || [];
+    const headers = ['ADA No.', 'ADA Date', 'Fund Type', 'Bank', 'School', 'Amount', 'Status', 'Remarks'];
+    const csv = [headers.join(','), ...rows.map(r => [
+      r.ada_no, r.ada_date, r.fund_type, r.bank,
+      schoolNameById(r.school_id, this.schools), r.amount, r.status, r.remarks
+    ].map(v => `"${v || ''}"`).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `MOOE-${this.filters.year}.csv`;
+    a.click();
+  }
+};
+
+function schoolNameById(id, schools) {
+  const s = (schools || []).find(s => s.id === id);
+  return s ? s.name : '—';
+}

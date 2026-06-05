@@ -1,1 +1,88 @@
-Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIFNVUEFCQVNFIENPTkZJR1VSQVRJT04KLy8gUmVwbGFjZSB0aGVzZSB2YWx1ZXMgd2l0aCB5b3VyIG93biBTdXBhYmFzZSBwcm9qZWN0IHNldHRpbmdzLgovLyBHbyB0bzogaHR0cHM6Ly9zdXBhYmFzZS5jb20g4oaSIFlvdXIgUHJvamVjdCDihpIgU2V0dGluZ3Mg4oaSIEFQSQovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KY29uc3QgU1VQQUJBU0VfVVJMID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NiX3VybCcpIHx8ICcnOwpjb25zdCBTVVBBQkFTRV9BTk9OX0tFWSA9IGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzYl9rZXknKSB8fCAnJzsKCi8vIEFwcCBjb25zdGFudHMKY29uc3QgQVBQX05BTUUgPSAnRHVsYWcgV2VzdCBEaXN0cmljdCBNT09FIERhc2hib2FyZCc7CmNvbnN0IERJU1RSSUNUID0gJ0R1bGFnIFdlc3QgRGlzdHJpY3QnOwpjb25zdCBESVZJU0lPTiA9ICdEaXZpc2lvbiBvZiBMZXl0ZSc7CmNvbnN0IFJFR0lPTiA9ICdSZWdpb24gVklJSSc7CmNvbnN0IEJPT0tLRUVQRVIgPSAnSk8gQU5OIE1BUklFIFAuIENBR0FSQSc7CmNvbnN0IEJPT0tLRUVQRVJfVElUTEUgPSAnQURBUyBJSUkgKFNlbmlvciBCb29ra2VlcGVyKSc7Cgpjb25zdCBGVU5EX1RZUEVTID0gWwogICdSZWd1bGFyIE1PT0UnLAogICdQU0YgLSBLaW5kZXInLAogICdQU0YgLSBHcmFkZSAxIFJlYWRpbmcnLAogICdQU0YgLSBHcmFkZSAxIE1hdGgnLAogICdTQkZQIC0gTWlsaycsCiAgJ1NCRlAgLSBGb29kJywKICAnU0JGUCAtIE5MQycsCiAgJ1NCRlAgLSBOdXRyaWJhbicsCiAgJ1NCRlAgLSBBZGRpdGlvbmFsIE9wZXJhdGluZycsCiAgJ0stRkVMVCcsCiAgJ0FSQUwgUHJvZ3JhbScsCiAgJ01BVEFUQUcnLAogICdFTExOQScsCiAgJ0RlbGl2ZXJ5IFN1cHBvcnQgRnVuZCAtIExScycsCiAgJ0RlbGl2ZXJ5IFN1cHBvcnQgRnVuZCAtIExldmVsZWQgUmVhZGVyIE1pbmkgQm9vaycsCiAgJ0RlbGl2ZXJ5IFN1cHBvcnQgRnVuZCAtIEVtZXJnZW5jeSBTaXR1YXRpb24nLAogICdEZWxpdmVyeSBTdXBwb3J0IEZ1bmQgLSBNYXRoJywKICAnTFRFLVNNIEdyYWRlIDEtMycsCiAgJ0xURS1TTSBHcmFkZSA0LTYnLAogICdTcGVjaWFsIE5lZWRzIFN1cHBvcnQnLAogICdHcmFkZSA0IE11c2ljIGFuZCBBcnRzJywKICAnV2F0ZXIgVGVzdGluZycsCiAgJ0hhdWxpbmcgb2YgVGV4dGJvb2tzJywKICAnQ09TJywKICAnT3RoZXInLApdOwoKY29uc3QgU1RBVFVTRVMgPSBbCiAgeyB2YWx1ZTogJ3BlbmRpbmcnLCBsYWJlbDogJ1BlbmRpbmcnIH0sCiAgeyB2YWx1ZTogJ3N1Ym1pdHRlZF90b19kaXZpc2lvbicsIGxhYmVsOiAnU3VibWl0dGVkIHRvIERpdmlzaW9uJyB9LAogIHsgdmFsdWU6ICdzdWJtaXR0ZWRfdG9fc291JywgbGFiZWw6ICdTdWJtaXR0ZWQgdG8gU09VJyB9LAogIHsgdmFsdWU6ICdsaXF1aWRhdGVkJywgbGFiZWw6ICdMaXF1aWRhdGVkJyB9LApdOwoKY29uc3QgQkFOS1MgPSBbJ0xCUCcsICdEQlAnXTsKCmNvbnN0IFVBQ1NfQ09ERVMgPSBbCiAgeyBjb2RlOiAnNTAyMDEwMTAwMCcsIGRlc2M6ICdUcmF2ZWxsaW5nIEV4cGVuc2VzIC0gTG9jYWwnIH0sCiAgeyBjb2RlOiAnNTAyMDIwMTAwMCcsIGRlc2M6ICdUcmFpbmluZyBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwMzAxMDAwJywgZGVzYzogJ09mZmljZSBTdXBwbGllcyBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwMzAyMDAwJywgZGVzYzogJ0FjY291bnRhYmxlIEZvcm1zIEV4cGVuc2VzJyB9LAogIHsgY29kZTogJzUwMjAzMDcwMDAnLCBkZXNjOiAnRHJ1Z3MgYW5kIE1lZGljaW5lcyBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwMzA5MDAwJywgZGVzYzogJ0Z1ZWwsIE9pbCBhbmQgTHVicmljYW50cyBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwMzk5MDAwJywgZGVzYzogJ090aGVyIFN1cHBsaWVzIGFuZCBNYXRlcmlhbHMgRXhwZW5zZXMnIH0sCiAgeyBjb2RlOiAnNTAyMDQwMTAwMCcsIGRlc2M6ICdXYXRlciBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwNDAyMDAwJywgZGVzYzogJ0VsZWN0cmljaXR5IEV4cGVuc2VzJyB9LAogIHsgY29kZTogJzUwMjA1MDEwMDAnLCBkZXNjOiAnUG9zdGFnZSBhbmQgQ291cmllciBFeHBlbnNlcycgfSwKICB7IGNvZGU6ICc1MDIwNTAyMDAxJywgZGVzYzogJ1RlbGVwaG9uZSBFeHBlbnNlcyAtIE1vYmlsZScgfSwKICB7IGNvZGU6ICc1MDIwNTAyMDAyJywgZGVzYzogJ1RlbGVwaG9uZSBFeHBlbnNlcyAtIExhbmRsaW5lJyB9LAogIHsgY29kZTogJzUwMjA1MDMwMDAnLCBkZXNjOiAnSW50ZXJuZXQgU3Vic2NyaXB0aW9uIEV4cGVuc2VzJyB9LAogIHsgY29kZTogJzUwMjA2MDEwMDAnLCBkZXNjOiAnQXdhcmRzL1Jld2FyZHMgRXhwZW5zZXMnIH0sCiAgeyBjb2RlOiAnNTAyMTE5OTAwMCcsIGRlc2M6ICdPdGhlciBQcm9mZXNzaW9uYWwgU2VydmljZXMnIH0sCiAgeyBjb2RlOiAnNTAyMTIwMjAwMCcsIGRlc2M6ICdKYW5pdG9yaWFsIFNlcnZpY2VzJyB9LAogIHsgY29kZTogJzUwMjEyOTkwMDAnLCBkZXNjOiAnT3RoZXIgR2VuZXJhbCBTZXJ2aWNlcycgfSwKICB7IGNvZGU6ICc1MDIxMzA0MDAyJywgZGVzYzogJ1JlcGFpcnMgYW5kIE1haW50ZW5hbmNlIC0gU2Nob29sIEJ1aWxkaW5nJyB9LAogIHsgY29kZTogJzUwMjEzMDUwMDInLCBkZXNjOiAnUmVwYWlycyBhbmQgTWFpbnRlbmFuY2UgLSBPZmZpY2UgRXF1aXBtZW50JyB9LAogIHsgY29kZTogJzUwMjE1MDIwMDAnLCBkZXNjOiAnRmlkZWxpdHkgQm9uZCBQcmVtaXVtJyB9LAogIHsgY29kZTogJzUwMjk5MDIwMDAnLCBkZXNjOiAnUHJpbnRpbmcgYW5kIFB1YmxpY2F0aW9uIEV4cGVuc2VzJyB9LAogIHsgY29kZTogJzUwMjk5OTkwOTknLCBkZXNjOiAnT3RoZXIgTWFpbnRlbmFuY2UgYW5kIE9wZXJhdGluZyBFeHBlbnNlcycgfSwKXTsKCmNvbnN0IFJFU09VUkNFX0NBVEVHT1JJRVMgPSBbCiAgeyB2YWx1ZTogJ2NvYV9jaXJjdWxhcicsIGxhYmVsOiAnQ09BIENpcmN1bGFyJywgY3NzOiAnY2F0LWNvYScgfSwKICB7IHZhbHVlOiAnZGVwZWRfb3JkZXInLCBsYWJlbDogJ0RlcEVkIE9yZGVyJywgY3NzOiAnY2F0LWRlcGVkJyB9LAogIHsgdmFsdWU6ICdtZW1vcmFuZHVtJywgbGFiZWw6ICdNZW1vcmFuZHVtJywgY3NzOiAnY2F0LW1lbW8nIH0sCiAgeyB2YWx1ZTogJ3VhY3NfcmVmZXJlbmNlJywgbGFiZWw6ICdVQUNTIFJlZmVyZW5jZScsIGNzczogJ2NhdC11YWNzJyB9LAogIHsgdmFsdWU6ICdmb3JtX3RlbXBsYXRlJywgbGFiZWw6ICdGb3JtIC8gVGVtcGxhdGUnLCBjc3M6ICdjYXQtZm9ybScgfSwKICB7IHZhbHVlOiAnZ29vZ2xlX3NoZWV0JywgbGFiZWw6ICdHb29nbGUgU2hlZXQnLCBjc3M6ICdjYXQtc2hlZXQnIH0sCiAgeyB2YWx1ZTogJ2dvb2dsZV9kb2MnLCBsYWJlbDogJ0dvb2dsZSBEb2MnLCBjc3M6ICdjYXQtc2hlZXQnIH0sCiAgeyB2YWx1ZTogJ290aGVyJywgbGFiZWw6ICdPdGhlcicsIGNzczogJ2JhZGdlJyB9LApdOwo=
+// ============================================================
+// SUPABASE CONFIGURATION
+// Replace these values with your own Supabase project settings.
+// Go to: https://supabase.com → Your Project → Settings → API
+// ============================================================
+const SUPABASE_URL = localStorage.getItem('sb_url') || '';
+const SUPABASE_ANON_KEY = localStorage.getItem('sb_key') || '';
+
+// App constants
+const APP_NAME = 'Dulag West District MOOE Dashboard';
+const DISTRICT = 'Dulag West District';
+const DIVISION = 'Division of Leyte';
+const REGION = 'Region VIII';
+const BOOKKEEPER = 'JO ANN MARIE P. CAGARA';
+const BOOKKEEPER_TITLE = 'ADAS III (Senior Bookkeeper)';
+
+const FUND_TYPES = [
+  'Regular MOOE',
+  'PSF - Kinder',
+  'PSF - Grade 1 Reading',
+  'PSF - Grade 1 Math',
+  'SBFP - Milk',
+  'SBFP - Food',
+  'SBFP - NLC',
+  'SBFP - Nutriban',
+  'SBFP - Additional Operating',
+  'K-FELT',
+  'ARAL Program',
+  'MATATAG',
+  'ELLNA',
+  'Delivery Support Fund - LRs',
+  'Delivery Support Fund - Leveled Reader Mini Book',
+  'Delivery Support Fund - Emergency Situation',
+  'Delivery Support Fund - Math',
+  'LTE-SM Grade 1-3',
+  'LTE-SM Grade 4-6',
+  'Special Needs Support',
+  'Grade 4 Music and Arts',
+  'Water Testing',
+  'Hauling of Textbooks',
+  'COS',
+  'Other',
+];
+
+const STATUSES = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'submitted_to_division', label: 'Submitted to Division' },
+  { value: 'submitted_to_sou', label: 'Submitted to SOU' },
+  { value: 'liquidated', label: 'Liquidated' },
+];
+
+const BANKS = ['LBP', 'DBP'];
+
+const UACS_CODES = [
+  { code: '5020101000', desc: 'Travelling Expenses - Local' },
+  { code: '5020201000', desc: 'Training Expenses' },
+  { code: '5020301000', desc: 'Office Supplies Expenses' },
+  { code: '5020302000', desc: 'Accountable Forms Expenses' },
+  { code: '5020307000', desc: 'Drugs and Medicines Expenses' },
+  { code: '5020309000', desc: 'Fuel, Oil and Lubricants Expenses' },
+  { code: '5020399000', desc: 'Other Supplies and Materials Expenses' },
+  { code: '5020401000', desc: 'Water Expenses' },
+  { code: '5020402000', desc: 'Electricity Expenses' },
+  { code: '5020501000', desc: 'Postage and Courier Expenses' },
+  { code: '5020502001', desc: 'Telephone Expenses - Mobile' },
+  { code: '5020502002', desc: 'Telephone Expenses - Landline' },
+  { code: '5020503000', desc: 'Internet Subscription Expenses' },
+  { code: '5020601000', desc: 'Awards/Rewards Expenses' },
+  { code: '5021199000', desc: 'Other Professional Services' },
+  { code: '5021202000', desc: 'Janitorial Services' },
+  { code: '5021299000', desc: 'Other General Services' },
+  { code: '5021304002', desc: 'Repairs and Maintenance - School Building' },
+  { code: '5021305002', desc: 'Repairs and Maintenance - Office Equipment' },
+  { code: '5021502000', desc: 'Fidelity Bond Premium' },
+  { code: '5029902000', desc: 'Printing and Publication Expenses' },
+  { code: '5029999099', desc: 'Other Maintenance and Operating Expenses' },
+];
+
+const RESOURCE_CATEGORIES = [
+  { value: 'coa_circular', label: 'COA Circular', css: 'cat-coa' },
+  { value: 'deped_order', label: 'DepEd Order', css: 'cat-deped' },
+  { value: 'memorandum', label: 'Memorandum', css: 'cat-memo' },
+  { value: 'uacs_reference', label: 'UACS Reference', css: 'cat-uacs' },
+  { value: 'form_template', label: 'Form / Template', css: 'cat-form' },
+  { value: 'google_sheet', label: 'Google Sheet', css: 'cat-sheet' },
+  { value: 'google_doc', label: 'Google Doc', css: 'cat-sheet' },
+  { value: 'other', label: 'Other', css: 'badge' },
+];

@@ -1,1 +1,210 @@
-Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIFJFU09VUkNFUyBWSUVXCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpjb25zdCBSZXNvdXJjZXNWaWV3ID0gewogIGFjdGl2ZUNhdGVnb3J5OiAnJywKCiAgYXN5bmMgcmVuZGVyKCkgewogICAgcmV0dXJuIGAKICAgIDxkaXYgY2xhc3M9InBhZ2UtaGVhZGVyIGZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIGZsZXgtd3JhcCBnYXAtMyI+CiAgICAgIDxkaXY+PGgyPlJlc291cmNlczwvaDI+PHA+Q09BIENpcmN1bGFycywgRGVwRWQgT3JkZXJzLCBVQUNTIHJlZmVyZW5jZSwgRm9ybXMgJiBUZW1wbGF0ZXM8L3A+PC9kaXY+CiAgICAgIDxidXR0b24gY2xhc3M9ImJ0biBidG4tcHJpbWFyeSIgb25jbGljaz0iUmVzb3VyY2VzVmlldy5vcGVuRm9ybSgpIj4KICAgICAgICA8c3ZnIGNsYXNzPSJ3LTQgaC00IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTEyIDR2MTZtOC04SDQiLz48L3N2Zz4KICAgICAgICBBZGQgUmVzb3VyY2UKICAgICAgPC9idXR0b24+CiAgICA8L2Rpdj4KCiAgICA8IS0tIENhdGVnb3J5IHRhYnMgLS0+CiAgICA8ZGl2IGNsYXNzPSJmbGV4IGZsZXgtd3JhcCBnYXAtMiBtYi00Ij4KICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuICR7IXRoaXMuYWN0aXZlQ2F0ZWdvcnkgPyAnYnRuLXByaW1hcnknIDogJ2J0bi1zZWNvbmRhcnknfSBidG4tc20iIG9uY2xpY2s9IlJlc291cmNlc1ZpZXcuc2V0Q2F0ZWdvcnkoJycpIj5BbGw8L2J1dHRvbj4KICAgICAgJHtSRVNPVVJDRV9DQVRFR09SSUVTLm1hcChjID0+IGAKICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuICR7dGhpcy5hY3RpdmVDYXRlZ29yeSA9PT0gYy52YWx1ZSA/ICdidG4tcHJpbWFyeScgOiAnYnRuLXNlY29uZGFyeSd9IGJ0bi1zbSIgb25jbGljaz0iUmVzb3VyY2VzVmlldy5zZXRDYXRlZ29yeSgnJHtjLnZhbHVlfScpIj4ke2MubGFiZWx9PC9idXR0b24+CiAgICAgIGApLmpvaW4oJycpfQogICAgPC9kaXY+CgogICAgPCEtLSBVQUNTIFF1aWNrIFJlZmVyZW5jZSAoYWx3YXlzIHNob3duIGlmIGNhdGVnb3J5IGlzIHVhY3NfcmVmZXJlbmNlIG9yIGFsbCkgLS0+CiAgICAkeyF0aGlzLmFjdGl2ZUNhdGVnb3J5IHx8IHRoaXMuYWN0aXZlQ2F0ZWdvcnkgPT09ICd1YWNzX3JlZmVyZW5jZScgPyB0aGlzLnJlbmRlclVBQ1NSZWYoKSA6ICcnfQoKICAgIDxkaXYgaWQ9InJlc291cmNlcy1saXN0Ij4KICAgICAgPGRpdiBjbGFzcz0iZmxleCBqdXN0aWZ5LWNlbnRlciBweS0xMCI+PGRpdiBjbGFzcz0ic3Bpbm5lciI+PC9kaXY+PC9kaXY+CiAgICA8L2Rpdj5gOwogIH0sCgogIGFzeW5jIGFmdGVyUmVuZGVyKCkgeyBhd2FpdCB0aGlzLmxvYWRMaXN0KCk7IH0sCgogIHJlbmRlclVBQ1NSZWYoKSB7CiAgICByZXR1cm4gYAogICAgPGRpdiBjbGFzcz0ic2VjdGlvbi1jYXJkIG1iLTQiPgogICAgICA8ZGl2IGNsYXNzPSJzZWN0aW9uLWNhcmQtaGVhZGVyIj4KICAgICAgICA8aDM+VUFDCSBPY2plY3QgQ29kZXMgUXVpY2sgUmVmZXJlbmNlPC9oMz4KICAgICAgICA8c3BhbiBjbGFzcz0iYmFkZ2UgY2F0LXVhY3MiPkJ1aWx0LWluPC9zcGFuPgogICAgICA8L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0idGFibGUtc2Nyb2xsIj4KICAgICAgICA8dGFibGUgY2xhc3M9ImRhdGEtdGFibGUiPgogICAgICAgICAgPHRoZWFkPjx0cj48dGg+VUFDCSBDB2RlPC90aD48dGg+QWNjb3VudCBEZXNjcmlwdGlvbjwvdGg+PC90cj48L3RoZWFkPgogICAgICAgICAgPHRib2R5PgogICAgICAgICAgICAke1VBQ1NfQ09ERVMubWFwKHUgPT4gYAogICAgICAgICAgICA8dHI+PHRkIGNsYXNzPSJmb250LW1vbm8iPiR7dS5jb2RlfTwvdGQ+PHRkPiR7dS5kZXNjfTwvdGQ+PC90cj5gKS5qb2luKCcnKX0KICAgICAgICAgIDwvdGJvZHk+CiAgICAgICAgPC90YWJsZT4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj5gOwogIH0sCgogIHNldENhdGVnb3J5KGNhdCkgewogICAgdGhpcy5hY3RpdmVDYXRlZ29yeSA9IGNhdDsKICAgIGNvbnN0IHZjID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3ZpZXctY29udGFpbmVyJyk7CiAgICBpZiAodmMpIHsgdGhpcy5yZW5kZXIoKS50aGVuKGh0bWwgPT4geyB2Yy5pbm5lckhUTUwgPSBodG1sOyB0aGlzLmxvYWRMaXN0KCk7IH0pOyB9CiAgfSwKCiAgYXN5bmMgbG9hZExpc3QoKSB7CiAgICBjb25zdCBjb250YWluZXIgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVzb3VyY2VzLWxpc3QnKTsKICAgIGlmICghY29udGFpbmVyKSByZXR1cm47CiAgICBjb25zdCB7IGRhdGEgfSA9IGF3YWl0IERCLmdldFJlc291cmNlcyh0aGlzLmFjdGl2ZUNhdGVnb3J5ID8geyBjYXRlZ29yeTogdGhpcy5hY3RpdmVDYXRlZ29yeSB9IDoge30pOwogICAgY29uc3QgcmVzb3VyY2VzID0gZGF0YSB8fCBbXTsKCiAgICBpZiAocmVzb3VyY2VzLmxlbmd0aCA9PT0gMCkgewogICAgICBjb250YWluZXIuaW5uZXJIVE1MID0gYDxkaXYgY2xhc3M9InNlY3Rpb24tY2FyZCI+JHtlbXB0eVN0YXRlKCdObyByZXNvdXJjZXMgeWV0LiBDbGljayAiQWRkIFJlc291cmNlIiB0byBhZGQgZG9jdW1lbnRzIGFuZCBsaW5rcy4nKX08L2Rpdj5gOwogICAgICByZXR1cm47CiAgICB9CgogICAgLy8gR3JvdXAgYnkgY2F0ZWdvcnkKICAgIGNvbnN0IGdyb3VwZWQgPSB7fTsKICAgIHJlc291cmNlcy5mb3JFYWNoKHIgPT4gewogICAgICBjb25zdCBrZXkgPSByLmNhdGVnb3J5IHx8ICdvdGhlcic7CiAgICAgIGlmICghZ3JvdXBlZFtrZXldKSBncm91cGVkW2tleV0gPSBbXTsKICAgICAgZ3JvdXBlZFtrZXldLnB1c2gocik7CiAgICB9KTsKCiAgICBjb250YWluZXIuaW5uZXJIVE1MID0gT2JqZWN0LmVudHJpZXMoZ3JvdXBlZCkubWFwKChbY2F0LCBpdGVtc10pID0+IHsKICAgICAgY29uc3QgY2F0SW5mbyA9IFJFU09VUkNFX0NBVEVHT1JJRVMuZmluZChjID0+IGMudmFsdWUgPT09IGNhdCkgfHwgeyBsYWJlbDogY2F0LCBjc3M6ICdiYWRnZScgfTsKICAgICAgcmV0dXJuIGAKICAgICAgPGRpdiBjbGFzcz0ic2VjdGlvbi1jYXJkIG1iLTQiPgogICAgICAgIDxkaXYgY2xhc3M9InNlY3Rpb24tY2FyZC1oZWFkZXIiPgogICAgICAgICAgPGgzIGNsYXNzPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzPSJiYWRnZSAke2NhdEluZm8uY3NzfSI+JHtjYXRJbmZvLmxhYmVsfTwvc3Bhbj4KICAgICAgICAgICAgPHNwYW4gY2xhc3M9InRleHQtc20gZm9udC1ub3JtYWwgdGV4dC1ncmF5LTUwMCI+JHtpdGVtcy5sZW5ndGh9IGl0ZW0ocyk8L3NwYW4+CiAgICAgICAgICA8L2gzPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9InNlY3Rpb24tY2FyZC1ib2R5IHAtMCI+CiAgICAgICAgICAke2l0ZW1zLm1hcChyID0+IGAKICAgICAgICAgIDxkaXYgY2xhc3M9ImZsZXggaXRlbXMtc3RhcnQganVzdGlmeS1iZXR3ZWVuIHB4LTUgcHktMyBib3JkZXItYiBsYXN0OmJvcmRlci0wIGhvdmVyOmJnLWdyYXktNTAgZ2FwLTQiPgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4LTEgbWluLXctMCI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzcz0iZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktODAwIHRleHQtc20iPiR7ci50aXRsZX08L2Rpdj4KICAgICAgICAgICAgICAke3IuZGVzY3JpcHRpb24gPyBgPGRpdiBjbGFzcz0idGV4dC14cyB0ZXh0LWdyYXktNTAwIG10LTAuNSI+JHtyLmRlc2NyaXB0aW9ufTwvZGl2PmAgOiAnJ30KICAgICAgICAgICAgICAke3IudXJsID8gYDxhIGhyZWY9IiR7ci51cmx9IiB0YXJnZXQ9Il9ibGFuayIgY2xhc3M9InRleHQteHMgdGV4dC1ibHVlLTYwMCBob3Zlcjp1bmRlcmxpbmUgbXQtMC41IGJsb2NrIHRydW5jYXRlIj4ke3IudXJsfTwvYT5gIDogJyd9CiAgICAgICAgICAgICAgPGRpdiBjbGFzcz0idGV4dC14cyB0ZXh0LWdyYXktNDAwIG10LTAuNSI+JHtmb3JtYXREYXRlKHIuY3JlYXRlZF9hdCl9PC9kaXY+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGNsYXNzPSJmbGV4IGdhcC0yIHNocmluay0wIj4KICAgICAgICAgICAgICAke3IudXJsID8gYDxhIGhyZWY9IiR7ci51cmx9IiB0YXJnZXQ9Il9ibGFuayIgY2xhc3M9ImJ0biBidG4tc3VjY2VzcyBidG4tc20iPk9wZW4g4oaXPC9hPmAgOiAnJ30KICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzPSJidG4gYnRuLXNlY29uZGFyeSBidG4tc20iIG9uY2xpY2s9IlJlc291cmNlc1ZpZXcub3BlbkZvcm0oJyR7ci5pZH0nKSI+RWRpdDwvYnV0dG9uPgogICAgICAgICAgICAgIDxidXR0b24gY2xhc3M9ImJ0biBidG4tZGFuZ2VyIGJ0bi1zbSIgb25jbGljaz0iUmVzb3VyY2VzVmlldy5kZWxldGVSZXNvdXJjZSgnJHtyLmlkfScpIj5EZWw8L2J1dHRvbj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj5gKS5qb2luKCcnKX0KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+YDsKICAgIH0pLmpvaW4oJycpOwogIH0sCgogIGFzeW5jIG9wZW5Gb3JtKGlkID0gbnVsbCkgewogICAgbGV0IHJvdyA9IHsgdGl0bGU6ICcnLCBjYXRlZ29yeTogJ2RlcGVkX29yZGVyJywgcmVzb3VyY2VfdHlwZTogJ2xpbmsnLCB1cmw6ICcnLCBkZXNjcmlwdGlvbjogJycgfTsKICAgIGlmIChpZCkgewogICAgICBjb25zdCB7IGRhdGEgfSA9IGF3YWl0IERCLmdldFJlc291cmNlcygpOwogICAgICBjb25zdCBmb3VuZCA9IChkYXRhIHx8IFtdKS5maW5kKHIgPT4gci5pZCA9PT0gaWQpOwogICAgICBpZiAoZm91bmQpIHJvdyA9IGZvdW5kOwogICAgfQogICAgQXBwLm9wZW5Nb2RhbChpZCA/ICdFZGl0IFJlc291cmNlJyA6ICdBZGQgUmVzb3VyY2UnLCBgCiAgICA8Zm9ybSBvbnN1Ym1pdD0iUmVzb3VyY2VzVmlldy5zYXZlRm9ybShldmVudCwgJyR7aWQgfHwgJyd9JykiPgogICAgICA8ZGl2IGNsYXNzPSJncmlkIGdyaWQtY29scy0xIGdhcC00IG1iLTQiPgogICAgICAgIDxkaXY+CiAgICAgICAgICA8bGFiZWwgY2xhc3M9ImZvcm0tbGFiZWwiPlRpdGxlICo8L2xhYmVsPgogICAgICAgICAgPGlucHV0IGNsYXNzPSJmb3JtLWlucHV0IiBuYW1lPSJ0aXRsZSIgdmFsdWU9IiR7cm93LnRpdGxlIHx8ICcnfSIgcGxhY2Vob2xkZXI9ImUuZy4gQ09BIENpcmN1bGFyIDIwMTItMDAxIiByZXF1aXJlZCAvPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImdyaWQgZ3JpZC1jb2xzLTIgZ2FwLTMiPgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzPSJmb3JtLWxhYmVsIj5DYXRlZ29yeSAqPC9sYWJlbD4KICAgICAgICAgICAgPHNlbGVjdCBjbGFzcz0iZm9ybS1zZWxlY3QiIG5hbWU9ImNhdGVnb3J5IiByZXF1aXJlZD4KICAgICAgICAgICAgICAke1JFU09VUkNFX0NBVEVHT1JJRVMubWFwKGMgPT4gYDxvcHRpb24gdmFsdWU9IiR7Yy52YWx1ZX0iICR7cm93LmNhdGVnb3J5ID09PSBjLnZhbHVlID8gJ3NlbGVjdGVkJzonJ30+JHtjLmxhYmVsfTwvb3B0aW9uPmApLmpvaW4oJycpfQogICAgICAgICAgICA8L3NlbGVjdD4KICAgICAgICAgIDwvZGl2PgogICAgICAgICAgPGRpdj4KICAgICAgICAgICAgPGxhYmVsIGNsYXNzPSJmb3JtLWxhYmVsIj5UeXBlPC9sYWJlbD4KICAgICAgICAgICAgPHNlbGVjdCBjbGFzcz0iZm9ybS1zZWxlY3QiIG5hbWU9InJlc291cmNlX3R5cGUiIGlkPSJyZXMtdHlwZSIgb25jaGFuZ2U9IlJlc291cmNlc1ZpZXcudG9nZ2xlRmlsZUlucHV0KHRoaXMudmFsdWUpIj4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJsaW5rIiAke3Jvdy5yZXNvdXJjZV90eXBlID09PSAnbGluaycgPyAnc2VsZWN0ZWQnOicnfT5MaW5rIChVUkwgLyBHb29nbGUgRHJpdmUpPC9vcHRpb24+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icGRmIiAke3Jvdy5yZXNvdXJjZV90eXBlID09PSAncGRmJyA/ICdzZWxlY3RlZCc6Jyd9PlBERiBVcGxvYWQ8L29wdGlvbj4KICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2IGlkPSJ1cmwtaW5wdXQiPgogICAgICAgICAgPGxhYmVsIGNsYXNzPSJmb3JtLWxhYmVsIj5VUkwgLyBHb29nbGUgRHJpdmUgLyBHb29nbGUgU2hlZXRzIExpbms8L2xhYmVsPgogICAgICAgICAgPGlucHV0IGNsYXNzPSJmb3JtLWlucHV0IiBuYW1lPSJ1cmwiIHZhbHVlPSIke3Jvdy51cmwgfHwgJyd9IiBwbGFjZWhvbGRlcj0iaHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vLi4uIiAvPgogICAgICAgICAgPHAgY2xhc3M9InRleHQteHMgdGV4dC1ncmF5LTQwMCBtdC0xIj5QYXN0ZSBhbnkgR29vZ2xlIERvY3MsIFNoZWV0cywgRHJpdmUsIG9yIHdlYiBsaW5rIGhlcmUuPC9wPgogICAgICAgIDwvZGl2PgogICAgICAgIDxkaXYgaWQ9ImZpbGUtaW5wdXQiIGNsYXNzPSJoaWRkZW4iPgogICAgICAgICAgPGxhYmVsIGNsYXNzPSJmb3JtLWxhYmVsIj5VcGxvYWQgUERGPC9sYWJlbD4KICAgICAgICAgIDxpbnB1dCBjbGFzcz0iZm9ybS1pbnB1dCIgdHlwZT0iZmlsZSIgbmFtZT0icGRmX2ZpbGUiIGFjY2VwdD0iLnBkZiIgLz4KICAgICAgICAgIDxwIGNsYXNzPSJ0ZXh0LXhzIHRleHQtZ3JheS00MDAgbXQtMSI+UmVxdWlyZXMgU3VwYWJhc2UgdG8gYmUgY29ubmVjdGVkIChzZWUgU2V0dXApLjwvcD4KICAgICAgICAgICR7cm93LnVybCA/IGA8cCBjbGFzcz0idGV4dC14cyB0ZXh0LWJsdWUtNjAwIG10LTEiPkN1cnJlbnQgZmlsZTogPGEgaHJlZj0iJHtyb3cudXJsfSIgdGFyZ2V0PSJfYmxhbmsiIGNsYXNzPSJ1bmRlcmxpbmUiPlZpZXc8L2E+PC9wPmAgOiAnJ30KICAgICAgICA8L2Rpdj4KICAgICAgICA8ZGl2PgogICAgICAgICAgPGxhYmVsIGNsYXNzPSJmb3JtLWxhYmVsIj5EZXNjcmlwdGlvbiAob3B0aW9uYWwpPC9sYWJlbD4KICAgICAgICAgIDx0ZXh0YXJlYSBjbGFzcz0iZm9ybS1pbnB1dCIgbmFtZT0iZGVzY3JpcHRpb24iIHJvd3M9IjIiIHBsYWNlaG9sZGVyPSJCcmllZiBkZXNjcmlwdGlvbi4uLiI+JHtyb3cuZGVzY3JpcHRpb24gfHwgJyd9PC90ZXh0YXJlYT4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImZsZXgganVzdGlmeS1lbmQgZ2FwLTMiPgogICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBjbGFzcz0iYnRuIGJ0bi1zZWNvbmRhcnkiIG9uY2xpY2s9IkFwcC5jbG9zZU1vZGFsKCkiPkNhbmNlbDwvYnV0dG9uPgogICAgICAgIDxidXR0b24gdHlwZT0ic3VibWl0IiBjbGFzcz0iYnRuIGJ0bi1wcmltYXJ5Ij5TYXZlPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgPC9mb3JtPmApOwogICAgLy8gU2V0IGluaXRpYWwgdmlzaWJpbGl0eQogICAgdGhpcy50b2dnbGVGaWxlSW5wdXQocm93LnJlc291cmNlX3R5cGUgfHwgJ2xpbmsnKTsKICB9LAoKICB0b2dnbGVGaWxlSW5wdXQodHlwZSkgewogICAgY29uc3QgdXJsRGl2ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VybC1pbnB1dCcpOwogICAgY29uc3QgZmlsZURpdiA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdmaWxlLWlucHV0Jyk7CiAgICBpZiAoIXVybERpdiB8fCAhZmlsZURpdikgcmV0dXJuOwogICAgdXJsRGl2LmNsYXNzTGlzdC50b2dnbGUoJ2hpZGRlbicsIHR5cGUgPT09ICdwZGYnKTsKICAgIGZpbGVEaXYuY2xhc3NMaXN0LnRvZ2dsZSgnaGlkZGVuJywgdHlwZSAhPT0gJ3BkZicpOwogIH0sCgogIGFzeW5jIHNhdmVGb3JtKGUsIGlkKSB7CiAgICBlLnByZXZlbnREZWZhdWx0KCk7CiAgICBjb25zdCBmZCA9IG5ldyBGb3JtRGF0YShlLnRhcmdldCk7CiAgICBjb25zdCB0eXBlID0gZmQuZ2V0KCdyZXNvdXJjZV90eXBlJyk7CiAgICBsZXQgdXJsID0gZmQuZ2V0KCd1cmwnKSB8fCAnJzsKCiAgICAvLyBIYW5kbGUgUERGIHVwbG9hZAogICAgaWYgKHR5cGUgPT09ICdwZGYnKSB7CiAgICAgIGNvbnN0IGZpbGUgPSBmZC5nZXQoJ3BkZl9maWxlJyk7CiAgICAgIGlmIChmaWxlICYmIGZpbGUuc2l6ZSA+IDApIHsKICAgICAgICBBcHAudG9hc3QoJ1VwbG9hZGluZyBQREYuLi4nKTsKICAgICAgICBjb25zdCBwYXRoID0gYHJlc291cmNlcy8ke0RhdGUubm93KCl9XyR7ZmlsZS5uYW1lfWA7CiAgICAgICAgY29uc3QgeyB1cmw6IGZpbGVVcmwsIGVycm9yIH0gPSBhd2FpdCBEQi51cGxvYWRGaWxlKCdyZXNvdXJjZXMnLCBwYXRoLCBmaWxlKTsKICAgICAgICBpZiAoZXJyb3IpIHsgQXBwLnRvYXN0KCdVcGxvYWQgZXJyb3I6ICcgKyBlcnJvciwgJ2Vycm9yJyk7IHJldHVybjsgfQogICAgICAgIHVybCA9IGZpbGVVcmw7CiAgICAgIH0KICAgIH0KCiAgICBjb25zdCByb3cgPSB7CiAgICAgIGlkOiBpZCB8fCBEQi5uZXdJZCgpLAogICAgICB0aXRsZTogZmQuZ2V0KCd0aXRsZScpLAogICAgICBjYXRlZ29yeTogZmQuZ2V0KCdjYXRlZ29yeScpLAogICAgICByZXNvdXJjZV90eXBlOiB0eXBlLAogICAgICB1cmw6IHVybCwKICAgICAgZGVzY3JpcHRpb246IGZkLmdldCgnZGVzY3JpcHRpb24nKSwKICAgIH07CiAgICBjb25zdCB7IGVycm9yIH0gPSBhd2FpdCBEQi51cHNlcnRSZXNvdXJjZShyb3cpOwogICAgaWYgKGVycm9yKSB7IEFwcC50b2FzdCgnRXJyb3I6ICcgKyBlcnJvciwgJ2Vycm9yJyk7IHJldHVybjsgfQogICAgQXBwLmNsb3NlTW9kYWwoKTsKICAgIEFwcC50b2FzdCgnUmVzb3VyY2Ugc2F2ZWQhJyk7CiAgICBhd2FpdCB0aGlzLmxvYWRMaXN0KCk7CiAgfSwKCiAgYXN5bmMgZGVsZXRlUmVzb3VyY2UoaWQpIHsKICAgIGlmICghY29uZmlybSgnRGVsZXRlIHRoaXMgcmVzb3VyY2U/JykpIHJldHVybjsKICAgIGF3YWl0IERCLmRlbGV0ZVJlc291cmNlKGlkKTsKICAgIEFwcC50b2FzdCgnRGVsZXRlZC4nKTsKICAgIGF3YWl0IHRoaXMubG9hZExpc3QoKTsKICB9LAp9Owo=
+// ============================================================
+// RESOURCES VIEW
+// ============================================================
+const ResourcesView = {
+  activeCategory: '',
+
+  async render() {
+    return `
+    <div class="page-header flex items-start justify-between flex-wrap gap-3">
+      <div><h2>Resources</h2><p>COA Circulars, DepEd Orders, UACS reference, Forms & Templates</p></div>
+      <button class="btn btn-primary" onclick="ResourcesView.openForm()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Resource
+      </button>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button class="btn ${!this.activeCategory ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="ResourcesView.setCategory('')">All</button>
+      ${RESOURCE_CATEGORIES.map(c => `
+      <button class="btn ${this.activeCategory === c.value ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="ResourcesView.setCategory('${c.value}')">${c.label}</button>
+      `).join('')}
+    </div>
+
+    <!-- UACS Quick Reference (always shown if category is uacs_reference or all) -->
+    ${!this.activeCategory || this.activeCategory === 'uacs_reference' ? this.renderUACSRef() : ''}
+
+    <div id="resources-list">
+      <div class="flex justify-center py-10"><div class="spinner"></div></div>
+    </div>`;
+  },
+
+  async afterRender() { await this.loadList(); },
+
+  renderUACSRef() {
+    return `
+    <div class="section-card mb-4">
+      <div class="section-card-header">
+        <h3>UAC	 Ocject Codes Quick Reference</h3>
+        <span class="badge cat-uacs">Built-in</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>UAC	 Cde</th><th>Account Description</th></tr></thead>
+          <tbody>
+            ${UACS_CODES.map(u => `
+            <tr><td class="font-mono">${u.code}</td><td>${u.desc}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  },
+
+  setCategory(cat) {
+    this.activeCategory = cat;
+    const vc = document.getElementById('view-container');
+    if (vc) { this.render().then(html => { vc.innerHTML = html; this.loadList(); }); }
+  },
+
+  async loadList() {
+    const container = document.getElementById('resources-list');
+    if (!container) return;
+    const { data } = await DB.getResources(this.activeCategory ? { category: this.activeCategory } : {});
+    const resources = data || [];
+
+    if (resources.length === 0) {
+      container.innerHTML = `<div class="section-card">${emptyState('No resources yet. Click "Add Resource" to add documents and links.')}</div>`;
+      return;
+    }
+
+    // Group by category
+    const grouped = {};
+    resources.forEach(r => {
+      const key = r.category || 'other';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(r);
+    });
+
+    container.innerHTML = Object.entries(grouped).map(([cat, items]) => {
+      const catInfo = RESOURCE_CATEGORIES.find(c => c.value === cat) || { label: cat, css: 'badge' };
+      return `
+      <div class="section-card mb-4">
+        <div class="section-card-header">
+          <h3 class="flex items-center gap-2">
+            <span class="badge ${catInfo.css}">${catInfo.label}</span>
+            <span class="text-sm font-normal text-gray-500">${items.length} item(s)</span>
+          </h3>
+        </div>
+        <div class="section-card-body p-0">
+          ${items.map(r => `
+          <div class="flex items-start justify-between px-5 py-3 border-b last:border-0 hover:bg-gray-50 gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-gray-800 text-sm">${r.title}</div>
+              ${r.description ? `<div class="text-xs text-gray-500 mt-0.5">${r.description}</div>` : ''}
+              ${r.url ? `<a href="${r.url}" target="_blank" class="text-xs text-blue-600 hover:underline mt-0.5 block truncate">${r.url}</a>` : ''}
+              <div class="text-xs text-gray-400 mt-0.5">${formatDate(r.created_at)}</div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              ${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-success btn-sm">Open ↗</a>` : ''}
+              <button class="btn btn-secondary btn-sm" onclick="ResourcesView.openForm('${r.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="ResourcesView.deleteResource('${r.id}')">Del</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  async openForm(id = null) {
+    let row = { title: '', category: 'deped_order', resource_type: 'link', url: '', description: '' };
+    if (id) {
+      const { data } = await DB.getResources();
+      const found = (data || []).find(r => r.id === id);
+      if (found) row = found;
+    }
+    App.openModal(id ? 'Edit Resource' : 'Add Resource', `
+    <form onsubmit="ResourcesView.saveForm(event, '${id || ''}')">
+      <div class="grid grid-cols-1 gap-4 mb-4">
+        <div>
+          <label class="form-label">Title *</label>
+          <input class="form-input" name="title" value="${row.title || ''}" placeholder="e.g. COA Circular 2012-001" required />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">Category *</label>
+            <select class="form-select" name="category" required>
+              ${RESOURCE_CATEGORIES.map(c => `<option value="${c.value}" ${row.category === c.value ? 'selected':''}>${c.label}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Type</label>
+            <select class="form-select" name="resource_type" id="res-type" onchange="ResourcesView.toggleFileInput(this.value)">
+              <option value="link" ${row.resource_type === 'link' ? 'selected':''}>Link (URL / Google Drive)</option>
+              <option value="pdf" ${row.resource_type === 'pdf' ? 'selected':''}>PDF Upload</option>
+            </select>
+          </div>
+        </div>
+        <div id="url-input">
+          <label class="form-label">URL / Google Drive / Google Sheets Link</label>
+          <input class="form-input" name="url" value="${row.url || ''}" placeholder="https://docs.google.com/..." />
+          <p class="text-xs text-gray-400 mt-1">Paste any Google Docs, Sheets, Drive, or web link here.</p>
+        </div>
+        <div id="file-input" class="hidden">
+          <label class="form-label">Upload PDF</label>
+          <input class="form-input" type="file" name="pdf_file" accept=".pdf" />
+          <p class="text-xs text-gray-400 mt-1">Requires Supabase to be connected (see Setup).</p>
+          ${row.url ? `<p class="text-xs text-blue-600 mt-1">Current file: <a href="${row.url}" target="_blank" class="underline">View</a></p>` : ''}
+        </div>
+        <div>
+          <label class="form-label">Description (optional)</label>
+          <textarea class="form-input" name="description" rows="2" placeholder="Brief description...">${row.description || ''}</textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`);
+    // Set initial visibility
+    this.toggleFileInput(row.resource_type || 'link');
+  },
+
+  toggleFileInput(type) {
+    const urlDiv = document.getElementById('url-input');
+    const fileDiv = document.getElementById('file-input');
+    if (!urlDiv || !fileDiv) return;
+    urlDiv.classList.toggle('hidden', type === 'pdf');
+    fileDiv.classList.toggle('hidden', type !== 'pdf');
+  },
+
+  async saveForm(e, id) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const type = fd.get('resource_type');
+    let url = fd.get('url') || '';
+
+    // Handle PDF upload
+    if (type === 'pdf') {
+      const file = fd.get('pdf_file');
+      if (file && file.size > 0) {
+        App.toast('Uploading PDF...');
+        const path = `resources/${Date.now()}_${file.name}`;
+        const { url: fileUrl, error } = await DB.uploadFile('resources', path, file);
+        if (error) { App.toast('Upload error: ' + error, 'error'); return; }
+        url = fileUrl;
+      }
+    }
+
+    const row = {
+      id: id || DB.newId(),
+      title: fd.get('title'),
+      category: fd.get('category'),
+      resource_type: type,
+      url: url,
+      description: fd.get('description'),
+    };
+    const { error } = await DB.upsertResource(row);
+    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    App.closeModal();
+    App.toast('Resource saved!');
+    await this.loadList();
+  },
+
+  async deleteResource(id) {
+    if (!confirm('Delete this resource?')) return;
+    await DB.deleteResource(id);
+    App.toast('Deleted.');
+    await this.loadList();
+  },
+};
