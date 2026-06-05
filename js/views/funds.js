@@ -263,91 +263,2513 @@ const FundsView = {
   },
 
   async seedDefaults() {
-    if (!confirm('Load Regular MOOE seed data for all 14 schools (2025 Q1–Q4 and 2026 Q1)? This will add missing records only.')) return;
+    if (!confirm('Load all downloaded funds for all 14 schools from the CSV data? This will add missing records only.')) return;
 
     const { data: existing } = await DB.getFunds();
     const existingKeys = new Set((existing||[]).map(r=>`${r.school_id}_${r.ada_no}_${r.fund_type}`));
 
     const seeds = [
-      // ── Regular MOOE 2025 Q1 (ADA 2501012, LBP, 2025-02-03) ──
-      { school_id:'s_alegre',     ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:150000,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_arado',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:132250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_batug',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:145500,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_cabacungan', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:206250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_cabarasan',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:137250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_cabatoan',   ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:149250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_calipayan',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:138750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_delcarmen',  ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:130250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_genroxas',   ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:136250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_mhdelpilar', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:144250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_maricum',    ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:126250,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/11/2025' },
-      { school_id:'s_rawis',      ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:155750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_sanantonio', ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:153750,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-      { school_id:'s_tabu',       ada_no:'2501012', ada_date:'2025-02-03', fund_type:'Regular MOOE', amount:139500,   year:2025, status:'submitted_to_sou', remarks:'submitted 4/4/2025' },
-
-      // ── Regular MOOE 2025 Q2 (ADA 2504026, 2025-04-10) ──
-      { school_id:'s_alegre',     ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:149974.71, year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_arado',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_batug',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_cabacungan', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_cabarasan',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_cabatoan',   ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_calipayan',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_delcarmen',  ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_genroxas',   ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_mhdelpilar', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_maricum',    ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:126250,    year:2025, status:'liquidated',        remarks:'Liquidated' },
-      { school_id:'s_rawis',      ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_sanantonio', ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-      { school_id:'s_tabu',       ada_no:'2504026', ada_date:'2025-04-10', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'submitted_to_sou', remarks:'07/04/2025 submitted to SOU' },
-
-      // ── Regular MOOE 2025 Q3 (ADA 2507057, LBP, 2025-07-24) ──
-      { school_id:'s_alegre',     ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:159999.15, year:2025, status:'liquidated', remarks:'liquidated with MATATAG fund' },
-      { school_id:'s_arado',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_batug',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabacungan', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabarasan',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabatoan',   ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_calipayan',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_delcarmen',  ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_genroxas',   ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_mhdelpilar', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_maricum',    ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:126250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_rawis',      ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'liquidated', remarks:'Liquidated' },
-      { school_id:'s_sanantonio', ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_tabu',       ada_no:'2507057', ada_date:'2025-07-24', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'liquidated', remarks:'liquidated' },
-
-      // ── Regular MOOE 2025 Q4 (ADA 2510110, LBP, 2025-11-12) ──
-      { school_id:'s_alegre',     ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:149901.26, year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_arado',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:132250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_batug',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:145500,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabacungan', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:206250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabarasan',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:137250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabatoan',   ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:149250,    year:2025, status:'liquidated', remarks:'LIquidated' },
-      { school_id:'s_calipayan',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:138750,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_delcarmen',  ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:130250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_genroxas',   ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:136250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_mhdelpilar', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:144250,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_maricum',    ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:126249.92, year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_rawis',      ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:155750,    year:2025, status:'liquidated', remarks:'LIQUIDATED' },
-      { school_id:'s_sanantonio', ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:153750,    year:2025, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_tabu',       ada_no:'2510110', ada_date:'2025-11-12', fund_type:'Regular MOOE', amount:139500,    year:2025, status:'liquidated', remarks:'liquidated' },
-
-      // ── Regular MOOE 2026 Q1 (ADA 2626003, LBP, 2026-01-29) ──
-      { school_id:'s_alegre',     ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:180750,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_arado',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:161750,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_batug',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:177000,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabacungan', ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:253750,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabarasan',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:170000,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_cabatoan',   ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:186250,   year:2026, status:'liquidated', remarks:'LIquidated' },
-      { school_id:'s_calipayan',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:173000,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_delcarmen',  ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:160250,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_genroxas',   ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:165750,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_maricum',    ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:156250,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_rawis',      ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:193250,   year:2026, status:'liquidated', remarks:'LIQUIdated' },
-      { school_id:'s_sanantonio', ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:201750,   year:2026, status:'liquidated', remarks:'liquidated' },
-      { school_id:'s_tabu',       ada_no:'2626003', ada_date:'2026-01-29', fund_type:'Regular MOOE', amount:171750,   year:2026, status:'liquidated', remarks:'liquidated' },
-    ];
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 177.72,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 1209.32,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1796.33,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-12-135M",
+            "ada_date": "2024-12-12",
+            "fund_type": "PSF",
+            "amount": 5000,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 13209,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 2788,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 28560,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 150000,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 255.19,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 312.64,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 149974.71,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2509086",
+            "ada_date": "2025-09-25",
+            "fund_type": "SBFP NLC (DBP)",
+            "amount": 3375,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2509087",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP NLC (LBP)",
+            "amount": 975,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 180750,
+            "year": 2026,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2626003",
+            "ada_date": "2026-01-29",
+            "fund_type": "1st Quarter MOOE 2026 (LBP)",
+            "amount": 77.38,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_alegre",
+            "ada_no": "2626013",
+            "ada_date": "2026-02-10",
+            "fund_type": "1st Quarter MOOE 2026 (LBP-2)",
+            "amount": 471,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 59.24,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 644.96,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 958.04,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 2331,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1640,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 16800,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 132250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 102.08,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 125.06,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2503020",
+            "ada_date": "2025-03-13",
+            "fund_type": "LTE-SM Grade 4-6",
+            "amount": 3167.71,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 132250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2510103",
+            "ada_date": "2025-10-28",
+            "fund_type": "ARAL Program (DBP)",
+            "amount": 4219.34,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 180,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2510111",
+            "ada_date": "2025-11-17",
+            "fund_type": "Hauling of Textbooks (DBP)",
+            "amount": 73.44,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_arado",
+            "ada_no": "2509127",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling",
+            "amount": 800,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 82.93,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 1289.93,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1916.08,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 4403,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 2829,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 28980,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 145500,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 244.99,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 300.13,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 145500,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2507073",
+            "ada_date": "2025-08-29",
+            "fund_type": "Water Testing (LBP)",
+            "amount": 18954,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2509085",
+            "ada_date": "2025-09-23",
+            "fund_type": "NUTRIBAN (LBP)",
+            "amount": 2250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2509086",
+            "ada_date": "2025-09-25",
+            "fund_type": "SBFP Milk (DBP)",
+            "amount": 810,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2509087",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP NLC (LBP)",
+            "amount": 145500,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2509127",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling",
+            "amount": 177000,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 72.54,
+            "year": 2026,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_batug",
+            "ada_no": "2510135",
+            "ada_date": "2025-12-15",
+            "fund_type": "ELLNA (DBP)",
+            "amount": 501,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 355.43,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 3789.16,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 5628.5,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 44030,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 6683,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 68460,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "24-12-134M",
+            "ada_date": "2024-12-12",
+            "fund_type": "K-FELT",
+            "amount": 2346,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 206250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 602.26,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 737.83,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2503020",
+            "ada_date": "2025-03-13",
+            "fund_type": "LTE-SM Grade 1-3",
+            "amount": 3262.79,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "LIQUIDATED"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2503020",
+            "ada_date": "2025-03-13",
+            "fund_type": "LTE-SM Grade 4-6",
+            "amount": 3167.71,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 206250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2507058",
+            "ada_date": "2025-07-30",
+            "fund_type": "3rd Quarter MOOE (DBP)",
+            "amount": 4762,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2507073",
+            "ada_date": "2025-08-29",
+            "fund_type": "Water Testing (LBP)",
+            "amount": 116181,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2509100",
+            "ada_date": "2025-10-27",
+            "fund_type": "4th Quarter MOOE (LBP-2)",
+            "amount": 9578.51,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2510103",
+            "ada_date": "2025-10-28",
+            "fund_type": "ARAL Program (DBP)",
+            "amount": 10665,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2509109",
+            "ada_date": "2025-11-12",
+            "fund_type": "ARAL Program (LBP)",
+            "amount": 1160.03,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 510.88,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabacungan",
+            "ada_no": "2510111",
+            "ada_date": "2025-11-17",
+            "fund_type": "Hauling of Textbooks (DBP)",
+            "amount": 800,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 106.63,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 644.96,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 958.04,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-12-135M",
+            "ada_date": "2024-12-12",
+            "fund_type": "PSF",
+            "amount": 5000,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 9583,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1435,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 14700,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.49,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 137250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 173.53,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 212.59,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 137250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2507073",
+            "ada_date": "2025-08-29",
+            "fund_type": "Water Testing (LBP)",
+            "amount": 14040,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2509086",
+            "ada_date": "2025-09-25",
+            "fund_type": "SBFP Milk (DBP)",
+            "amount": 450,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2509087",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP NLC (LBP)",
+            "amount": 137250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2509105",
+            "ada_date": "2025-10-30",
+            "fund_type": "4th Quarter MOOE (LBP)",
+            "amount": 3000,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2509100",
+            "ada_date": "2025-10-27",
+            "fund_type": "4th Quarter MOOE (LBP-2)",
+            "amount": 6470.16,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2509109",
+            "ada_date": "2025-11-12",
+            "fund_type": "ARAL Program (LBP)",
+            "amount": 120,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 94.37,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabarasan",
+            "ada_no": "2510111",
+            "ada_date": "2025-11-17",
+            "fund_type": "Hauling of Textbooks (DBP)",
+            "amount": 800,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 165.87,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 1048.07,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1556.82,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 3885,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1517,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 15540,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 149250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2502016",
+            "ada_date": "2025-02-17",
+            "fund_type": "Regular MOOE 1st Quarter (DBP)",
+            "amount": 224.57,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 275.12,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2503020",
+            "ada_date": "2025-03-13",
+            "fund_type": "LTE-SM Grade 4-6",
+            "amount": 149250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Penalty from DBP Bank",
+            "amount": 149250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2509088",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP Milk (LBP)",
+            "amount": 149250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "FOR CLARIFICATION",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling (2)",
+            "amount": 186250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "LIquidated"
+      },
+      {
+            "school_id": "s_cabatoan",
+            "ada_no": "2626013",
+            "ada_date": "2026-02-10",
+            "fund_type": "1st Quarter MOOE 2026 (LBP-2)",
+            "amount": 76.37,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 118.48,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 886.82,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1317.31,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 4144,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 2501,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 25620,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 138750,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 193.95,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 237.61,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 138750,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2509105",
+            "ada_date": "2025-10-30",
+            "fund_type": "4th Quarter MOOE (LBP)",
+            "amount": 138750,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2509100",
+            "ada_date": "2025-10-27",
+            "fund_type": "4th Quarter MOOE (LBP-2)",
+            "amount": 7016.55,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2510103",
+            "ada_date": "2025-10-28",
+            "fund_type": "ARAL Program (DBP)",
+            "amount": 3000,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 400.01,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 800,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_calipayan",
+            "ada_no": "2626021",
+            "ada_date": "2026-02-20",
+            "fund_type": "Delivery Support Fund Emergency",
+            "amount": 1344,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 94.78,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 483.72,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 718.53,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-12-135M",
+            "ada_date": "2024-12-12",
+            "fund_type": "PSF",
+            "amount": 5000,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 5698,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1148,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 11760,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 130250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 71.45,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 87.54,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_delcarmen",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 130250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 106.63,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 725.58,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1077.8,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 4662,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1476,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 15120,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 136250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 20.42,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 25.01,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 136250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2509087",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP NLC (LBP)",
+            "amount": 136250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2509127",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling",
+            "amount": 165750,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_genroxas",
+            "ada_no": "2626003",
+            "ada_date": "2026-01-29",
+            "fund_type": "1st Quarter MOOE 2026 (LBP)",
+            "amount": 82.9,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 142.17,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 967.45,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1437.06,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 5957,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1435,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 14700,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 144250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 234.78,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 287.63,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 144250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2507073",
+            "ada_date": "2025-08-29",
+            "fund_type": "Water Testing (LBP)",
+            "amount": 15093,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2509086",
+            "ada_date": "2025-09-25",
+            "fund_type": "SBFP Milk (DBP)",
+            "amount": 540,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2509086",
+            "ada_date": "2025-09-25",
+            "fund_type": "SBFP NLC (DBP)",
+            "amount": 144250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2509105",
+            "ada_date": "2025-10-30",
+            "fund_type": "4th Quarter MOOE (LBP)",
+            "amount": 2156.72,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2509102",
+            "ada_date": "2025-10-28",
+            "fund_type": "Special Needs Support",
+            "amount": 380.01,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 800,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_mhdelpilar",
+            "ada_no": "2626003",
+            "ada_date": "2026-01-29",
+            "fund_type": "1st Quarter MOOE 2026 (LBP)",
+            "amount": 411,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 23.7,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 483.72,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 718.53,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 1813,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 820,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 8400,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 126250,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/11/2025"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 102.08,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 125.06,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "LIquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Additional MOOE",
+            "amount": 2200,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Penalty from DBP Bank",
+            "amount": 126250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2509087",
+            "ada_date": "2025-09-29",
+            "fund_type": "SBFP NLC (LBP)",
+            "amount": 126249.92,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2509127",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling",
+            "amount": 156250,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 45.27,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_maricum",
+            "ada_no": "2510135",
+            "ada_date": "2025-12-15",
+            "fund_type": "ELLNA (DBP)",
+            "amount": 222,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 225.11,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 1209.3,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 1796.33,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 5957,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 2952,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 30240,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 155750,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 285.82,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 350.16,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 155750,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2509105",
+            "ada_date": "2025-10-30",
+            "fund_type": "4th Quarter MOOE (LBP)",
+            "amount": 155750,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "LIQUIDATED"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 193250,
+            "year": 2026,
+            "status": "liquidated",
+            "remarks": "LIQUIdated"
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2626003",
+            "ada_date": "2026-01-29",
+            "fund_type": "1st Quarter MOOE 2026 (LBP)",
+            "amount": 201.57,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_rawis",
+            "ada_no": "2626013",
+            "ada_date": "2026-02-10",
+            "fund_type": "1st Quarter MOOE 2026 (LBP-2)",
+            "amount": 1088,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 331.74,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 2741.08,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 4071.68,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-12-135M",
+            "ada_date": "2024-12-12",
+            "fund_type": "PSF",
+            "amount": 5000,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 6734,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1681,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 17220,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 153750,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 377.69,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 462.71,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 153750,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Additional MOOE",
+            "amount": 22000,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2509085",
+            "ada_date": "2025-09-23",
+            "fund_type": "NUTRIBAN (LBP)",
+            "amount": 1050,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2509100",
+            "ada_date": "2025-10-27",
+            "fund_type": "4th Quarter MOOE (LBP-2)",
+            "amount": 3000,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2510103",
+            "ada_date": "2025-10-28",
+            "fund_type": "ARAL Program (DBP)",
+            "amount": 11065.9,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 500.01,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2509127",
+            "ada_date": "2025-12-05",
+            "fund_type": "LBP-Hauling",
+            "amount": 800,
+            "year": 2025,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_sanantonio",
+            "ada_no": "2626022",
+            "ada_date": "2026-02-20",
+            "fund_type": "Delivery Support Fund Leveled Reader",
+            "amount": 595,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Kinder",
+            "amount": 142.17,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Reading",
+            "amount": 564.34,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-12-141M",
+            "ada_date": "2024-12-23",
+            "fund_type": "PSF-Grade 1 Math",
+            "amount": 838.29,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-12-135M",
+            "ada_date": "2024-12-12",
+            "fund_type": "PSF",
+            "amount": 5000,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-12-136M",
+            "ada_date": "2024-12-13",
+            "fund_type": "PSF Reading and Numeracy",
+            "amount": 5180,
+            "year": 2024,
+            "status": "submitted_to_sou",
+            "remarks": "submitted to division"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Milk",
+            "amount": 1517,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-10-115M",
+            "ada_date": "2024-10-29",
+            "fund_type": "SBFP-Food",
+            "amount": 15540,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "24-11-124M",
+            "ada_date": "2024-11-22",
+            "fund_type": "SBFP-Additional Operating",
+            "amount": 3711.54,
+            "year": 2024,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Regular MOOE 1st Quarter",
+            "amount": 139500,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "submitted 4/4/2025"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Grade 4 Music and Arts",
+            "amount": 153.12,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2501012",
+            "ada_date": "2025-02-03",
+            "fund_type": "Grade 4 Music and Arts (DBP)",
+            "amount": 187.58,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2501013",
+            "ada_date": "2025-02-06",
+            "fund_type": "Delivery Support Fund for Math",
+            "amount": 1567.56,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2504026",
+            "ada_date": "2025-04-10",
+            "fund_type": "Regular MOOE 2nd Quarter",
+            "amount": 139500,
+            "year": 2025,
+            "status": "submitted_to_sou",
+            "remarks": "07/04/2025 submitted to SOU"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2509105",
+            "ada_date": "2025-10-30",
+            "fund_type": "4th Quarter MOOE (LBP)",
+            "amount": 139500,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2509100",
+            "ada_date": "2025-10-27",
+            "fund_type": "4th Quarter MOOE (LBP-2)",
+            "amount": 6611.31,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2510103",
+            "ada_date": "2025-10-28",
+            "fund_type": "ARAL Program (DBP)",
+            "amount": 3000,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2510110",
+            "ada_date": "2025-11-12",
+            "fund_type": "MATATAG (DBP)",
+            "amount": 340.01,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "Liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2626006",
+            "ada_date": "2026-02-03",
+            "fund_type": "ELLNA (LBP)",
+            "amount": 800,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2510135",
+            "ada_date": "2025-12-15",
+            "fund_type": "ELLNA (DBP)",
+            "amount": 171750,
+            "year": 2025,
+            "status": "liquidated",
+            "remarks": "liquidated"
+      },
+      {
+            "school_id": "s_tabu",
+            "ada_no": "2626022",
+            "ada_date": "2026-02-20",
+            "fund_type": "Delivery Support Fund Leveled Reader",
+            "amount": 68.79,
+            "year": 2026,
+            "status": "pending",
+            "remarks": ""
+      }
+];
 
     let added = 0;
     for (const s of seeds) {
