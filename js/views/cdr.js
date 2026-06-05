@@ -322,9 +322,13 @@ const CDRView = {
           <label class="form-label">Date *</label>
           <input id="entry-date" type="date" class="form-input" required value="${new Date().toISOString().slice(0,10)}" />
         </div>
+        <div>
+          <label class="form-label">DV/Payroll/Check No.</label>
+          <input id="entry-ref-no" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
+        </div>
         <div class="col-span-2">
-          <label class="form-label">Particulars / Description</label>
-          <input id="entry-particulars" type="text" class="form-input" placeholder="Brief description of expense" />
+          <label class="form-label">Particulars / Description *</label>
+          <input id="entry-particulars" type="text" class="form-input" required placeholder="Brief description of expense" />
         </div>
         <div class="col-span-2">
           <label class="form-label">UACS Object Code</label>
@@ -333,24 +337,16 @@ const CDRView = {
           </select>
         </div>
         <div class="col-span-2" id="uacs-desc-row" style="display:none">
-          <label class="form-label">Description (auto-filled)</label>
-          <input id="entry-uacs-desc" type="text" class="form-input" placeholder="UACS description" />
+          <label class="form-label">Account Description (auto-filled)</label>
+          <input id="entry-uacs-desc" type="text" class="form-input" />
         </div>
         <div>
-          <label class="form-label">Advances Received (₱)</label>
+          <label class="form-label">Cash Advance Received (₱)</label>
           <input id="entry-advances" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
         </div>
         <div>
           <label class="form-label">Payment / Disbursement (₱)</label>
           <input id="entry-payment" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
-        </div>
-        <div>
-          <label class="form-label">OR/DV/Voucher No.</label>
-          <input id="entry-ref-no" type="text" class="form-input" placeholder="Reference number" />
-        </div>
-        <div>
-          <label class="form-label">Payee</label>
-          <input id="entry-payee" type="text" class="form-input" placeholder="Name of payee" />
         </div>
       </div>
       <div class="flex gap-2 justify-end">
@@ -393,7 +389,6 @@ const CDRView = {
       advances: parseFloat(document.getElementById('entry-advances').value) || 0,
       payment: parseFloat(document.getElementById('entry-payment').value) || 0,
       ref_no: document.getElementById('entry-ref-no').value,
-      payee: document.getElementById('entry-payee').value,
       sort_order: Date.now(),
     };
     const { error } = await DB.upsertCDREntry(row);
@@ -418,7 +413,7 @@ const CDRView = {
     await this.openDetail(cdr_id);
   },
 
-  // ---- Print Appendix 43 ----
+  // ---- Print Appendix 43 (matches Google Sheets template) ----
   async printCDR(id) {
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
@@ -427,7 +422,7 @@ const CDRView = {
 
     const school = this._getSchool(header.school_id);
 
-    // Running balance
+    // Running balance (opening balance is shown as a row)
     let balance = parseFloat(header.opening_balance) || 0;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
@@ -436,18 +431,61 @@ const CDRView = {
       return { ...e, running_balance: balance };
     });
 
-    const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
-    const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment) || 0), 0);
-    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : parseFloat(header.opening_balance) || 0;
+    const totalAdv  = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
+    const totalPay  = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
+    const finalBal  = rows.length > 0 ? rows[rows.length - 1].running_balance : (parseFloat(header.opening_balance) || 0);
 
-    // Recap by UACS
+    // Fixed UACS columns
+    const COL_OFFICE = '5020301000';
+    const COL_GENSVC = '5021299000';
+    const COL_JANIT  = '5021202000';
+
+    const totOffice = entries.filter(e => e.uacs_code === COL_OFFICE).reduce((s,e) => s + (parseFloat(e.payment)||0), 0);
+    const totGenSvc = entries.filter(e => e.uacs_code === COL_GENSVC).reduce((s,e) => s + (parseFloat(e.payment)||0), 0);
+    const totJanit  = entries.filter(e => e.uacs_code === COL_JANIT ).reduce((s,e) => s + (parseFloat(e.payment)||0), 0);
+
+    // Recapitulation — only payment entries, grouped by UACS
     const recap = {};
     entries.forEach(e => {
-      const code = e.uacs_code || 'Others';
+      const pay = parseFloat(e.payment) || 0;
+      if (!pay) return;
+      const code = e.uacs_code || '';
       const desc = e.uacs_desc || UACS_CODES.find(u => u.code === code)?.desc || code;
       if (!recap[code]) recap[code] = { code, desc, total: 0 };
-      recap[code].total += parseFloat(e.payment) || 0;
+      recap[code].total += pay;
     });
+
+    const recapRows = Object.values(recap).map(r => `
+      <tr>
+        <td style="border:1px solid #000;padding:1px 3px;font-size:6.5pt">${r.desc}</td>
+        <td style="border:1px solid #000;padding:1px 3px;font-size:6.5pt;text-align:center">${r.code}</td>
+        <td style="border:1px solid #000;padding:1px 3px;font-size:6.5pt;text-align:right">${_fp(r.total)}</td>
+      </tr>`).join('');
+
+    const tableRows = rows.map(e => {
+      const adv = parseFloat(e.advances) || 0;
+      const pay = parseFloat(e.payment)  || 0;
+      const isOffice = e.uacs_code === COL_OFFICE;
+      const isGenSvc = e.uacs_code === COL_GENSVC;
+      const isJanit  = e.uacs_code === COL_JANIT;
+      const isOthers = !isOffice && !isGenSvc && !isJanit && pay > 0;
+      const othDesc  = isOthers ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || '') : '';
+      return `
+      <tr>
+        <td style="text-align:center;white-space:nowrap">${_fd(e.entry_date)}</td>
+        <td style="font-size:6pt;word-break:break-all">${e.ref_no || ''}</td>
+        <td style="font-size:6.5pt">${e.particulars || ''}</td>
+        <td style="text-align:right">${adv > 0 ? _fp(adv) : ''}</td>
+        <td style="text-align:right">${pay > 0 ? _fp(pay) : ''}</td>
+        <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
+        <td style="text-align:right">${isOffice ? _fp(pay) : ''}</td>
+        <td style="text-align:right">${isGenSvc ? _fp(pay) : ''}</td>
+        <td style="text-align:right">${isJanit  ? _fp(pay) : ''}</td>
+        <td style="font-size:6pt">${othDesc}</td>
+        <td style="text-align:center;font-size:6pt">${isOthers ? (e.uacs_code || '') : ''}</td>
+        <td style="text-align:right">${isOthers ? _fp(pay) : ''}</td>
+      </tr>`;
+    }).join('');
 
     const w = window.open('', '_blank');
     w.document.write(`<!DOCTYPE html>
@@ -456,147 +494,192 @@ const CDRView = {
 <meta charset="UTF-8"/>
 <title>CDR — ${school.name || ''} ${header.year} ${header.quarter}</title>
 <style>
-  @page { size: legal landscape; margin: 12mm 10mm; }
-  body { font-family: Arial, sans-serif; font-size: 8pt; color: #000; }
-  h1 { font-size: 10pt; text-align: center; margin: 0; }
-  h2 { font-size: 9pt; text-align: center; margin: 2px 0; }
+  @page { size: legal landscape; margin: 8mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; font-size: 7.5pt; color: #000; margin: 0; }
+  table { border-collapse: collapse; }
+  th, td { border: 1px solid #000; padding: 2px 3px; vertical-align: middle; }
+  th { text-align: center; font-size: 6.5pt; background: #f0f0f0; }
+  .nb td, .nb th { border: none; }
+  .bold { font-weight: bold; }
   .center { text-align: center; }
   .right { text-align: right; }
-  .bold { font-weight: bold; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: top; font-size: 7.5pt; }
-  th { background: #e5e7eb; text-align: center; font-size: 7pt; }
-  .no-border td { border: none; }
-  .header-block td { border: none; font-size: 8pt; }
-  .sig-line { border-top: 1px solid #000; padding-top: 2px; text-align: center; font-size: 7.5pt; }
-  .underline { text-decoration: underline; font-weight: bold; }
+  .sig { border-top: 1px solid #000; text-align: center; padding-top: 2px; margin-top: 36px; }
   @media print { body { margin: 0; } }
 </style>
 </head>
 <body>
-  <div class="center bold" style="font-size:9pt">Republic of the Philippines</div>
-  <div class="center bold" style="font-size:9pt">Department of Education</div>
-  <div class="center" style="font-size:8pt">Region VIII — Eastern Visayas | Division of Leyte | Dulag West District</div>
-  <br/>
-  <div class="center bold" style="font-size:11pt">CASH DISBURSEMENT REGISTER</div>
-  <div class="center" style="font-size:8pt">(Appendix 43)</div>
-  <br/>
-  <table class="header-block" style="margin-bottom:6px">
+
+<!-- ① Page title -->
+<table style="width:100%;margin-bottom:3px" class="nb">
+  <tr>
+    <td colspan="2" class="center bold" style="font-size:9pt">DEPED LEYTE DIVISION</td>
+  </tr>
+  <tr>
+    <td class="center bold" style="font-size:9pt">${(school.name || '').toUpperCase()}</td>
+    <td class="right" style="font-size:8pt">Appendix 43</td>
+  </tr>
+</table>
+
+<!-- ② Side-by-side: Accountable Officer (left) + Recapitulation (right) -->
+<table style="width:100%;margin-bottom:4px" class="nb">
+  <tr>
+    <td style="width:42%;vertical-align:top;padding-right:6px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="border:1px solid #000;padding:2px 4px;font-size:7pt" colspan="2">
+          <strong>Name of Accountable Officer:</strong> ${school.school_head || ''}
+        </td></tr>
+        <tr><td style="border:1px solid #000;padding:2px 4px;font-size:7pt" colspan="2">
+          <strong>Official Designation:</strong> ${school.designation || ''}
+        </td></tr>
+        <tr><td style="border:1px solid #000;padding:2px 4px;font-size:7pt" colspan="2">
+          <strong>Station:</strong> ${school.short_name || school.name || ''}
+        </td></tr>
+        <tr>
+          <td style="border:1px solid #000;padding:2px 4px;font-size:7pt;width:50%">
+            Register No.: ____________________
+          </td>
+          <td style="border:1px solid #000;padding:2px 4px;font-size:7pt">
+            Sheet No.: ____________________
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td style="width:58%;vertical-align:top">
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th style="width:52%">Account Description</th>
+            <th style="width:27%">UACS Object Code</th>
+            <th style="width:21%">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recapRows}
+          <tr class="bold">
+            <td colspan="2" style="text-align:right;padding-right:4px">Total</td>
+            <td class="right">${_fp(totalPay)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:5.5pt;margin-top:2px;font-style:italic">
+        The total of the 'Advances for Operating Expenses – Payments' column must always be equal to the sum of the totals of the 'Breakdown of Payments' columns.
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- ③ Main CDR Table -->
+<table style="width:100%;table-layout:fixed">
+  <colgroup>
+    <col style="width:5%"/>   <!-- Date -->
+    <col style="width:11%"/>  <!-- DV/Check -->
+    <col style="width:22%"/>  <!-- Particulars -->
+    <col style="width:7%"/>   <!-- Cash Advance -->
+    <col style="width:7%"/>   <!-- Payments -->
+    <col style="width:7%"/>   <!-- Balance -->
+    <col style="width:8%"/>   <!-- Office Supplies -->
+    <col style="width:8%"/>   <!-- Other Gen Svc -->
+    <col style="width:7%"/>   <!-- Janitorial -->
+    <col style="width:9%"/>   <!-- Others Desc -->
+    <col style="width:6%"/>   <!-- Others UACS -->
+    <col style="width:6%"/>   <!-- Others Amt -->
+  </colgroup>
+  <thead>
     <tr>
-      <td width="25%">Entity/School: <span class="underline">${school.name || ''}</span></td>
-      <td width="25%">Fund Type: <span class="underline">${header.fund_type || ''}</span></td>
-      <td width="25%">Year: <span class="underline">${header.year}</span></td>
-      <td width="25%">Quarter: <span class="underline">${header.quarter}</span></td>
+      <th rowspan="5">Date</th>
+      <th rowspan="5">DV/Payroll/<br/>Check No.</th>
+      <th rowspan="5">Particulars</th>
+      <th colspan="3">Advances for<br/>Operating Expenses</th>
+      <th colspan="6">BREAKDOWN OF PAYMENTS</th>
     </tr>
     <tr>
-      <td>Accountable Officer: <span class="underline">${school.school_head || ''}</span></td>
-      <td>Designation: <span class="underline">${school.designation || 'School Head'}</span></td>
-      <td colspan="2">Station: <span class="underline">Dulag West District, Division of Leyte</span></td>
+      <th colspan="3">-19901010</th>
+      <th colspan="6"></th>
     </tr>
-  </table>
-
-  <table>
-    <thead>
-      <tr>
-        <th rowspan="2" width="4%">Date</th>
-        <th rowspan="2" width="6%">DV/OR No.</th>
-        <th rowspan="2" width="20%">Particulars</th>
-        <th rowspan="2" width="7%">UACS Object Code</th>
-        <th rowspan="2" width="8%">Payee</th>
-        <th colspan="3" width="24%">ADVANCES</th>
-        <th colspan="3" width="24%">PAYMENTS/DISBURSEMENTS</th>
-        <th rowspan="2" width="7%">Balance</th>
-      </tr>
-      <tr>
-        <th>Cash</th><th>Check</th><th>Total</th>
-        <th>Cash</th><th>Check</th><th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td colspan="5" class="bold">Opening Balance / Beginning Balance</td>
-        <td></td><td></td><td class="right">${fmtPrint(header.opening_balance)}</td>
-        <td></td><td></td><td></td>
-        <td class="right bold">${fmtPrint(header.opening_balance)}</td>
-      </tr>
-      ${rows.map(e => `
-      <tr>
-        <td>${fmtDatePrint(e.entry_date)}</td>
-        <td style="font-size:6.5pt">${e.ref_no || ''}</td>
-        <td>${e.particulars || ''}</td>
-        <td style="font-size:6.5pt">${e.uacs_code || ''}</td>
-        <td style="font-size:6.5pt">${e.payee || ''}</td>
-        <td></td>
-        <td class="right">${e.advances > 0 ? fmtPrint(e.advances) : ''}</td>
-        <td class="right">${e.advances > 0 ? fmtPrint(e.advances) : ''}</td>
-        <td></td>
-        <td class="right">${e.payment > 0 ? fmtPrint(e.payment) : ''}</td>
-        <td class="right">${e.payment > 0 ? fmtPrint(e.payment) : ''}</td>
-        <td class="right">${fmtPrint(e.running_balance)}</td>
-      </tr>`).join('')}
-      <tr class="bold">
-        <td colspan="5">TOTAL</td>
-        <td></td>
-        <td class="right">${fmtPrint(totalAdv)}</td>
-        <td class="right">${fmtPrint(totalAdv)}</td>
-        <td></td>
-        <td class="right">${fmtPrint(totalPay)}</td>
-        <td class="right">${fmtPrint(totalPay)}</td>
-        <td class="right">${fmtPrint(finalBal)}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  ${Object.keys(recap).length > 0 ? `
-  <br/>
-  <div class="bold" style="font-size:8pt;margin-bottom:4px">RECAPITULATION</div>
-  <table style="width:50%">
-    <thead><tr><th>UACS Object Code</th><th>Description</th><th>Amount (₱)</th></tr></thead>
-    <tbody>
-      ${Object.values(recap).map(r => `
-      <tr>
-        <td style="font-size:7pt">${r.code}</td>
-        <td style="font-size:7pt">${r.desc}</td>
-        <td class="right" style="font-size:7pt">${fmtPrint(r.total)}</td>
-      </tr>`).join('')}
-      <tr class="bold">
-        <td colspan="2">TOTAL</td>
-        <td class="right">${fmtPrint(totalPay)}</td>
-      </tr>
-    </tbody>
-  </table>` : ''}
-
-  <br/><br/>
-  <table style="width:100%" class="no-border">
     <tr>
-      <td width="40%" style="padding-right:20px">
-        <div style="margin-bottom:40px">Certified Correct:</div>
-        <div class="sig-line"><span class="underline bold">${school.school_head || ''}</span></div>
-        <div class="center" style="font-size:7.5pt">${school.designation || 'Principal/Head Teacher'}</div>
-        <div class="center" style="font-size:7.5pt">${school.name || ''}</div>
-      </td>
-      <td width="20%"></td>
-      <td width="40%">
-        <div style="margin-bottom:40px">Verified by:</div>
-        <div class="sig-line"><span class="underline bold">${BOOKKEEPER}</span></div>
-        <div class="center" style="font-size:7.5pt">${BOOKKEEPER_TITLE}</div>
-        <div class="center" style="font-size:7.5pt">Dulag West District</div>
-      </td>
+      <th colspan="3">Amount</th>
+      <th rowspan="2">Office Supplies<br/>Expenses</th>
+      <th rowspan="2">Other General<br/>Services</th>
+      <th rowspan="2">Janitorial<br/>Services</th>
+      <th colspan="3">O T H E R S</th>
     </tr>
-  </table>
+    <tr>
+      <th>Cash<br/>Advance</th>
+      <th>Payments</th>
+      <th>Balance</th>
+      <th>Account<br/>Description</th>
+      <th>UACS<br/>Object Code</th>
+      <th>Amount</th>
+    </tr>
+    <tr>
+      <th></th><th></th><th></th>
+      <th>5020301000</th><th>5021299000</th><th>5021202000</th>
+      <th></th><th></th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tableRows}
+    <tr class="bold" style="background:#f9f9f9">
+      <td colspan="3" style="text-align:center;font-size:7pt">TOTAL</td>
+      <td class="right">${_fp(totalAdv)}</td>
+      <td class="right">${_fp(totalPay)}</td>
+      <td class="right">${_fp(finalBal)}</td>
+      <td class="right">${totOffice > 0 ? _fp(totOffice) : ''}</td>
+      <td class="right">${totGenSvc > 0 ? _fp(totGenSvc) : ''}</td>
+      <td class="right">${totJanit  > 0 ? _fp(totJanit)  : ''}</td>
+      <td></td><td></td><td></td>
+    </tr>
+  </tbody>
+</table>
 
-  <script>
-    function fmtPrint(n){const v=parseFloat(n)||0; return v===0?'':v.toLocaleString('en-PH',{minimumFractionDigits:2});}
-    function fmtDatePrint(d){if(!d)return''; const dt=new Date(d); return (dt.getMonth()+1)+'/'+(dt.getDate())+'/'+dt.getFullYear();}
-    window.onload=()=>window.print();
-  <\/script>
+<!-- ④ Entity info block -->
+<table style="width:100%;margin-top:3px" class="nb">
+  <tr>
+    <td style="border:1px solid #000;padding:1px 3px;font-size:7pt;width:35%">
+      <strong>Entity Name:</strong> ${(school.name || '').toUpperCase()}
+    </td>
+    <td style="border:1px solid #000;padding:1px 3px;font-size:7pt;width:30%">
+      <strong>Sub-Office/District/Division:</strong> DULAG WEST DISTRICT
+    </td>
+    <td style="border:1px solid #000;padding:1px 3px;font-size:7pt;width:20%">
+      <strong>Municipality/City/Province:</strong> DULAG, LEYTE
+    </td>
+    <td style="border:1px solid #000;padding:1px 3px;font-size:7pt;width:15%">
+      <strong>Fund Cluster:</strong> 01-REGULAR
+    </td>
+  </tr>
+</table>
+
+<!-- ⑤ Signature block -->
+<table style="width:100%;margin-top:12px" class="nb">
+  <tr>
+    <td style="width:40%;padding-right:20px;vertical-align:bottom">
+      <div class="sig">
+        <strong>${school.school_head || ''}</strong><br/>
+        <span style="font-size:7pt">${school.designation || 'Principal/Head Teacher'}</span><br/>
+        <span style="font-size:7pt">${school.short_name || school.name || ''}</span>
+      </div>
+    </td>
+    <td style="width:20%"></td>
+    <td style="width:40%;vertical-align:bottom">
+      <div class="sig">
+        <strong>${BOOKKEEPER}</strong><br/>
+        <span style="font-size:7pt">${BOOKKEEPER_TITLE}</span><br/>
+        <span style="font-size:7pt">Dulag West District</span>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<script>
+  function _fp(n){const v=parseFloat(n)||0;return v===0?'':v.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function _fd(d){if(!d)return'';const dt=new Date(d+'T00:00:00');return(dt.getMonth()+1)+'/'+(dt.getDate())+'/'+dt.getFullYear();}
+  window.onload=()=>window.print();
+<\/script>
 </body>
 </html>`);
     w.document.close();
   },
 };
 
-function fmtPrint(n) {
-  const v = parseFloat(n) || 0;
-  return v === 0 ? '' : v.toLocaleString('en-PH', { minimumFractionDigits: 2 });
-}

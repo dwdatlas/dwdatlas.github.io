@@ -52,28 +52,26 @@ const STATUSES = [
 const BANKS = ['LBP', 'DBP'];
 
 const UACS_CODES = [
-  { code: '5020101000', desc: 'Travelling Expenses - Local' },
+  { code: '5020101000', desc: 'Travelling Expenses-Local' },
   { code: '5020201000', desc: 'Training Expenses' },
   { code: '5020301000', desc: 'Office Supplies Expenses' },
-  { code: '5020302000', desc: 'Accountable Forms Expenses' },
   { code: '5020307000', desc: 'Drugs and Medicines Expenses' },
-  { code: '5020309000', desc: 'Fuel, Oil and Lubricants Expenses' },
+  { code: '5020309000', desc: 'Fuel, Oil and Lubricant Expenses' },
   { code: '5020399000', desc: 'Other Supplies and Materials Expenses' },
   { code: '5020401000', desc: 'Water Expenses' },
   { code: '5020402000', desc: 'Electricity Expenses' },
-  { code: '5020501000', desc: 'Postage and Courier Expenses' },
-  { code: '5020502001', desc: 'Telephone Expenses - Mobile' },
-  { code: '5020502002', desc: 'Telephone Expenses - Landline' },
+  { code: '5020501000', desc: 'Postage and Courier Services' },
+  { code: '5020502001', desc: 'Telephone Expenses-Mobile' },
   { code: '5020503000', desc: 'Internet Subscription Expenses' },
-  { code: '5020601000', desc: 'Awards/Rewards Expenses' },
+  { code: '5020504000', desc: 'Cable, Satellite, Telegraph and Radio Expenses' },
   { code: '5021199000', desc: 'Other Professional Services' },
   { code: '5021202000', desc: 'Janitorial Services' },
   { code: '5021299000', desc: 'Other General Services' },
-  { code: '5021304002', desc: 'Repairs and Maintenance - School Building' },
-  { code: '5021305002', desc: 'Repairs and Maintenance - Office Equipment' },
-  { code: '5021502000', desc: 'Fidelity Bond Premium' },
+  { code: '5021303000', desc: 'Security Services' },
+  { code: '5021304002', desc: 'Repairs and Maintenance-School Building' },
+  { code: '5021305002', desc: 'Repairs and Maintenance-Office Equipment' },
+  { code: '5021502000', desc: 'Fidelity Bond Premiums' },
   { code: '5029902000', desc: 'Printing and Publication Expenses' },
-  { code: '5029999099', desc: 'Other Maintenance and Operating Expenses' },
 ];
 
 const RESOURCE_CATEGORIES = [
