@@ -59,6 +59,17 @@ const SetupView = {
       </div>
     </div>
 
+    <!-- User / School Accounts -->
+    <div class="section-card mb-4">
+      <div class="section-card-header">
+        <h3>School Accounts</h3>
+        <button class="btn btn-primary btn-sm" onclick="SetupView.openAddUser()">+ Add School Account</button>
+      </div>
+      <div id="users-list" class="table-scroll">
+        <div class="flex justify-center py-6"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <!-- Change Password -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Change Login Credentials</h3></div>
@@ -134,6 +145,115 @@ const SetupView = {
     localStorage.setItem('sb_key', key);
     App.toast('Supabase credentials saved! Reloading…');
     setTimeout(() => location.reload(), 1000);
+  },
+
+  async afterRender() {
+    this.loadUsers();
+  },
+
+  loadUsers() {
+    const users = Auth.getUsers();
+    const el = document.getElementById('users-list');
+    if (!el) return;
+    const schoolUsers = users.filter(u => u.role === 'school');
+    if (!schoolUsers.length) {
+      el.innerHTML = `<div class="px-6 py-6 text-sm text-gray-400 text-center">No school accounts yet. Click "+ Add School Account" to create one.</div>`;
+      return;
+    }
+    el.innerHTML = `
+    <table class="data-table">
+      <thead><tr>
+        <th>Username</th><th>School</th><th>Role</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        ${schoolUsers.map(u => `
+        <tr>
+          <td class="font-mono text-sm">${u.username}</td>
+          <td class="text-sm">${u.school_name || '—'}</td>
+          <td><span class="badge badge-submitted">School</span></td>
+          <td>
+            <div class="flex gap-1">
+              <button class="btn btn-secondary btn-sm" onclick="SetupView.openResetPassword('${u.id}','${u.username}')">Reset Password</button>
+              <button class="btn btn-danger btn-sm" onclick="SetupView.deleteUser('${u.id}')">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  },
+
+  async openAddUser() {
+    const { data: schools } = await DB.getSchools();
+    const schools_ = schools || [];
+    const html = `
+    <form id="add-user-form" onsubmit="SetupView.saveUser(event)">
+      <div class="grid grid-cols-1 gap-3 mb-3">
+        <div>
+          <label class="form-label">School *</label>
+          <select id="u-school" class="form-select" required>
+            <option value="">Select school…</option>
+            ${schools_.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Username *</label>
+          <input id="u-username" type="text" class="form-input" placeholder="e.g. alegre_es" required />
+        </div>
+        <div>
+          <label class="form-label">Password *</label>
+          <input id="u-password" type="password" class="form-input" placeholder="Min. 6 characters" required minlength="6" />
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+      </div>
+    </form>`;
+    App.openModal('Add School Account', html);
+  },
+
+  saveUser(e) {
+    e.preventDefault();
+    const schoolEl = document.getElementById('u-school');
+    const school_id = schoolEl.value;
+    const school_name = schoolEl.options[schoolEl.selectedIndex]?.dataset?.name || '';
+    const username = document.getElementById('u-username').value.trim();
+    const password = document.getElementById('u-password').value;
+    const { error } = Auth.addSchoolUser(username, password, school_id, school_name);
+    if (error) { App.toast(error, 'error'); return; }
+    App.closeModal();
+    App.toast('School account created!');
+    this.loadUsers();
+  },
+
+  openResetPassword(id, username) {
+    const html = `
+    <form onsubmit="SetupView.resetPassword(event,'${id}')">
+      <p class="text-sm text-gray-600 mb-3">Reset password for <strong>${username}</strong></p>
+      <div class="mb-4">
+        <label class="form-label">New Password</label>
+        <input id="reset-pw" type="password" class="form-input" required minlength="6" placeholder="Min. 6 characters" />
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Reset Password</button>
+      </div>
+    </form>`;
+    App.openModal('Reset Password', html);
+  },
+
+  resetPassword(e, id) {
+    e.preventDefault();
+    Auth.updateUserPassword(id, document.getElementById('reset-pw').value);
+    App.closeModal();
+    App.toast('Password reset!');
+  },
+
+  deleteUser(id) {
+    if (!confirm('Delete this school account?')) return;
+    Auth.deleteUser(id);
+    App.toast('Account deleted.');
+    this.loadUsers();
   },
 
   saveCredentials(e) {

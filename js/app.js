@@ -17,6 +17,20 @@ const App = {
     const connected = DB.init();
     this.updateConnectionStatus(connected);
 
+    // Apply role-based UI
+    const isAdmin = typeof Auth !== 'undefined' && Auth.isAdmin();
+    const user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
+
+    // Hide Setup nav for school users
+    const setupNav = document.getElementById('nav-setup');
+    if (setupNav) setupNav.style.display = isAdmin ? '' : 'none';
+
+    // Show logged-in user in sidebar footer
+    const nameEl = document.getElementById('sidebar-user-name');
+    const roleEl = document.getElementById('sidebar-user-role');
+    if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
+    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III (Sr. Bookkeeper)' : 'School Account';
+
     // Handle nav clicks
     document.querySelectorAll('.nav-link').forEach(el => {
       el.addEventListener('click', (e) => {

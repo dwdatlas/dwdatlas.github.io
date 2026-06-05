@@ -3,12 +3,17 @@
 // ============================================================
 const DashboardView = {
   async render() {
+    const schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
+    const disbFilters = { year: new Date().getFullYear().toString() };
+    if (schoolId) disbFilters.school_id = schoolId;
+
     const [schoolsRes, disbRes] = await Promise.all([
       DB.getSchools(),
-      DB.getDisbursements({ year: new Date().getFullYear().toString() }),
+      DB.getDisbursements(disbFilters),
     ]);
 
-    const schools = schoolsRes.data || [];
+    const allSchools = schoolsRes.data || [];
+    const schools = schoolId ? allSchools.filter(s => s.id === schoolId) : allSchools;
     const disb = disbRes.data || [];
 
     const total = disb.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);

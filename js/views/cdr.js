@@ -3,14 +3,22 @@
 // ============================================================
 const CDRView = {
   async render() {
+    this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const [schoolsRes, headersRes] = await Promise.all([DB.getSchools(), DB.getCDRHeaders()]);
     const schools = schoolsRes.data || [];
-    const headers = headersRes.data || [];
 
     const schoolOpts = schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     const years = [];
     const yr = new Date().getFullYear();
     for (let y = yr; y >= yr - 4; y--) years.push(y);
+
+    const schoolDropdown = this._schoolId
+      ? `<select id="cdr-filter-school" class="form-select" disabled>
+           <option value="${this._schoolId}">${schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
+         </select>`
+      : `<select id="cdr-filter-school" class="form-select" onchange="CDRView.load()">
+           <option value="">All Schools</option>${schoolOpts}
+         </select>`;
 
     return `
     <div class="page-header">
@@ -26,8 +34,7 @@ const CDRView = {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label class="form-label">School</label>
-            <select id="cdr-filter-school" class="form-select" onchange="CDRView.load()">
-              <option value="">All Schools</option>${schoolOpts}
+            ${schoolDropdown}
             </select>
           </div>
           <div>
@@ -69,7 +76,7 @@ const CDRView = {
   },
 
   async load() {
-    const school_id = document.getElementById('cdr-filter-school')?.value || '';
+    const school_id = this._schoolId || document.getElementById('cdr-filter-school')?.value || '';
     const year = document.getElementById('cdr-filter-year')?.value || '';
     const quarter = document.getElementById('cdr-filter-quarter')?.value || '';
 

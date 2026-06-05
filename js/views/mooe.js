@@ -8,6 +8,17 @@ const MOOEView = {
   async render() {
     const { data: schools } = await DB.getSchools();
     this.schools = schools || [];
+    this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
+    if (this._schoolId) this.filters.school_id = this._schoolId;
+
+    const schoolDropdown = this._schoolId
+      ? `<select class="form-select" id="f-school" disabled>
+           <option value="${this._schoolId}">${this.schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
+         </select>`
+      : `<select class="form-select" id="f-school" onchange="MOOEView.applyFilter()">
+           <option value="">All Schools</option>
+           ${this.schools.map(s => `<option value="${s.id}" ${this.filters.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+         </select>`;
 
     return `
     <div class="page-header flex items-start justify-between flex-wrap gap-3">
@@ -24,10 +35,7 @@ const MOOEView = {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label class="form-label">School</label>
-            <select class="form-select" id="f-school" onchange="MOOEView.applyFilter()">
-              <option value="">All Schools</option>
-              ${this.schools.map(s => `<option value="${s.id}" ${this.filters.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-            </select>
+            ${schoolDropdown}
           </div>
           <div>
             <label class="form-label">Year</label>
@@ -64,7 +72,7 @@ const MOOEView = {
   },
 
   applyFilter() {
-    this.filters.school_id = document.getElementById('f-school')?.value || '';
+    this.filters.school_id = this._schoolId || document.getElementById('f-school')?.value || '';
     this.filters.year = document.getElementById('f-year')?.value || '';
     this.filters.status = document.getElementById('f-status')?.value || '';
     this.filters.fund_type = document.getElementById('f-fund')?.value || '';

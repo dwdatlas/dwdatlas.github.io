@@ -1,20 +1,16 @@
 // ============================================================
-// AUTHENTICATION — simple username/password login
-// Default: admin / mooe2024  (change in Setup → Change Password)
+// AUTHENTICATION — multi-user with roles
+//   admin  → full access to all schools
+//   school → access to their own school only
+// Default admin: admin / mooe2024  (change in Setup)
 // Session stored in sessionStorage (clears on browser close)
 // ============================================================
 const Auth = {
   SESSION_KEY: 'dwd_session',
-  CREDS_KEY: 'dwd_credentials',
+  USERS_KEY: 'dwd_users',
 
-  // Default credentials (used if none saved)
-  _defaults: {
-    username: 'admin',
-    // SHA-256 of 'mooe2024'
-    passwordHash: 'a1b72f1083f7a5bece8dc0c8d0e9576898c00f9e2fb2f98a86d1fa4c5e6f8b3d',
-  },
+  currentUser: null,
 
-  // Simple non-cryptographic hash for basic protection
   _hash(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -25,30 +21,58 @@ const Auth = {
     return 'h_' + Math.abs(hash).toString(16);
   },
 
-  _getCreds() {
+  _getUsers() {
     try {
-      const stored = localStorage.getItem(this.CREDS_KEY);
+      const stored = localStorage.getItem(this.USERS_KEY);
       if (stored) return JSON.parse(stored);
     } catch {}
-    return { username: 'admin', passwordHash: this._hash('mooe2024') };
+    return [{
+      id: 'admin',
+      username: 'admin',
+      passwordHash: this._hash('mooe2024'),
+      role: 'admin',
+      school_id: null,
+      school_name: null,
+    }];
+  },
+
+  _saveUsers(users) {
+    localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
   },
 
   isLoggedIn() {
-    return sessionStorage.getItem(this.SESSION_KEY) === 'true';
+    const session = sessionStorage.getItem(this.SESSION_KEY);
+    if (session) {
+      try {
+        this.currentUser = JSON.parse(session);
+        return true;
+      } catch {}
+    }
+    return false;
+  },
+
+  isAdmin() {
+    return this.currentUser?.role === 'admin';
+  },
+
+  getSchoolId() {
+    if (this.currentUser?.role === 'school') return this.currentUser.school_id;
+    return null;
   },
 
   login(e) {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
-    const creds = this._getCreds();
     const errEl = document.getElementById('login-error');
+    const users = this._getUsers();
+    const user = users.find(u => u.username === username && u.passwordHash === this._hash(password));
 
-    if (username === creds.username && this._hash(password) === creds.passwordHash) {
-      sessionStorage.setItem(this.SESSION_KEY, 'true');
+    if (user) {
+      this.currentUser = user;
+      sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
       document.getElementById('login-screen').style.display = 'none';
       errEl.classList.add('hidden');
-      // Init app after login
       if (typeof App !== 'undefined') App.init();
     } else {
       errEl.textContent = 'Incorrect username or password.';
@@ -63,24 +87,53 @@ const Auth = {
     location.reload();
   },
 
-  changeCredentials(newUsername, newPassword) {
-    const creds = {
-      username: newUsername.trim(),
-      passwordHash: this._hash(newPassword),
-    };
-    localStorage.setItem(this.CREDS_KEY, JSON.stringify(creds));
+  getUsers() { return this._getUsers(); },
+
+  addSchoolUser(username, password, school_id, school_name) {
+    const users = this._getUsers();
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+      return { error: 'Username already exists.' };
+    }
+    users.push({
+      id: 'u_' + Date.now().toString(36),
+      username: username.trim(),
+      passwordHash: this._hash(password),
+      role: 'school',
+      school_id,
+      school_name,
+    });
+    this._saveUsers(users);
+    return { error: null };
   },
 
-  // Called on page load — show login if not authenticated
+  updateUserPassword(id, newPassword) {
+    const users = this._getUsers();
+    const idx = users.findIndex(u => u.id === id);
+    if (idx > -1) { users[idx].passwordHash = this._hash(newPassword); this._saveUsers(users); }
+  },
+
+  deleteUser(id) {
+    const users = this._getUsers().filter(u => u.id !== id);
+    this._saveUsers(users);
+  },
+
+  changeAdminCredentials(username, password) {
+    const users = this._getUsers();
+    const idx = users.findIndex(u => u.role === 'admin');
+    if (idx > -1) {
+      users[idx].username = username.trim();
+      users[idx].passwordHash = this._hash(password);
+      this._saveUsers(users);
+    }
+  },
+
   guard() {
     if (!this.isLoggedIn()) {
       document.getElementById('login-screen').style.display = 'flex';
     } else {
       document.getElementById('login-screen').style.display = 'none';
-      // App.init() will be called by DOMContentLoaded in app.js
     }
   },
 };
 
-// Guard runs immediately when this script loads
 document.addEventListener('DOMContentLoaded', () => Auth.guard());
