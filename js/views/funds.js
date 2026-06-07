@@ -111,7 +111,7 @@ const FundsView = {
     if (sumEl) sumEl.textContent = `${total} records | Total: ${fmt(totalAmt)} | Liquidated: ${liquid} | Unliquidated: ${total - liquid}`;
 
     if (!rows.length) {
-      el.innerHTML = emptyState('No fund records found. Click "+ Add" to add a record or "Seed" to load MOOE defaults.');
+      el.innerHTML = emptyState('No fund records found. Click "+ Add" to add a record.');
       return;
     }
 
