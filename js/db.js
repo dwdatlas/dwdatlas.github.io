@@ -239,6 +239,30 @@ const DB = (() => {
   }
 
   // ============================================================
+  // UACS CODES (localStorage only)
+  // ============================================================
+  async function getUACS() {
+    const saved = lsGet('uacs');
+    if (saved.length) return { data: saved, error: null };
+    const defaults = typeof UACS_CODES !== 'undefined'
+      ? UACS_CODES.map(u => ({ id: u.code, code: u.code, desc: u.desc }))
+      : [];
+    return { data: defaults, error: null };
+  }
+  async function upsertUACS(row) {
+    let rows = lsGet('uacs');
+    if (!rows.length && typeof UACS_CODES !== 'undefined') {
+      rows = UACS_CODES.map(u => ({ id: u.code, code: u.code, desc: u.desc }));
+    }
+    row.id = row.id || row.code || newId();
+    const idx = rows.findIndex(r => r.id === row.id);
+    if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('uacs', rows); return { data: rows[idx], error: null }; }
+    rows.push(row);
+    lsSet('uacs', rows);
+    return { data: row, error: null };
+  }
+
+  // ============================================================
   // SUPABASE FILE UPLOAD (for PDFs)
   // ============================================================
   async function uploadFile(bucket, path, file) {
@@ -297,6 +321,8 @@ const DB = (() => {
     getBankRecon, upsertBankRecon,
     // resources
     getResources, upsertResource, deleteResource,
+    // uacs codes
+    getUACS, upsertUACS,
     // downloaded funds
     getFunds, upsertFund, deleteFund,
     // files

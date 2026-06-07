@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // RESOURCES VIEW
 // ============================================================
 const ResourcesView = {
@@ -24,38 +24,91 @@ const ResourcesView = {
     </div>
 
     <!-- UACS Quick Reference (always shown if category is uacs_reference or all) -->
-    ${!this.activeCategory || this.activeCategory === 'uacs_reference' ? this.renderUACSRef() : ''}
+    ${!this.activeCategory || this.activeCategory === 'uacs_reference' ? '<div id="uacs-ref"></div>' : ''}
 
     <div id="resources-list">
       <div class="flex justify-center py-10"><div class="spinner"></div></div>
     </div>`;
   },
 
-  async afterRender() { await this.loadList(); },
+  async afterRender() {
+    if (!this.activeCategory || this.activeCategory === 'uacs_reference') await this.loadUACSRef();
+    await this.loadList();
+  },
 
-  renderUACSRef() {
-    return `
+  async loadUACSRef() {
+    const el = document.getElementById('uacs-ref');
+    if (!el) return;
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
+    const { data } = await DB.getUACS();
+    const codes = data || [];
+    el.innerHTML = `
     <div class="section-card mb-4">
       <div class="section-card-header">
-        <h3>UAC	 Ocject Codes Quick Reference</h3>
-        <span class="badge cat-uacs">Built-in</span>
+        <h3 class="flex items-center gap-2">UACS Object Codes Quick Reference <span class="badge cat-uacs">Reference</span></h3>
+        ${isAdmin ? '<button class="btn btn-primary btn-sm" onclick="ResourcesView.openUACSForm()">+ Add Code</button>' : ''}
       </div>
       <div class="table-scroll">
         <table class="data-table">
-          <thead><tr><th>UAC	 Cde</th><th>Account Description</th></tr></thead>
+          <thead><tr><th>UACS Code</th><th>Account Description</th>${isAdmin ? '<th>Actions</th>' : ''}</tr></thead>
           <tbody>
-            ${UACS_CODES.map(u => `
-            <tr><td class="font-mono">${u.code}</td><td>${u.desc}</td></tr>`).join('')}
+            ${codes.map(u => `
+            <tr>
+              <td class="font-mono">${u.code}</td>
+              <td>${u.desc}</td>
+              ${isAdmin ? `<td><button class="btn btn-secondary btn-sm" onclick="ResourcesView.openUACSForm('${u.id}')">Edit</button></td>` : ''}
+            </tr>`).join('')}
           </tbody>
         </table>
       </div>
     </div>`;
   },
 
+  async openUACSForm(id = null) {
+    const { data } = await DB.getUACS();
+    const rec = id ? (data || []).find(u => u.id === id) : null;
+    const readonly = rec ? 'readonly style="background:#f3f4f6"' : '';
+    App.openModal(rec ? 'Edit UACS Code' : 'Add UACS Code', `
+    <form onsubmit="ResourcesView.saveUACSCode(event, '${id || ''}')">
+      <div class="grid grid-cols-1 gap-4 mb-4">
+        <div>
+          <label class="form-label">UACS Code *</label>
+          <input class="form-input font-mono" name="code" value="${rec?.code || ''}" placeholder="e.g. 5020101000" required ${readonly} />
+        </div>
+        <div>
+          <label class="form-label">Account Description *</label>
+          <input class="form-input" name="desc" value="${rec?.desc || ''}" placeholder="e.g. Travelling Expenses-Local" required />
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">${rec ? 'Update' : 'Add'}</button>
+      </div>
+    </form>`);
+  },
+
+  async saveUACSCode(e, id) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const code = fd.get('code').trim();
+    const row = { id: id || code, code, desc: fd.get('desc').trim() };
+    await DB.upsertUACS(row);
+    App.closeModal();
+    App.toast(id ? 'UACS code updated!' : 'UACS code added!');
+    await this.loadUACSRef();
+  },
+
+
   setCategory(cat) {
     this.activeCategory = cat;
     const vc = document.getElementById('view-container');
-    if (vc) { this.render().then(html => { vc.innerHTML = html; this.loadList(); }); }
+    if (vc) {
+      this.render().then(async html => {
+        vc.innerHTML = html;
+        if (!cat || cat === 'uacs_reference') await this.loadUACSRef();
+        await this.loadList();
+      });
+    }
   },
 
   async loadList() {
