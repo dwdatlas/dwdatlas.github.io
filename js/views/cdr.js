@@ -201,6 +201,31 @@ const CDRView = {
     };
     const { error } = await DB.upsertCDRHeader(row);
     if (error) { App.toast('Error saving CDR: ' + error, 'error'); return; }
+
+    // Auto-create first entry for MOOE CDRs from matching Fund Release record
+    if (this._category === 'mooe') {
+      const { data: funds } = await DB.getFunds({ school_id: row.school_id, year: row.year });
+      const match = (funds || []).find(f => f.fund_type === row.fund_type);
+      if (match) {
+        const qNum = row.quarter.replace('Q', '');
+        await DB.upsertCDREntry({
+          id: DB.newId(),
+          cdr_id:      row.id,
+          entry_date:  match.ada_date,
+          ref_no:      match.ada_no || '',
+          particulars: `Operating Advances for Quarter ${qNum}`,
+          uacs_code:   '',
+          uacs_desc:   '',
+          advances:    parseFloat(match.amount) || 0,
+          payment:     0,
+          sort_order:  Date.now(),
+        });
+        await DB.upsertCDRHeader({ id: row.id, entry_count: 1 });
+      } else {
+        App.toast('CDR created! (No matching Fund Release found — first entry not auto-added.)', 'success');
+      }
+    }
+
     App.closeModal();
     App.toast('CDR created!');
     await this.load();
