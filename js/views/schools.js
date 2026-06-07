@@ -3,6 +3,7 @@
 // ============================================================
 const SchoolsView = {
   async render() {
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     return `
     <div class="page-header">
       <h2>Schools</h2>
@@ -11,10 +12,10 @@ const SchoolsView = {
     <div class="section-card">
       <div class="section-card-header">
         <h3>School List</h3>
-        <div class="flex gap-2">
+        ${isAdmin ? `<div class="flex gap-2">
           <button class="btn btn-secondary btn-sm" onclick="SchoolsView.seedDefaults()">Load Defaults</button>
           <button class="btn btn-primary btn-sm" onclick="SchoolsView.openForm()">+ Add School</button>
-        </div>
+        </div>` : ''}
       </div>
       <div id="schools-body" class="table-scroll">
         <div class="flex justify-center py-10"><div class="spinner"></div></div>
@@ -29,6 +30,7 @@ const SchoolsView = {
   async load() {
     const { data } = await DB.getSchools();
     const schools = data || [];
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const el = document.getElementById('schools-body');
     if (!el) return;
 
@@ -43,7 +45,7 @@ const SchoolsView = {
       <thead><tr>
         <th>#</th><th>School Name</th><th>Short Name</th>
         <th>School Head</th><th>Designation</th>
-        <th>Confirmation Letter Expiry</th><th>Actions</th>
+        <th>Confirmation Letter Expiry</th>${isAdmin ? '<th>Actions</th>' : ''}
       </tr></thead>
       <tbody>
         ${schools.map((s, i) => {
@@ -64,12 +66,12 @@ const SchoolsView = {
             <td>${s.school_head || '—'}</td>
             <td class="text-xs text-gray-600">${s.designation || '—'}</td>
             <td>${expiryBadge}</td>
-            <td>
+            ${isAdmin ? `<td>
               <div class="flex gap-1">
                 <button class="btn btn-secondary btn-sm" onclick="SchoolsView.openForm('${s.id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="SchoolsView.deleteSchool('${s.id}')">Del</button>
               </div>
-            </td>
+            </td>` : ''}
           </tr>`;
         }).join('')}
       </tbody>

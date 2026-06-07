@@ -5,13 +5,14 @@ const ResourcesView = {
   activeCategory: '',
 
   async render() {
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     return `
     <div class="page-header flex items-start justify-between flex-wrap gap-3">
       <div><h2>Resources</h2><p>COA Circulars, DepEd Orders, UACS reference, Forms & Templates</p></div>
-      <button class="btn btn-primary" onclick="ResourcesView.openForm()">
+      ${isAdmin ? `<button class="btn btn-primary" onclick="ResourcesView.openForm()">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Add Resource
-      </button>
+      </button>` : ''}
     </div>
 
     <!-- Category tabs -->
@@ -60,11 +61,12 @@ const ResourcesView = {
   async loadList() {
     const container = document.getElementById('resources-list');
     if (!container) return;
+    const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const { data } = await DB.getResources(this.activeCategory ? { category: this.activeCategory } : {});
     const resources = data || [];
 
     if (resources.length === 0) {
-      container.innerHTML = `<div class="section-card">${emptyState('No resources yet. Click "Add Resource" to add documents and links.')}</div>`;
+      container.innerHTML = `<div class="section-card">${emptyState(isAdmin ? 'No resources yet. Click "Add Resource" to add documents and links.' : 'No resources found.')}</div>`;
       return;
     }
 
@@ -97,8 +99,8 @@ const ResourcesView = {
             </div>
             <div class="flex gap-2 shrink-0">
               ${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-success btn-sm">Open ↗</a>` : ''}
-              <button class="btn btn-secondary btn-sm" onclick="ResourcesView.openForm('${r.id}')">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="ResourcesView.deleteResource('${r.id}')">Del</button>
+              ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="ResourcesView.openForm('${r.id}')">Edit</button>` : ''}
+              ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="ResourcesView.deleteResource('${r.id}')">Del</button>` : ''}
             </div>
           </div>`).join('')}
         </div>
