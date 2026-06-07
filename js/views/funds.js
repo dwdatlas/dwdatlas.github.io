@@ -35,8 +35,8 @@ const FundsView = {
         <h3>Filters</h3>
         <div class="flex gap-2">
           <button id="f-cat-all"     class="${this._category===''       ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('')">All</button>
-          <button id="f-cat-mooe"    class="${this._category==='mooe'   ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('mooe')">MOOE</button>
-          <button id="f-cat-special" class="${this._category==='special'?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('special')">Special Funds</button>
+          ${category !== 'special' ? `<button id="f-cat-mooe"    class="${this._category==='mooe'   ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('mooe')">MOOE</button>` : ''}
+          ${category !== 'mooe'    ? `<button id="f-cat-special" class="${this._category==='special'?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('special')">Special Funds</button>` : ''}
         </div>
       </div>
       <div class="section-card-body">
