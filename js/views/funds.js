@@ -67,10 +67,7 @@ const FundsView = {
           </div>
           <div>
             <label class="form-label">Fund Type</label>
-            <select id="f-fund" class="form-select" onchange="FundsView.load()">
-              <option value="">All Fund Types</option>
-              ${FUND_TYPES.map(f=>`<option value="${f}">${f}</option>`).join('')}
-            </select>
+            <input id="f-fund" type="text" class="form-input" placeholder="Search fund type…" oninput="FundsView.load()" />
           </div>
           ${isAdmin ? `
           <div class="flex items-end gap-2">
@@ -108,7 +105,7 @@ const FundsView = {
 
     const { data } = await DB.getFunds(filters);
     let rows = data || [];
-    if (fundType) rows = rows.filter(r => r.fund_type === fundType);
+    if (fundType) rows = rows.filter(r => (r.fund_type || '').toLowerCase().includes(fundType.toLowerCase()));
     if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
     if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
 
@@ -195,9 +192,8 @@ const FundsView = {
         `<option value="${s.id}" ${rec?.school_id===s.id?'selected':''}>${s.name}</option>`
       ).join('');
 
-      const fundOpts = FUND_TYPES.map(f =>
-        `<option value="${f}" ${rec?.fund_type===f?'selected':''}>${f}</option>`
-      ).join('');
+      const existingTypes = [...new Set((data||[]).map(r => r.fund_type).filter(Boolean))].sort();
+      const fundTypeOpts  = existingTypes.map(f => `<option value="${f}">`).join('');
 
       const html = `
       <form id="fund-form" onsubmit="FundsView.saveFund(event,'${id||''}')">
@@ -219,9 +215,10 @@ const FundsView = {
           </div>
           <div class="col-span-2">
             <label class="form-label">Fund Type *</label>
-            <select id="fd-fund" class="form-select" required>
-              <option value="">Select fund typeâ€¦</option>${fundOpts}
-            </select>
+            <input id="fd-fund" type="text" class="form-input" required
+              placeholder="e.g. LBP-1st Quarter MOOE"
+              value="${rec?.fund_type||''}" list="fd-fund-list" />
+            <datalist id="fd-fund-list">${fundTypeOpts}</datalist>
           </div>
           <div>
             <label class="form-label">Amount (â‚±) *</label>

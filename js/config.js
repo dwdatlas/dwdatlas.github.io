@@ -14,33 +14,7 @@ const REGION = 'Region VIII';
 const BOOKKEEPER = 'JO ANN MARIE P. CAGARA';
 const BOOKKEEPER_TITLE = 'ADAS III (Senior Bookkeeper)';
 
-const FUND_TYPES = [
-  'Regular MOOE',
-  'PSF - Kinder',
-  'PSF - Grade 1 Reading',
-  'PSF - Grade 1 Math',
-  'SBFP - Milk',
-  'SBFP - Food',
-  'SBFP - NLC',
-  'SBFP - Nutriban',
-  'SBFP - Additional Operating',
-  'K-FELT',
-  'ARAL Program',
-  'MATATAG',
-  'ELLNA',
-  'Delivery Support Fund - LRs',
-  'Delivery Support Fund - Leveled Reader Mini Book',
-  'Delivery Support Fund - Emergency Situation',
-  'Delivery Support Fund - Math',
-  'LTE-SM Grade 1-3',
-  'LTE-SM Grade 4-6',
-  'Special Needs Support',
-  'Grade 4 Music and Arts',
-  'Water Testing',
-  'Hauling of Textbooks',
-  'COS',
-  'Other',
-];
+const FUND_TYPES = [];
 
 const STATUSES = [
   { value: 'pending', label: 'Pending' },

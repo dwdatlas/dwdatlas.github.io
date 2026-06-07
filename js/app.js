@@ -7,7 +7,6 @@ const App = {
   views: {
     dash_mooe:    { title: 'MOOE',          subtitle: 'Dashboard',          obj: () => DashboardMOOEView },
     dash_special: { title: 'Special Funds', subtitle: 'Dashboard',          obj: () => DashboardSpecialView },
-    mooe:          { title: 'Fund Releases', subtitle: 'Downloaded Funds',  obj: () => FundsView },
     funds_mooe:    { title: 'MOOE',          subtitle: 'Fund Releases',     obj: () => FundsMOOEView },
     funds_special: { title: 'Special Funds', subtitle: 'Fund Releases',     obj: () => FundsSpecialView },
     cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
@@ -61,12 +60,13 @@ const App = {
     });
 
     // Highlight dashboard toggle button and active sub-link
-    const isDashView = ['dash_mooe', 'dash_special'].includes(viewName);
-    const dashToggle = document.getElementById('nav-dashboard-toggle');
-    if (dashToggle) {
-      dashToggle.className = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isDashView ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
-    }
-    ['dash_mooe', 'dash_special'].forEach(key => {
+    const isDashView  = ['dash_mooe',  'dash_special' ].includes(viewName);
+    const isFundsView = ['funds_mooe', 'funds_special'].includes(viewName);
+    const dashToggle  = document.getElementById('nav-dashboard-toggle');
+    const fundsToggle = document.getElementById('nav-funds-toggle');
+    if (dashToggle)  dashToggle.className  = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isDashView  ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
+    if (fundsToggle) fundsToggle.className = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isFundsView ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
+    ['dash_mooe', 'dash_special', 'funds_mooe', 'funds_special'].forEach(key => {
       const el = document.getElementById('subnav-' + key.replace('_', '-'));
       if (!el) return;
       const active = viewName === key;
@@ -131,6 +131,14 @@ const App = {
   toggleDashNav() {
     const subnav  = document.getElementById('dash-subnav');
     const chevron = document.getElementById('dash-chevron');
+    if (!subnav) return;
+    const isHidden = subnav.classList.toggle('hidden');
+    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+  },
+
+  toggleFundsNav() {
+    const subnav  = document.getElementById('funds-subnav');
+    const chevron = document.getElementById('funds-chevron');
     if (!subnav) return;
     const isHidden = subnav.classList.toggle('hidden');
     if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
