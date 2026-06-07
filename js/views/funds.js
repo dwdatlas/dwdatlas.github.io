@@ -120,6 +120,7 @@ const FundsView = {
         <th>ADA Date</th>
         <th>Fund Type</th>
         ${!this._schoolId ? '<th>School</th>' : ''}
+        ${this._category === 'special' ? '<th>Bank</th>' : ''}
         <th class="text-right">Amount</th>
         <th>Status</th>
         <th>Remarks</th>
@@ -137,6 +138,7 @@ const FundsView = {
             <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
             <td class="text-xs">${r.fund_type || 'â€”'}</td>
             ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || 'â€”'}</td>` : ''}
+            ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="text-right font-semibold">${fmt(r.amount)}</td>
             <td>${badge}</td>
             <td class="text-xs text-gray-500">${r.remarks || ''}</td>
@@ -218,6 +220,13 @@ const FundsView = {
               ${years.map(y=>`<option value="${y}" ${(rec?.year||yr)==y?'selected':''}>${y}</option>`).join('')}
             </select>
           </div>
+          ${this._category !== 'mooe' ? `
+          <div class="col-span-2">
+            <label class="form-label">Bank</label>
+            <select id="fd-bank" class="form-select">
+              ${BANKS.map(b=>`<option value="${b}" ${rec?.bank===b?'selected':''}>${b}</option>`).join('')}
+            </select>
+          </div>` : ''}
           <div class="col-span-2">
             <label class="form-label">Status *</label>
             <select id="fd-status" class="form-select" required>
@@ -247,6 +256,7 @@ const FundsView = {
       ada_no:     document.getElementById('fd-ada-no').value.trim(),
       ada_date:   document.getElementById('fd-ada-date').value,
       fund_type:  document.getElementById('fd-fund').value,
+      bank:       document.getElementById('fd-bank')?.value || '',
       amount:     parseFloat(document.getElementById('fd-amount').value) || 0,
       year:       parseInt(document.getElementById('fd-year').value),
       status:     document.getElementById('fd-status').value,
