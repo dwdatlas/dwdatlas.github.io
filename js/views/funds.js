@@ -134,10 +134,10 @@ const FundsView = {
             : `<span class="badge badge-missing">Unliquidated</span>`;
           return `
           <tr>
-            <td class="font-mono text-xs font-semibold">${r.ada_no || 'â€”'}</td>
+            <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
-            <td class="text-xs">${r.fund_type || 'â€”'}</td>
-            ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || 'â€”'}</td>` : ''}
+            <td class="text-xs">${r.fund_type || '—'}</td>
+            ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="text-right font-semibold">${fmt(r.amount)}</td>
             <td>${badge}</td>
@@ -191,7 +191,7 @@ const FundsView = {
           <div class="col-span-2">
             <label class="form-label">School *</label>
             <select id="fd-school" class="form-select" required>
-              <option value="">Select schoolâ€¦</option>${schoolOpts}
+              <option value="">Select school</option>${schoolOpts}
             </select>
           </div>
           <div>
@@ -211,7 +211,7 @@ const FundsView = {
             <datalist id="fd-fund-list">${fundTypeOpts}</datalist>
           </div>
           <div>
-            <label class="form-label">Amount (â‚±) *</label>
+            <label class="form-label">Amount (&#8369;) *</label>
             <input id="fd-amount" type="number" step="0.01" min="0" class="form-input" required value="${rec?.amount||''}" placeholder="0.00" />
           </div>
           <div>
