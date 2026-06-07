@@ -201,7 +201,9 @@ const CDRView = {
     if (this._category === 'mooe') {
       const { data: funds } = await DB.getFunds({ school_id: schoolId });
       const normalize = s => (s || '').trim().toLowerCase();
-      matchingFund = (funds || []).find(f => normalize(f.fund_type) === normalize(fundType));
+      const matched = (funds || []).filter(f => normalize(f.fund_type) === normalize(fundType));
+      matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
+      matchingFund = matched[0] || null;
     }
 
     const row = {
