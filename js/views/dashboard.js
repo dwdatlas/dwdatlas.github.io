@@ -60,7 +60,10 @@ const DashboardView = {
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     <div id="dash-mooe" class="mb-6"></div>
     <div id="dash-special" class="mb-6"></div>
-    ${this._isAdmin ? `<div class="flex justify-end mb-4"><button class="btn btn-secondary btn-sm" onclick="FundsView.seedDefaults()">Load Seed Data</button></div>` : ''}`;
+    ${this._isAdmin ? `<div class="flex justify-end gap-2 mb-4">
+      <button class="btn btn-danger btn-sm" onclick="DashboardView.clearAllFunds()">Clear All Fund Data</button>
+      <button class="btn btn-secondary btn-sm" onclick="FundsView.seedDefaults()">Load Seed Data</button>
+    </div>` : ''}`;
   },
 
   async afterRender() {
@@ -346,6 +349,17 @@ const DashboardView = {
       if (b) b.className = this._tabClass(t === tab);
     });
     this._renderSpecialTable();
+  },
+
+  // ---- Clear all fund data (admin only) ----
+  async clearAllFunds() {
+    if (!confirm('Delete ALL fund data from this device? This cannot be undone.')) return;
+    localStorage.removeItem('dwd_funds');
+    this._allFunds = [];
+    App.toast('All fund data cleared.');
+    this._renderSummary();
+    this._renderMOOE();
+    this._renderSpecial();
   },
 
   // ---- Toggle status (admin only) ----
