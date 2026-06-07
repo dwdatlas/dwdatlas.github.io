@@ -67,18 +67,24 @@
 
     <!-- Nav links -->
     <nav class="flex-1 py-4 overflow-y-auto">
-      <a href="#" class="nav-link flex items-center gap-3 px-5 py-3 text-blue-100 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" data-view="dashboard">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-        Dashboard
-      </a>
+      <button id="nav-dashboard-toggle" onclick="App.toggleDashNav()"
+        class="w-full flex items-center justify-between px-5 py-3 text-blue-100 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors">
+        <span class="flex items-center gap-3">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          Dashboard
+        </span>
+        <svg id="dash-chevron" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
       <!-- Dashboard sub-navigation -->
-      <div class="mx-5 mb-1 border-l-2 border-blue-700 ml-9">
-        <a href="#" class="flex items-center gap-2 pl-4 pr-2 py-1.5 text-blue-300 text-xs hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors rounded"
+      <div id="dash-subnav" class="mx-5 mb-1 border-l-2 border-blue-700 ml-9">
+        <a id="subnav-dash-mooe" href="#" class="flex items-center gap-2 pl-4 pr-2 py-1.5 text-blue-300 text-xs hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors rounded"
            onclick="event.preventDefault(); App.navigate('dash_mooe'); App.closeSidebar();">
           <svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg>
           MOOE
         </a>
-        <a href="#" class="flex items-center gap-2 pl-4 pr-2 py-1.5 text-blue-300 text-xs hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors rounded"
+        <a id="subnav-dash-special" href="#" class="flex items-center gap-2 pl-4 pr-2 py-1.5 text-blue-300 text-xs hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors rounded"
            onclick="event.preventDefault(); App.navigate('dash_special'); App.closeSidebar();">
           <svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg>
           Special Funds

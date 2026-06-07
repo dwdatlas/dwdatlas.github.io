@@ -5,7 +5,6 @@ const App = {
   currentView: null,
 
   views: {
-    dashboard:    { title: 'Dashboard',     subtitle: 'Overview',           obj: () => DashboardView },
     dash_mooe:    { title: 'MOOE',          subtitle: 'Dashboard',          obj: () => DashboardMOOEView },
     dash_special: { title: 'Special Funds', subtitle: 'Dashboard',          obj: () => DashboardSpecialView },
     mooe:          { title: 'Fund Releases', subtitle: 'Downloaded Funds',  obj: () => FundsView },
@@ -45,8 +44,8 @@ const App = {
     });
 
     // Navigate to hash or default
-    const hash = location.hash.slice(1) || 'dashboard';
-    this.navigate(this.views[hash] ? hash : 'dashboard');
+    const hash = location.hash.slice(1) || 'dash_mooe';
+    this.navigate(this.views[hash] ? hash : 'dash_mooe');
   },
 
   async navigate(viewName) {
@@ -55,10 +54,23 @@ const App = {
     location.hash = viewName;
 
     // Update nav active state (sub-views highlight their parent nav item)
-    const navParents = { dash_mooe: 'dashboard', dash_special: 'dashboard', funds_mooe: 'mooe', funds_special: 'mooe' };
+    const navParents = { funds_mooe: 'mooe', funds_special: 'mooe' };
     const activeNav  = navParents[viewName] || viewName;
     document.querySelectorAll('.nav-link').forEach(el => {
       el.classList.toggle('active', el.dataset.view === activeNav);
+    });
+
+    // Highlight dashboard toggle button and active sub-link
+    const isDashView = ['dash_mooe', 'dash_special'].includes(viewName);
+    const dashToggle = document.getElementById('nav-dashboard-toggle');
+    if (dashToggle) {
+      dashToggle.className = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isDashView ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
+    }
+    ['dash_mooe', 'dash_special'].forEach(key => {
+      const el = document.getElementById('subnav-' + key.replace('_', '-'));
+      if (!el) return;
+      const active = viewName === key;
+      el.className = `flex items-center gap-2 pl-4 pr-2 py-1.5 text-xs transition-colors rounded ${active ? 'text-white font-semibold' : 'text-blue-300 hover:text-white hover:bg-white hover:bg-opacity-10'}`;
     });
 
     // Update header
@@ -114,6 +126,14 @@ const App = {
     el.classList.remove('hidden');
     clearTimeout(App._toastTimer);
     App._toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+  },
+
+  toggleDashNav() {
+    const subnav  = document.getElementById('dash-subnav');
+    const chevron = document.getElementById('dash-chevron');
+    if (!subnav) return;
+    const isHidden = subnav.classList.toggle('hidden');
+    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
   },
 
   toggleSidebar() {
