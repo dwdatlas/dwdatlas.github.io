@@ -7,7 +7,8 @@ const FundsView = {
   _schools: [],
   _category: '',
 
-  async render() {
+  async render(category = '') {
+    this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const [schoolsRes] = await Promise.all([DB.getSchools()]);
@@ -27,9 +28,11 @@ const FundsView = {
            <option value="">All Schools</option>${schoolOpts}
          </select>`;
 
+    const pageTitle = category === 'mooe' ? 'MOOE' : category === 'special' ? 'Special Funds' : 'Downloaded Funds';
+
     return `
     <div class="page-header">
-      <h2>Downloaded Funds</h2>
+      <h2>${pageTitle}</h2>
     </div>
 
     <div class="section-card mb-4">
@@ -277,4 +280,13 @@ const FundsView = {
     App.toast('Record deleted.');
     await this.load();
   },
+};
+
+const FundsMOOEView = {
+  async render()      { return FundsView.render('mooe'); },
+  async afterRender() { return FundsView.afterRender(); },
+};
+const FundsSpecialView = {
+  async render()      { return FundsView.render('special'); },
+  async afterRender() { return FundsView.afterRender(); },
 };

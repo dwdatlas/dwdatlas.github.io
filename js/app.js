@@ -8,7 +8,9 @@ const App = {
     dashboard:    { title: 'Dashboard',     subtitle: 'Overview',           obj: () => DashboardView },
     dash_mooe:    { title: 'MOOE',          subtitle: 'Dashboard',          obj: () => DashboardMOOEView },
     dash_special: { title: 'Special Funds', subtitle: 'Dashboard',          obj: () => DashboardSpecialView },
-    mooe:         { title: 'Fund Releases', subtitle: 'Downloaded Funds',   obj: () => FundsView },
+    mooe:          { title: 'Fund Releases', subtitle: 'Downloaded Funds',  obj: () => FundsView },
+    funds_mooe:    { title: 'MOOE',          subtitle: 'Fund Releases',     obj: () => FundsMOOEView },
+    funds_special: { title: 'Special Funds', subtitle: 'Fund Releases',     obj: () => FundsSpecialView },
     cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
     resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
     schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
@@ -53,7 +55,7 @@ const App = {
     location.hash = viewName;
 
     // Update nav active state (sub-views highlight their parent nav item)
-    const navParents = { dash_mooe: 'dashboard', dash_special: 'dashboard' };
+    const navParents = { dash_mooe: 'dashboard', dash_special: 'dashboard', funds_mooe: 'mooe', funds_special: 'mooe' };
     const activeNav  = navParents[viewName] || viewName;
     document.querySelectorAll('.nav-link').forEach(el => {
       el.classList.toggle('active', el.dataset.view === activeNav);
