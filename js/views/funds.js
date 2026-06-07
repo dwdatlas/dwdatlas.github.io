@@ -190,7 +190,8 @@ const FundsView = {
           </div>
           <div>
             <label class="form-label">ADA Date *</label>
-            <input id="fd-ada-date" type="date" class="form-input" required value="${rec?.ada_date||''}" />
+            <input id="fd-ada-date" type="date" class="form-input" required value="${rec?.ada_date||''}"
+              onchange="const y=this.value.split('-')[0];if(y)document.getElementById('fd-year').value=y;" />
           </div>
           <div class="col-span-2">
             <label class="form-label">Fund Type *</label>
