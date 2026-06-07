@@ -28,12 +28,7 @@ const FundsView = {
            <option value="">All Schools</option>${schoolOpts}
          </select>`;
 
-    const pageTitle = category === 'mooe' ? 'MOOE' : category === 'special' ? 'Special Funds' : 'Downloaded Funds';
-
     return `
-    <div class="page-header">
-      <h2>${pageTitle}</h2>
-    </div>
 
     <div class="section-card mb-4">
       <div class="section-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
