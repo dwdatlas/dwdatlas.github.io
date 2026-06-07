@@ -59,6 +59,18 @@ const DashboardView = {
     }));
 
     return `
+    ${this._isAdmin ? `
+    <div class="section-card mb-4">
+      <div class="section-card-body" style="padding:12px 20px">
+        <div class="flex items-center gap-3 flex-wrap">
+          <label class="form-label" style="margin:0;white-space:nowrap">Filter by School</label>
+          <select class="form-select" style="min-width:220px;width:auto" onchange="DashboardView.setSchool(this.value)">
+            <option value="">All Schools</option>
+            ${this._schools.map(s => `<option value="${s.id}" ${s.id === this._schoolId ? 'selected' : ''}>${s.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>` : ''}
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
     ${mode !== 'mooe'    ? '<div id="dash-special" class="mb-6"></div>' : ''}
@@ -88,6 +100,17 @@ const DashboardView = {
       statCard('Liquidated',       fmt(liqAmt),         '#166534', `${liqPct}% of total`) +
       statCard('Unliquidated',     fmt(unliqAmt),       '#92400E', `${unliqPct}% of total`) +
       statCard('Needs Attention',  String(unliqCnt),    '#b91c1c', 'unliquidated releases');
+  },
+
+  setSchool(id) {
+    this._schoolId    = id || null;
+    this._mooeQuarter = null;
+    this._mooeTab     = 'all';
+    this._specialFund = '';
+    this._specialTab  = 'all';
+    this._renderSummary();
+    if (this._mode !== 'special') this._renderMOOE();
+    if (this._mode !== 'mooe')    this._renderSpecial();
   },
 
   setYear(yr) {
