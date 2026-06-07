@@ -7,6 +7,7 @@ const DashboardView = {
   _isAdmin:     false,
   _schoolId:    null,
   _year:        String(new Date().getFullYear()),
+  _mode:        'all',
   _mooeQuarter: null,
   _mooeTab:     'all',
   _specialFund: '',
@@ -39,11 +40,14 @@ const DashboardView = {
   _visibleFunds() {
     let funds = this._schoolId ? this._allFunds.filter(f => f.school_id === this._schoolId) : this._allFunds;
     if (this._year) funds = funds.filter(f => String(f.year) === this._year);
+    if (this._mode === 'mooe')    funds = funds.filter(f => this._isMOOE(f.fund_type));
+    if (this._mode === 'special') funds = funds.filter(f => !this._isMOOE(f.fund_type));
     return funds;
   },
 
   // ---- render() — loads data, returns skeleton HTML ----
-  async render() {
+  async render(mode = 'all') {
+    this._mode     = mode;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     this._isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin()    : false;
 
@@ -59,25 +63,28 @@ const DashboardView = {
     const yearOpts = `<option value="">All years</option>` +
       years.map(y => `<option value="${y}" ${y === this._year ? 'selected' : ''}>${y}</option>`).join('');
 
+    const pageTitle = mode === 'mooe' ? 'MOOE' : mode === 'special' ? 'Special Funds' : 'Fund Monitor';
+    const pageSub   = mode === 'mooe' ? 'Quarterly MOOE releases' : mode === 'special' ? 'Special fund releases' : 'Dulag West District — liquidation status overview';
+
     return `
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
-        <h2>Fund Monitor</h2>
-        <p>Dulag West District — liquidation status overview</p>
+        <h2>${pageTitle}</h2>
+        <p>${pageSub}</p>
       </div>
       <select class="form-select" style="width:auto;min-width:110px"
         onchange="DashboardView.setYear(this.value)">${yearOpts}</select>
     </div>
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
-    <div id="dash-mooe" class="mb-6"></div>
-    <div id="dash-special" class="mb-6"></div>
+    ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
+    ${mode !== 'mooe'    ? '<div id="dash-special" class="mb-6"></div>' : ''}
     `;
   },
 
   async afterRender() {
     this._renderSummary();
-    this._renderMOOE();
-    this._renderSpecial();
+    if (this._mode !== 'special') this._renderMOOE();
+    if (this._mode !== 'mooe')    this._renderSpecial();
   },
 
   // ---- Global summary cards (never change with filters) ----
@@ -106,8 +113,8 @@ const DashboardView = {
     this._specialFund = '';
     this._specialTab  = 'all';
     this._renderSummary();
-    this._renderMOOE();
-    this._renderSpecial();
+    if (this._mode !== 'special') this._renderMOOE();
+    if (this._mode !== 'mooe')    this._renderSpecial();
   },
 
   // ============================================================
@@ -131,7 +138,7 @@ const DashboardView = {
     if (!el) return;
 
     if (!qKeys.length) {
-      el.innerHTML = `<div class="section-card"><div class="section-card-header"><h3>MOOE (quarterly)</h3></div><div class="section-card-body">${emptyState('No MOOE records found. Load seed data to populate.')}</div></div>`;
+      el.innerHTML = `<div class="section-card"><div class="section-card-header"><h3>MOOE (quarterly)</h3></div><div class="section-card-body">${emptyState('No MOOE records found. Add records via Fund Releases.')}</div></div>`;
       return;
     }
 
@@ -405,6 +412,18 @@ const DashboardView = {
     return `<button id="${section}-tab-${tab}" class="${this._tabClass(active)}"
       onclick="DashboardView.${fn}('${tab}')">${label}</button>`;
   },
+};
+
+// ============================================================
+// MOOE-only and Special Funds-only sub-views (share DashboardView logic)
+// ============================================================
+const DashboardMOOEView = {
+  async render()      { return DashboardView.render('mooe'); },
+  async afterRender() { return DashboardView.afterRender(); },
+};
+const DashboardSpecialView = {
+  async render()      { return DashboardView.render('special'); },
+  async afterRender() { return DashboardView.afterRender(); },
 };
 
 // ============================================================
