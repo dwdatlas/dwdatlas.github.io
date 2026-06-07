@@ -328,12 +328,7 @@ const CDRView = {
               <input id="ei-particulars" type="text" class="form-input" required placeholder="Description of transaction" />
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            <div>
-              <label class="form-label">Cash Advance (₱)</label>
-              <input id="ei-advance" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" />
-              <p class="text-xs text-gray-400 mt-1">For MOOE advances received only</p>
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
             <div>
               <label class="form-label">Payment (₱)</label>
               <input id="ei-payment" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" />
@@ -442,13 +437,13 @@ const CDRView = {
     const uacs_desc = uacs_code
       ? (UACS_CODES.find(u => u.code === uacs_code)?.desc || '')
       : '';
-    const advances = parseFloat(document.getElementById('ei-advance').value) || 0;
+    const advances = 0;
     const payment  = parseFloat(document.getElementById('ei-payment').value)  || 0;
 
-    if (advances === 0 && payment === 0) {
-      App.toast('Enter a Cash Advance or Payment amount.', 'error'); return;
+    if (payment === 0) {
+      App.toast('Enter a Payment amount.', 'error'); return;
     }
-    if (payment > 0 && !uacs_code) {
+    if (!uacs_code) {
       App.toast('Please select a UACS code for the payment.', 'error'); return;
     }
 
