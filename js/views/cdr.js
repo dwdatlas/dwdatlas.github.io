@@ -204,8 +204,9 @@ const CDRView = {
 
     // Auto-create first entry for MOOE CDRs from matching Fund Release record
     if (this._category === 'mooe') {
-      const { data: funds } = await DB.getFunds({ school_id: row.school_id, year: row.year });
-      const match = (funds || []).find(f => f.fund_type === row.fund_type);
+      const { data: funds } = await DB.getFunds({ school_id: row.school_id });
+      const normalize = s => (s || '').trim().toLowerCase();
+      const match = (funds || []).find(f => normalize(f.fund_type) === normalize(row.fund_type));
       if (match) {
         const qNum = row.quarter.replace('Q', '');
         await DB.upsertCDREntry({
