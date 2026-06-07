@@ -5,6 +5,7 @@
 const FundsView = {
   _schoolId: null,
   _schools: [],
+  _category: '',
 
   async render() {
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
@@ -32,7 +33,14 @@ const FundsView = {
     </div>
 
     <div class="section-card mb-4">
-      <div class="section-card-header"><h3>Filters</h3></div>
+      <div class="section-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <h3>Filters</h3>
+        <div class="flex gap-2">
+          <button id="f-cat-all"     class="${this._category===''       ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('')">All</button>
+          <button id="f-cat-mooe"    class="${this._category==='mooe'   ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('mooe')">MOOE</button>
+          <button id="f-cat-special" class="${this._category==='special'?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('special')">Special Funds</button>
+        </div>
+      </div>
       <div class="section-card-body">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
@@ -98,6 +106,8 @@ const FundsView = {
     const { data } = await DB.getFunds(filters);
     let rows = data || [];
     if (fundType) rows = rows.filter(r => r.fund_type === fundType);
+    if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
+    if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
 
     const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const el = document.getElementById('funds-body');
@@ -153,6 +163,19 @@ const FundsView = {
         }).join('')}
       </tbody>
     </table>`;
+  },
+
+  setCategory(cat) {
+    this._category = cat;
+    ['', 'mooe', 'special'].forEach(c => {
+      const btn = document.getElementById(`f-cat-${c || 'all'}`);
+      if (btn) btn.className = this._tabClass(c === cat);
+    });
+    this.load();
+  },
+
+  _tabClass(active) {
+    return active ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm';
   },
 
   openForm(id) {
