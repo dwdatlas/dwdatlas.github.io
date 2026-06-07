@@ -58,14 +58,7 @@ const DashboardView = {
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
 
-    const pageTitle = mode === 'mooe' ? 'MOOE' : mode === 'special' ? 'Special Funds' : 'Fund Monitor';
-    const pageSub   = mode === 'mooe' ? 'Quarterly MOOE releases' : mode === 'special' ? 'Special fund releases' : 'Dulag West District — liquidation status overview';
-
     return `
-    <div class="page-header">
-      <h2>${pageTitle}</h2>
-      <p>${pageSub}</p>
-    </div>
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
     ${mode !== 'mooe'    ? '<div id="dash-special" class="mb-6"></div>' : ''}
