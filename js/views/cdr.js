@@ -2,7 +2,10 @@
 // CASH DISBURSEMENT REGISTER VIEW  —  Appendix 43
 // ============================================================
 const CDRView = {
-  async render() {
+  _category: '',
+
+  async render(category = '') {
+    this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const [schoolsRes, headersRes] = await Promise.all([DB.getSchools(), DB.getCDRHeaders()]);
     const schools = schoolsRes.data || [];
@@ -21,11 +24,6 @@ const CDRView = {
          </select>`;
 
     return `
-    <div class="page-header">
-      <h2>Cash Disbursement Register</h2>
-      <p>Appendix 43 — per school per quarter</p>
-    </div>
-
     <div class="section-card mb-4">
       <div class="section-card-header">
         <h3>Filters</h3>
@@ -87,6 +85,8 @@ const CDRView = {
     const { data } = await DB.getCDRHeaders(filters);
     let rows = data || [];
     if (quarter) rows = rows.filter(r => r.quarter === quarter);
+    if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
+    if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
 
     const el = document.getElementById('cdr-list-body');
     if (!el) return;
@@ -134,11 +134,14 @@ const CDRView = {
   },
 
   // ---- Create new CDR header ----
-  openCreate() {
+  async openCreate() {
     const schools = this._schools || [];
     const yr = new Date().getFullYear();
     const years = [];
     for (let y = yr; y >= yr - 4; y--) years.push(y);
+
+    const { data: ftData } = await DB.getFundTypes(this._category);
+    const ftOpts = (ftData || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
 
     const html = `
     <form id="cdr-create-form" onsubmit="CDRView.saveHeader(event)">
@@ -168,7 +171,8 @@ const CDRView = {
         <div class="col-span-2">
           <label class="form-label">Fund Type</label>
           <select id="cdr-fund-type" class="form-select">
-            ${FUND_TYPES.map(f => `<option>${f}</option>`).join('')}
+            <option value="">-- Select Fund Type --</option>
+            ${ftOpts}
           </select>
         </div>
         <div class="col-span-2">
@@ -383,8 +387,8 @@ const CDRView = {
     const el = document.getElementById('view-container');
     const pt = document.getElementById('page-title');
     const ps = document.getElementById('page-subtitle');
-    if (pt) pt.textContent = 'Cash Disbursement Register';
-    if (ps) ps.textContent = 'Appendix 43 — per school per quarter';
+    if (pt) pt.textContent = this._category === 'special' ? 'Special Funds' : 'MOOE';
+    if (ps) ps.textContent = 'Cash Disbursement Register';
     if (el) el.innerHTML = await this.render();
     await this.afterRender();
   },
@@ -899,6 +903,15 @@ const CDRView = {
 </body></html>`);
     w.document.close();
   },
+};
+
+const CDRMOOEView = {
+  async render()      { return CDRView.render('mooe'); },
+  async afterRender() { return CDRView.afterRender(); },
+};
+const CDRSpecialView = {
+  async render()      { return CDRView.render('special'); },
+  async afterRender() { return CDRView.afterRender(); },
 };
 
 // Helpers used inside printCDR template literals

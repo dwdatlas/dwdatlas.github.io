@@ -9,7 +9,8 @@ const App = {
     dash_special: { title: 'Special Funds', subtitle: 'Dashboard',          obj: () => DashboardSpecialView },
     funds_mooe:    { title: 'MOOE',          subtitle: 'Fund Releases',     obj: () => FundsMOOEView },
     funds_special: { title: 'Special Funds', subtitle: 'Fund Releases',     obj: () => FundsSpecialView },
-    cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
+    cdr_mooe:    { title: 'MOOE',          subtitle: 'Cash Disbursement Register', obj: () => CDRMOOEView },
+    cdr_special: { title: 'Special Funds', subtitle: 'Cash Disbursement Register', obj: () => CDRSpecialView },
     resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
     schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
     setup:      { title: 'Setup / Config',            subtitle: 'Supabase & Settings',       obj: () => SetupView },
@@ -59,14 +60,18 @@ const App = {
       el.classList.toggle('active', el.dataset.view === activeNav);
     });
 
-    // Highlight dashboard toggle button and active sub-link
+    // Highlight toggle buttons and active sub-links
     const isDashView  = ['dash_mooe',  'dash_special' ].includes(viewName);
     const isFundsView = ['funds_mooe', 'funds_special'].includes(viewName);
+    const isCDRView   = ['cdr_mooe',   'cdr_special'  ].includes(viewName);
     const dashToggle  = document.getElementById('nav-dashboard-toggle');
     const fundsToggle = document.getElementById('nav-funds-toggle');
-    if (dashToggle)  dashToggle.className  = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isDashView  ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
-    if (fundsToggle) fundsToggle.className = `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${isFundsView ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
-    ['dash_mooe', 'dash_special', 'funds_mooe', 'funds_special'].forEach(key => {
+    const cdrToggle   = document.getElementById('nav-cdr-toggle');
+    const toggleCls   = active => `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${active ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
+    if (dashToggle)  dashToggle.className  = toggleCls(isDashView);
+    if (fundsToggle) fundsToggle.className = toggleCls(isFundsView);
+    if (cdrToggle)   cdrToggle.className   = toggleCls(isCDRView);
+    ['dash_mooe', 'dash_special', 'funds_mooe', 'funds_special', 'cdr_mooe', 'cdr_special'].forEach(key => {
       const el = document.getElementById('subnav-' + key.replace('_', '-'));
       if (!el) return;
       const active = viewName === key;
@@ -139,6 +144,14 @@ const App = {
   toggleFundsNav() {
     const subnav  = document.getElementById('funds-subnav');
     const chevron = document.getElementById('funds-chevron');
+    if (!subnav) return;
+    const isHidden = subnav.classList.toggle('hidden');
+    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+  },
+
+  toggleCDRNav() {
+    const subnav  = document.getElementById('cdr-subnav');
+    const chevron = document.getElementById('cdr-chevron');
     if (!subnav) return;
     const isHidden = subnav.classList.toggle('hidden');
     if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
