@@ -60,7 +60,7 @@ const DashboardView = {
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     <div id="dash-mooe" class="mb-6"></div>
     <div id="dash-special" class="mb-6"></div>
-    ${this._isAdmin ? `<div class="flex justify-end mb-4"><button class="btn btn-secondary btn-sm" onclick="FundsView.seedDefaults()">Load Seed Data</button></div>` : ''}`;
+    `;
   },
 
   async afterRender() {
