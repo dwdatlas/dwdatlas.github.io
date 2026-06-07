@@ -15,7 +15,7 @@ const FundsView = {
     this._schools = schoolsRes.data || [];
 
     const yr = new Date().getFullYear();
-    const years = [yr];
+    const years = this._category === 'special' ? [yr, yr - 1] : [yr];
 
     const schoolOpts = this._schools.map(s =>
       `<option value="${s.id}">${s.name}</option>`
