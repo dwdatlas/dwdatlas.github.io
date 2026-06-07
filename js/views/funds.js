@@ -15,8 +15,7 @@ const FundsView = {
     this._schools = schoolsRes.data || [];
 
     const yr = new Date().getFullYear();
-    const years = [];
-    for (let y = yr; y >= yr - 3; y--) years.push(y);
+    const years = [yr];
 
     const schoolOpts = this._schools.map(s =>
       `<option value="${s.id}">${s.name}</option>`
@@ -175,8 +174,7 @@ const FundsView = {
     DB.getFunds().then(({ data }) => {
       const rec = id ? (data||[]).find(r=>r.id===id) : null;
       const yr  = new Date().getFullYear();
-      const years = [];
-      for (let y = yr; y >= yr - 3; y--) years.push(y);
+      const years = [yr];
 
       const schoolOpts = schools.map(s =>
         `<option value="${s.id}" ${rec?.school_id===s.id?'selected':''}>${s.name}</option>`
