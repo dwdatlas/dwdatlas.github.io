@@ -31,14 +31,7 @@ const FundsView = {
     return `
 
     <div class="section-card mb-4">
-      <div class="section-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <h3>Filters</h3>
-        <div class="flex gap-2">
-          <button id="f-cat-all"     class="${this._category===''       ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('')">All</button>
-          ${category !== 'special' ? `<button id="f-cat-mooe"    class="${this._category==='mooe'   ?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('mooe')">MOOE</button>` : ''}
-          ${category !== 'mooe'    ? `<button id="f-cat-special" class="${this._category==='special'?'btn btn-primary btn-sm':'btn btn-secondary btn-sm'}" onclick="FundsView.setCategory('special')">Special Funds</button>` : ''}
-        </div>
-      </div>
+      <div class="section-card-header"><h3>Filters</h3></div>
       <div class="section-card-body">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
