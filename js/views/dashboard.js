@@ -6,7 +6,7 @@ const DashboardView = {
   _allFunds:    [],
   _isAdmin:     false,
   _schoolId:    null,
-  _year:        String(new Date().getFullYear()),
+  _year:        '',
   _mode:        'all',
   _mooeQuarter: null,
   _mooeTab:     'all',
@@ -58,22 +58,13 @@ const DashboardView = {
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
 
-    const years = [...new Set(this._allFunds.map(f => String(f.year)).filter(Boolean))].sort((a, b) => b - a);
-    if (years.length && !years.includes(this._year)) this._year = years[0];
-    const yearOpts = `<option value="">All years</option>` +
-      years.map(y => `<option value="${y}" ${y === this._year ? 'selected' : ''}>${y}</option>`).join('');
-
     const pageTitle = mode === 'mooe' ? 'MOOE' : mode === 'special' ? 'Special Funds' : 'Fund Monitor';
     const pageSub   = mode === 'mooe' ? 'Quarterly MOOE releases' : mode === 'special' ? 'Special fund releases' : 'Dulag West District — liquidation status overview';
 
     return `
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div>
-        <h2>${pageTitle}</h2>
-        <p>${pageSub}</p>
-      </div>
-      <select class="form-select" style="width:auto;min-width:110px"
-        onchange="DashboardView.setYear(this.value)">${yearOpts}</select>
+    <div class="page-header">
+      <h2>${pageTitle}</h2>
+      <p>${pageSub}</p>
     </div>
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
