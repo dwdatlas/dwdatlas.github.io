@@ -167,12 +167,13 @@ const FundsView = {
     return active ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm';
   },
 
-  openForm(id) {
+  async openForm(id) {
     const schools = this._schools;
-    const existing = id ? (DB.getFunds ? null : null) : null;
-
-    DB.getFunds().then(({ data }) => {
-      const rec = id ? (data||[]).find(r=>r.id===id) : null;
+    const [{ data }, { data: ftData }] = await Promise.all([
+      DB.getFunds(),
+      DB.getFundTypes(this._category),
+    ]);
+    const rec = id ? (data||[]).find(r=>r.id===id) : null;
       const yr  = new Date().getFullYear();
       const years = [yr];
 
@@ -180,8 +181,7 @@ const FundsView = {
         `<option value="${s.id}" ${rec?.school_id===s.id?'selected':''}>${s.name}</option>`
       ).join('');
 
-      const existingTypes = [...new Set((data||[]).map(r => r.fund_type).filter(Boolean))].sort();
-      const fundTypeOpts  = existingTypes.map(f => `<option value="${f}">`).join('');
+      const fundTypeOpts = (ftData || []).map(t => `<option value="${t.name}">`).join('');
 
       const html = `
       <form id="fund-form" onsubmit="FundsView.saveFund(event,'${id||''}')">
@@ -243,7 +243,6 @@ const FundsView = {
         </div>
       </form>`;
       App.openModal(id ? 'Edit Fund Record' : 'Add Fund Record', html);
-    });
   },
 
   async saveFund(e, id) {

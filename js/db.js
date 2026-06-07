@@ -239,6 +239,28 @@ const DB = (() => {
   }
 
   // ============================================================
+  // FUND TYPES (localStorage only)
+  // ============================================================
+  async function getFundTypes(category = '') {
+    let rows = lsGet('fund_types');
+    if (category) rows = rows.filter(r => r.category === category);
+    rows.sort((a, b) => a.name.localeCompare(b.name));
+    return { data: rows, error: null };
+  }
+  async function upsertFundType(row) {
+    const rows = lsGet('fund_types');
+    row.id = row.id || newId();
+    const idx = rows.findIndex(r => r.id === row.id);
+    if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('fund_types', rows); return { data: rows[idx], error: null }; }
+    rows.push(row);
+    lsSet('fund_types', rows);
+    return { data: row, error: null };
+  }
+  async function deleteFundType(id) {
+    return lsDelete('fund_types', id);
+  }
+
+  // ============================================================
   // UACS CODES (localStorage only)
   // ============================================================
   async function getUACS() {
@@ -321,6 +343,8 @@ const DB = (() => {
     getBankRecon, upsertBankRecon,
     // resources
     getResources, upsertResource, deleteResource,
+    // fund types
+    getFundTypes, upsertFundType, deleteFundType,
     // uacs codes
     getUACS, upsertUACS,
     // downloaded funds

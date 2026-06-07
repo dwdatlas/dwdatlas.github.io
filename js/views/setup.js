@@ -74,6 +74,30 @@ const SetupView = {
       </div>
     </div>
 
+    <!-- Fund Types -->
+    <div class="section-card mb-4">
+      <div class="section-card-header"><h3>Fund Types</h3></div>
+      <div class="section-card-body border-b">
+        <form id="fund-type-form" onsubmit="SetupView.addFundType(event)" class="flex gap-2 items-end flex-wrap">
+          <div class="flex-1" style="min-width:200px">
+            <label class="form-label">Fund Type Name *</label>
+            <input id="ft-name" type="text" class="form-input" placeholder="e.g. 1st Quarter MOOE" required />
+          </div>
+          <div style="min-width:160px">
+            <label class="form-label">Category *</label>
+            <select id="ft-category" class="form-select">
+              <option value="mooe">MOOE</option>
+              <option value="special">Special Fund</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">+ Add</button>
+        </form>
+      </div>
+      <div id="fund-types-list">
+        <div class="flex justify-center py-6"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <!-- Change Password -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Change Login Credentials</h3></div>
@@ -153,6 +177,7 @@ const SetupView = {
 
   async afterRender() {
     this.loadUsers();
+    await this.loadFundTypes();
   },
 
   loadUsers() {
@@ -184,6 +209,48 @@ const SetupView = {
         </tr>`).join('')}
       </tbody>
     </table>`;
+  },
+
+  async loadFundTypes() {
+    const el = document.getElementById('fund-types-list');
+    if (!el) return;
+    const { data } = await DB.getFundTypes();
+    const types = data || [];
+    if (!types.length) {
+      el.innerHTML = `<div class="px-6 py-4 text-sm text-gray-400 text-center">No fund types yet. Add one above.</div>`;
+      return;
+    }
+    const mooe    = types.filter(t => t.category === 'mooe');
+    const special = types.filter(t => t.category === 'special');
+    const renderGroup = (label, items, badgeCss) => !items.length ? '' : `
+      <div class="px-5 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b">${label}</div>
+      ${items.map(t => `
+      <div class="flex items-center justify-between px-5 py-2 border-b last:border-0 hover:bg-gray-50">
+        <span class="text-sm">${t.name}</span>
+        <div class="flex items-center gap-2">
+          <span class="badge ${badgeCss} text-xs">${label}</span>
+          <button class="btn btn-danger btn-sm" onclick="SetupView.deleteFundType('${t.id}')">Del</button>
+        </div>
+      </div>`).join('')}`;
+    el.innerHTML = renderGroup('MOOE', mooe, 'badge-submitted') + renderGroup('Special Fund', special, 'badge-pending');
+  },
+
+  async addFundType(e) {
+    e.preventDefault();
+    const name = document.getElementById('ft-name').value.trim();
+    const category = document.getElementById('ft-category').value;
+    if (!name) return;
+    await DB.upsertFundType({ name, category });
+    document.getElementById('ft-name').value = '';
+    App.toast('Fund type added!');
+    await this.loadFundTypes();
+  },
+
+  async deleteFundType(id) {
+    if (!confirm('Delete this fund type?')) return;
+    await DB.deleteFundType(id);
+    App.toast('Fund type deleted.');
+    await this.loadFundTypes();
   },
 
   async openAddUser() {
