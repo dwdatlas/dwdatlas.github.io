@@ -51,8 +51,7 @@ const FundsView = {
             <label class="form-label">Status</label>
             <select id="f-status" class="form-select" onchange="FundsView.load()">
               <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="submitted_to_sou">Submitted to SOU</option>
+              <option value="unliquidated">Unliquidated</option>
               <option value="liquidated">Liquidated</option>
             </select>
           </div>
@@ -110,10 +109,8 @@ const FundsView = {
     // Summary counts
     const total     = rows.length;
     const liquid    = rows.filter(r=>r.status==='liquidated').length;
-    const sou       = rows.filter(r=>r.status==='submitted_to_sou').length;
-    const pending   = rows.filter(r=>r.status==='pending').length;
     const totalAmt  = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
-    if (sumEl) sumEl.textContent = `${total} records | Total: ${fmt(totalAmt)} | Liquidated: ${liquid} | SOU: ${sou} | Pending: ${pending}`;
+    if (sumEl) sumEl.textContent = `${total} records | Total: ${fmt(totalAmt)} | Liquidated: ${liquid} | Unliquidated: ${total - liquid}`;
 
     if (!rows.length) {
       el.innerHTML = emptyState('No fund records found. Click "+ Add" to add a record or "Seed" to load MOOE defaults.');
@@ -137,9 +134,7 @@ const FundsView = {
           const school = this._schools.find(s=>s.id===r.school_id);
           const badge = r.status === 'liquidated'
             ? `<span class="badge badge-liquidated">Liquidated</span>`
-            : r.status === 'submitted_to_sou'
-            ? `<span class="badge badge-submitted">Submitted to SOU</span>`
-            : `<span class="badge badge-missing">Pending</span>`;
+            : `<span class="badge badge-missing">Unliquidated</span>`;
           return `
           <tr>
             <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
@@ -216,9 +211,8 @@ const FundsView = {
           <div class="col-span-2">
             <label class="form-label">Status *</label>
             <select id="fd-status" class="form-select" required>
-              <option value="pending"          ${rec?.status==='pending'?'selected':''}>Pending</option>
-              <option value="submitted_to_sou" ${rec?.status==='submitted_to_sou'?'selected':''}>Submitted to SOU</option>
-              <option value="liquidated"       ${rec?.status==='liquidated'?'selected':''}>Liquidated</option>
+              <option value="unliquidated" ${rec?.status!=='liquidated'?'selected':''}>Unliquidated</option>
+              <option value="liquidated"   ${rec?.status==='liquidated'?'selected':''}>Liquidated</option>
             </select>
           </div>
           <div class="col-span-2">

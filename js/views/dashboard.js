@@ -6,6 +6,7 @@ const DashboardView = {
   _allFunds:    [],
   _isAdmin:     false,
   _schoolId:    null,
+  _year:        String(new Date().getFullYear()),
   _mooeQuarter: null,
   _mooeTab:     'all',
   _specialFund: '',
@@ -15,7 +16,7 @@ const DashboardView = {
   _isMOOE(ft) {
     if (!ft) return false;
     const f = ft.toLowerCase();
-    return /^(1st|2nd|3rd|4th)\s+quarter/.test(f)
+    return /(1st|2nd|3rd|4th)\s+quarter/.test(f)
         || f.includes('regular mooe')
         || f.includes('additional mooe');
   },
@@ -36,8 +37,9 @@ const DashboardView = {
   },
 
   _visibleFunds() {
-    if (this._schoolId) return this._allFunds.filter(f => f.school_id === this._schoolId);
-    return this._allFunds;
+    let funds = this._schoolId ? this._allFunds.filter(f => f.school_id === this._schoolId) : this._allFunds;
+    if (this._year) funds = funds.filter(f => String(f.year) === this._year);
+    return funds;
   },
 
   // ---- render() — loads data, returns skeleton HTML ----
@@ -52,10 +54,19 @@ const DashboardView = {
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
 
+    const years = [...new Set(this._allFunds.map(f => String(f.year)).filter(Boolean))].sort((a, b) => b - a);
+    if (years.length && !years.includes(this._year)) this._year = years[0];
+    const yearOpts = `<option value="">All years</option>` +
+      years.map(y => `<option value="${y}" ${y === this._year ? 'selected' : ''}>${y}</option>`).join('');
+
     return `
-    <div class="page-header">
-      <h2>Fund Monitor</h2>
-      <p>Dulag West District — liquidation status overview</p>
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2>Fund Monitor</h2>
+        <p>Dulag West District — liquidation status overview</p>
+      </div>
+      <select class="form-select" style="width:auto;min-width:110px"
+        onchange="DashboardView.setYear(this.value)">${yearOpts}</select>
     </div>
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     <div id="dash-mooe" class="mb-6"></div>
@@ -78,13 +89,25 @@ const DashboardView = {
     const unliqCnt = funds.filter(f => f.status !== 'liquidated').length;
     const liqPct   = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
     const unliqPct = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
+    const schoolCnt = new Set(funds.map(f => f.school_id).filter(Boolean)).size;
     const el = document.getElementById('dash-summary');
     if (!el) return;
     el.innerHTML =
-      statCard('Total Downloaded', fmt(totalAmt),       '#0038A8', '14 schools') +
+      statCard('Total Downloaded', fmt(totalAmt),       '#0038A8', `${schoolCnt} school${schoolCnt !== 1 ? 's' : ''}`) +
       statCard('Liquidated',       fmt(liqAmt),         '#166534', `${liqPct}% of total`) +
       statCard('Unliquidated',     fmt(unliqAmt),       '#92400E', `${unliqPct}% of total`) +
       statCard('Needs Attention',  String(unliqCnt),    '#b91c1c', 'unliquidated releases');
+  },
+
+  setYear(yr) {
+    this._year = yr;
+    this._mooeQuarter = null;
+    this._mooeTab     = 'all';
+    this._specialFund = '';
+    this._specialTab  = 'all';
+    this._renderSummary();
+    this._renderMOOE();
+    this._renderSpecial();
   },
 
   // ============================================================
