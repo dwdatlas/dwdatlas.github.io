@@ -175,10 +175,11 @@ const CDRView = {
             ${ftOpts}
           </select>
         </div>
+        ${this._category !== 'mooe' ? `
         <div class="col-span-2">
           <label class="form-label">Opening Balance (Advances Received)</label>
           <input id="cdr-opening" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
-        </div>
+        </div>` : '<input type="hidden" id="cdr-opening" value="0" />'}
       </div>
       <div class="flex gap-2 justify-end">
         <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
@@ -190,45 +191,50 @@ const CDRView = {
 
   async saveHeader(e) {
     e.preventDefault();
+    const schoolId  = document.getElementById('cdr-school').value;
+    const year      = parseInt(document.getElementById('cdr-year').value);
+    const quarter   = document.getElementById('cdr-quarter').value;
+    const fundType  = document.getElementById('cdr-fund-type').value;
+
+    // For MOOE: find matching Fund Release first, then force opening balance to 0
+    let matchingFund = null;
+    if (this._category === 'mooe') {
+      const { data: funds } = await DB.getFunds({ school_id: schoolId });
+      const normalize = s => (s || '').trim().toLowerCase();
+      matchingFund = (funds || []).find(f => normalize(f.fund_type) === normalize(fundType));
+    }
+
     const row = {
-      id: DB.newId(),
-      school_id: document.getElementById('cdr-school').value,
-      year: parseInt(document.getElementById('cdr-year').value),
-      quarter: document.getElementById('cdr-quarter').value,
-      fund_type: document.getElementById('cdr-fund-type').value,
-      opening_balance: parseFloat(document.getElementById('cdr-opening').value) || 0,
-      entry_count: 0,
+      id:              DB.newId(),
+      school_id:       schoolId,
+      year,
+      quarter,
+      fund_type:       fundType,
+      opening_balance: this._category === 'mooe' ? 0 : (parseFloat(document.getElementById('cdr-opening').value) || 0),
+      entry_count:     matchingFund ? 1 : 0,
     };
+
     const { error } = await DB.upsertCDRHeader(row);
     if (error) { App.toast('Error saving CDR: ' + error, 'error'); return; }
 
-    // Auto-create first entry for MOOE CDRs from matching Fund Release record
-    if (this._category === 'mooe') {
-      const { data: funds } = await DB.getFunds({ school_id: row.school_id });
-      const normalize = s => (s || '').trim().toLowerCase();
-      const match = (funds || []).find(f => normalize(f.fund_type) === normalize(row.fund_type));
-      if (match) {
-        const qNum = row.quarter.replace('Q', '');
-        await DB.upsertCDREntry({
-          id: DB.newId(),
-          cdr_id:      row.id,
-          entry_date:  match.ada_date,
-          ref_no:      match.ada_no || '',
-          particulars: `Operating Advances for Quarter ${qNum}`,
-          uacs_code:   '',
-          uacs_desc:   '',
-          advances:    parseFloat(match.amount) || 0,
-          payment:     0,
-          sort_order:  Date.now(),
-        });
-        await DB.upsertCDRHeader({ id: row.id, entry_count: 1 });
-      } else {
-        App.toast('CDR created! (No matching Fund Release found — first entry not auto-added.)', 'success');
-      }
+    if (matchingFund) {
+      const qNum = quarter.replace('Q', '');
+      await DB.upsertCDREntry({
+        id:          DB.newId(),
+        cdr_id:      row.id,
+        entry_date:  matchingFund.ada_date,
+        ref_no:      matchingFund.ada_no || '',
+        particulars: `Operating Advances for Quarter ${qNum}`,
+        uacs_code:   '',
+        uacs_desc:   '',
+        advances:    parseFloat(matchingFund.amount) || 0,
+        payment:     0,
+        sort_order:  Date.now(),
+      });
     }
 
     App.closeModal();
-    App.toast('CDR created!');
+    App.toast(matchingFund ? 'CDR created with first entry!' : 'CDR created! (No matching Fund Release found.)');
     await this.load();
   },
 
