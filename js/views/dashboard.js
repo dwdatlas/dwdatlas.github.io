@@ -59,18 +59,6 @@ const DashboardView = {
     }));
 
     return `
-    ${this._isAdmin ? `
-    <div class="section-card mb-4">
-      <div class="section-card-body" style="padding:12px 20px">
-        <div class="flex items-center gap-3 flex-wrap">
-          <label class="form-label" style="margin:0;white-space:nowrap">Filter by School</label>
-          <select class="form-select" style="min-width:220px;width:auto" onchange="DashboardView.setSchool(this.value)">
-            <option value="">All Schools</option>
-            ${this._schools.map(s => `<option value="${s.id}" ${s.id === this._schoolId ? 'selected' : ''}>${s.name}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-    </div>` : ''}
     <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
     ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
     ${mode !== 'mooe'    ? '<div id="dash-special" class="mb-6"></div>' : ''}
@@ -170,8 +158,15 @@ const DashboardView = {
           <h3>MOOE (quarterly)</h3>
           <div class="text-xs text-gray-500 mt-1">${qn} ${yr}, all ${schoolsToShow.length} schools sorted alphabetically</div>
         </div>
-        <select class="form-select" style="width:auto;min-width:130px"
-          onchange="DashboardView.setMOOEQuarter(this.value)">${qOpts}</select>
+        <div class="flex gap-2 items-center flex-wrap justify-end">
+          ${this._isAdmin ? `
+          <select class="form-select" style="width:auto;min-width:190px" onchange="DashboardView.setSchool(this.value)">
+            <option value="">All Schools</option>
+            ${this._schools.map(s => `<option value="${s.id}" ${s.id === this._schoolId ? 'selected' : ''}>${s.name}</option>`).join('')}
+          </select>` : ''}
+          <select class="form-select" style="width:auto;min-width:130px"
+            onchange="DashboardView.setMOOEQuarter(this.value)">${qOpts}</select>
+        </div>
       </div>
       <div style="padding:0 20px">
         <div class="flex gap-2 py-3 border-b border-gray-100">
