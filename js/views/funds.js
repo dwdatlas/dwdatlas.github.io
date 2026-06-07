@@ -13,7 +13,7 @@ const FundsView = {
     const isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const [schoolsRes, ftRes] = await Promise.all([DB.getSchools(), DB.getFundTypes(category)]);
     this._schools = schoolsRes.data || [];
-    const fundTypeOpts = (ftRes.data || []).map(t => `<option value="${t.name}">`).join('');
+    const fundTypeOpts = (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
 
     const yr = new Date().getFullYear();
     const years = this._category === 'special' ? [yr, yr - 1] : [yr];
@@ -55,8 +55,10 @@ const FundsView = {
           </div>
           <div>
             <label class="form-label">Fund Type</label>
-            <input id="f-fund" type="text" class="form-input" placeholder="Search fund type…" oninput="FundsView.load()" list="f-fund-list" />
-            <datalist id="f-fund-list">${fundTypeOpts}</datalist>
+            <select id="f-fund" class="form-select" onchange="FundsView.load()">
+              <option value="">All</option>
+              ${fundTypeOpts}
+            </select>
           </div>
           ${isAdmin ? `
           <div class="flex items-end gap-2">
