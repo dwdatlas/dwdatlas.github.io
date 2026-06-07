@@ -6,7 +6,7 @@ const App = {
 
   views: {
     dashboard:  { title: 'Dashboard',                 subtitle: 'Overview',                  obj: () => DashboardView },
-    mooe:       { title: 'Fund Releases',              subtitle: 'Disbursement tracking',     obj: () => MOOEView },
+    mooe:       { title: 'Fund Releases',              subtitle: 'Downloaded Funds',     obj: () => MOOEView },
     cdr:        { title: 'Cash Disbursement Register',subtitle: 'Appendix 43',               obj: () => CDRView },
     resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
     schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
