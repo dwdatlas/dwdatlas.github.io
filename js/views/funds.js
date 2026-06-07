@@ -263,10 +263,12 @@ const FundsView = {
   },
 
   async seedDefaults() {
-    if (!confirm('Load all downloaded funds for all 14 schools from the CSV data? This will add missing records only.')) return;
+    if (!confirm('This will DELETE all existing fund data and reload from the latest CSV. Continue?')) return;
 
-    const { data: existing } = await DB.getFunds();
-    const existingKeys = new Set((existing||[]).map(r=>`${r.school_id}_${r.ada_no}_${r.fund_type}`));
+    // Wipe all existing fund records first
+    localStorage.removeItem('dwd_funds');
+
+    const existingKeys = new Set();
 
     const seeds = [
       {
