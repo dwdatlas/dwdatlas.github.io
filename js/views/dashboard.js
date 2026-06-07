@@ -299,8 +299,15 @@ const DashboardView = {
           <h3>Special Funds (per release)</h3>
           <div class="text-xs text-gray-500 mt-1">${specFunds.length} releases across all special fund types</div>
         </div>
-        <select class="form-select" style="width:auto;min-width:210px"
-          onchange="DashboardView.setSpecialFund(this.value)">${ftOpts}</select>
+        <div class="flex gap-2 items-center flex-wrap justify-end">
+          ${this._isAdmin ? `
+          <select class="form-select" style="width:auto;min-width:190px" onchange="DashboardView.setSchool(this.value)">
+            <option value="">All Schools</option>
+            ${this._schools.map(s => `<option value="${s.id}" ${s.id === this._schoolId ? 'selected' : ''}>${s.name}</option>`).join('')}
+          </select>` : ''}
+          <select class="form-select" style="width:auto;min-width:210px"
+            onchange="DashboardView.setSpecialFund(this.value)">${ftOpts}</select>
+        </div>
       </div>
       <div style="padding:0 20px">
         <div class="flex gap-2 py-3 border-b border-gray-100">
