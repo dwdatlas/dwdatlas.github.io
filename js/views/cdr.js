@@ -196,15 +196,14 @@ const CDRView = {
     const quarter   = document.getElementById('cdr-quarter').value;
     const fundType  = document.getElementById('cdr-fund-type').value;
 
-    // For MOOE: find matching Fund Release first, then force opening balance to 0
-    let matchingFund = null;
-    if (this._category === 'mooe') {
-      const { data: funds } = await DB.getFunds({ school_id: schoolId });
-      const normalize = s => (s || '').trim().toLowerCase();
-      const matched = (funds || []).filter(f => normalize(f.fund_type) === normalize(fundType));
-      matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
-      matchingFund = matched[0] || null;
-    }
+    const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
+
+    // Find matching Fund Release for both MOOE and Special Funds
+    const { data: funds } = await DB.getFunds({ school_id: schoolId });
+    const normalize = s => (s || '').trim().toLowerCase();
+    const matched = (funds || []).filter(f => normalize(f.fund_type) === normalize(fundType));
+    matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
+    const matchingFund = matched[0] || null;
 
     const row = {
       id:              DB.newId(),
@@ -212,7 +211,9 @@ const CDRView = {
       year,
       quarter,
       fund_type:       fundType,
-      opening_balance: this._category === 'mooe' ? 0 : (parseFloat(document.getElementById('cdr-opening').value) || 0),
+      // opening_balance is 0 when a fund release is found (advance comes in as entry row)
+      // fallback to user-entered value for Special Funds with no matching release
+      opening_balance: matchingFund ? 0 : (this._category !== 'mooe' ? (parseFloat(document.getElementById('cdr-opening').value) || 0) : 0),
       entry_count:     matchingFund ? 1 : 0,
     };
 
@@ -220,13 +221,16 @@ const CDRView = {
     if (error) { App.toast('Error saving CDR: ' + error, 'error'); return; }
 
     if (matchingFund) {
-      const qNum = quarter.replace('Q', '');
+      const particulars = this._category === 'mooe'
+        ? `Operating Advances for ${ordinal[quarter] || quarter} Quarter`
+        : `Operating Advances for ${fundType}`;
+
       await DB.upsertCDREntry({
         id:          DB.newId(),
         cdr_id:      row.id,
         entry_date:  matchingFund.ada_date,
         ref_no:      matchingFund.ada_no || '',
-        particulars: `Operating Advances for Quarter ${qNum}`,
+        particulars,
         uacs_code:   '',
         uacs_desc:   '',
         advances:    parseFloat(matchingFund.amount) || 0,
