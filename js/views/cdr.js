@@ -484,7 +484,14 @@ const CDRView = {
 
   // ---- Download as PDF (F4 landscape, 8.5 × 13 in) ----
   async downloadPDF(id) {
-    if (typeof html2pdf === 'undefined') { App.toast('PDF library not loaded. Please refresh.', 'error'); return; }
+    if (typeof html2pdf === 'undefined') {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
 
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
