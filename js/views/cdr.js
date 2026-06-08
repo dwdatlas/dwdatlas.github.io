@@ -114,7 +114,7 @@ const CDRView = {
           <td>
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadExcel('${r.id}')">Excel</button>
+              <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadPDF('${r.id}')">Download</button>
               <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${r.id}')">Print</button>
               <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
             </div>
@@ -291,8 +291,8 @@ const CDRView = {
       <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
         ← Back to CDR List
       </button>
-      <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadExcel('${id}')">
-        ⬇ Download Excel
+      <button class="btn btn-secondary btn-sm" onclick="CDRView.downloadPDF('${id}')">
+        ⬇ Download PDF
       </button>
       <button class="btn btn-primary btn-sm" onclick="CDRView.printCDR('${id}')">
         Print CDR
@@ -480,6 +480,145 @@ const CDRView = {
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
     await this.showDetail(cdr_id);
+  },
+
+  // ---- Download as PDF (F4 landscape, 8.5 × 13 in) ----
+  async downloadPDF(id) {
+    if (typeof html2pdf === 'undefined') { App.toast('PDF library not loaded. Please refresh.', 'error'); return; }
+
+    const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
+    const header = headerRes.data;
+    let entries = entriesRes.data || [];
+    if (!header) { App.toast('CDR not found', 'error'); return; }
+
+    const school = this._getSchool(header.school_id);
+
+    // Cash advance injection — same as printCDR
+    const hasAdvanceEntry = entries.some(e => (parseFloat(e.advances) || 0) > 0);
+    let startBalance = parseFloat(header.opening_balance) || 0;
+    if (!hasAdvanceEntry) {
+      const { data: releaseFunds } = await DB.getFunds({ school_id: header.school_id });
+      const normalize = s => (s || '').trim().toLowerCase();
+      const rm = (releaseFunds || []).filter(f => normalize(f.fund_type) === normalize(header.fund_type));
+      rm.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
+      const rf = rm[0] || null;
+      if (rf) {
+        const ord = { Q1:'1st', Q2:'2nd', Q3:'3rd', Q4:'4th' };
+        const isMOOE = typeof DashboardView !== 'undefined' && DashboardView._isMOOE(header.fund_type);
+        const particulars = isMOOE
+          ? `Operating Advances for ${ord[header.quarter] || header.quarter} Quarter`
+          : `Operating Advances for ${header.fund_type}`;
+        entries = [{ id:'_adv', entry_date:rf.ada_date, ref_no:rf.ada_no||'', particulars,
+          uacs_code:'', uacs_desc:'', advances:parseFloat(rf.amount)||0, payment:0 }, ...entries];
+        startBalance = 0;
+      }
+    }
+
+    let balance = startBalance;
+    const rows = entries.map(e => {
+      balance += (parseFloat(e.advances)||0) - (parseFloat(e.payment)||0);
+      return { ...e, running_balance: balance };
+    });
+
+    const totalAdv = entries.reduce((s,e) => s+(parseFloat(e.advances)||0), 0);
+    const totalPay = entries.reduce((s,e) => s+(parseFloat(e.payment)||0),  0);
+    const finalBal = rows.length ? rows[rows.length-1].running_balance : startBalance;
+    const C_OFF='5020301000', C_GEN='5021299000', C_JAN='5021202000';
+    const tOff = entries.filter(e=>e.uacs_code===C_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tGen = entries.filter(e=>e.uacs_code===C_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tJan = entries.filter(e=>e.uacs_code===C_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+
+    const tRows = rows.map(e => {
+      const adv=parseFloat(e.advances)||0, pay=parseFloat(e.payment)||0;
+      const isOff=e.uacs_code===C_OFF, isGen=e.uacs_code===C_GEN, isJan=e.uacs_code===C_JAN;
+      const isOth=!isOff&&!isGen&&!isJan&&pay>0;
+      const othD=isOth?(e.uacs_desc||UACS_CODES.find(u=>u.code===e.uacs_code)?.desc||''):'';
+      return `<tr>
+        <td style="text-align:center;white-space:nowrap">${_fd(e.entry_date)}</td>
+        <td style="word-break:break-all;font-size:6pt">${e.ref_no||''}</td>
+        <td>${e.particulars||''}</td>
+        <td style="text-align:right">${adv>0?_fp(adv):''}</td>
+        <td style="text-align:right">${pay>0?_fp(pay):''}</td>
+        <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
+        <td style="text-align:right">${isOff?_fp(pay):''}</td>
+        <td style="text-align:right">${isGen?_fp(pay):''}</td>
+        <td style="text-align:right">${isJan?_fp(pay):''}</td>
+        <td style="font-size:6pt">${othD}</td>
+        <td style="text-align:center;font-size:6pt">${isOth?(e.uacs_code||''):''}</td>
+        <td style="text-align:right">${isOth?_fp(pay):''}</td>
+      </tr>`;
+    }).join('');
+
+    const sName = (school.name||'').toUpperCase();
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;font-family:Arial,sans-serif;font-size:7.5pt;color:#000;width:330mm;padding:8mm 10mm';
+    wrap.innerHTML = `
+<style>
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid #000;padding:2px 3px;vertical-align:middle}
+  th{text-align:center;font-size:6.5pt;background:#f0f0f0}
+  .nb td,.nb th{border:none}.right{text-align:right}.center{text-align:center}.bold{font-weight:bold}
+  .sig{border-top:1px solid #000;text-align:center;padding-top:3px;margin-top:30px}
+</style>
+<table class="nb"><tr><td class="center bold" style="font-size:10pt">DEPED LEYTE DIVISION</td><td></td></tr>
+<tr><td class="center bold" style="font-size:10pt">${sName}</td><td class="right" style="font-style:italic;font-size:8pt">Appendix 43</td></tr></table>
+<br/><div class="center bold" style="font-size:11pt;text-decoration:underline">CASH DISBURSEMENTS REGISTER</div><br/>
+<table style="margin-bottom:6px" class="nb"><tr>
+  <td style="width:50%;vertical-align:top;padding-right:10px"><table><tr><td style="font-size:7.5pt"><strong>Entity Name:</strong> ${sName}</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Sub-Office/District/Division:</strong> DULAG WEST DISTRICT</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Municipality/City/Province:</strong> DULAG, LEYTE</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Fund Cluster:</strong> 01-REGULAR</td></tr></table></td>
+  <td style="width:50%;vertical-align:top"><table>
+  <tr><td style="font-size:7.5pt"><strong>Name of Accountable Officer:</strong> ${school.school_head||''}</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Official Designation:</strong> ${school.designation||''}</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Station:</strong> ${school.short_name||school.name||''}</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Register No.:</strong> ___________________________</td></tr>
+  <tr><td style="font-size:7.5pt"><strong>Sheet No.:</strong> ___________________________</td></tr></table></td>
+</tr></table>
+<table style="table-layout:fixed">
+  <colgroup><col style="width:5%"/><col style="width:11%"/><col style="width:22%"/>
+  <col style="width:7%"/><col style="width:7%"/><col style="width:7%"/>
+  <col style="width:8%"/><col style="width:8%"/><col style="width:7%"/>
+  <col style="width:9%"/><col style="width:6%"/><col style="width:6%"/></colgroup>
+  <thead>
+    <tr><th colspan="3"></th><th colspan="3">Advances for Operating Expenses</th><th colspan="6">BREAKDOWN OF PAYMENTS</th></tr>
+    <tr><th colspan="3"></th><th colspan="3">-19901010</th><th colspan="6"></th></tr>
+    <tr><th colspan="3"></th><th colspan="3">Amount</th><th>Office Supplies Expenses</th><th>Other General</th><th>Janitorial Services</th><th colspan="3">O T H E R S</th></tr>
+    <tr><th>Date</th><th>DV/Payroll/ Check No.</th><th>Particulars</th><th>Cash Advance</th><th>Payments</th><th>Balance</th>
+    <th>5020301000</th><th>5021299000</th><th>5021202000</th><th>Account Description</th><th>UACS Object Code</th><th>Amount</th></tr>
+  </thead>
+  <tbody>
+    ${tRows}
+    <tr class="bold"><td colspan="3" class="center">TOTAL</td>
+      <td class="right">${_fp(totalAdv)}</td><td class="right">${_fp(totalPay)}</td><td class="right">${_fp(finalBal)}</td>
+      <td class="right">${tOff>0?_fp(tOff):''}</td><td class="right">${tGen>0?_fp(tGen):''}</td><td class="right">${tJan>0?_fp(tJan):''}</td>
+      <td></td><td></td><td></td></tr>
+  </tbody>
+</table>
+<table style="margin-top:16px" class="nb"><tr>
+  <td style="width:40%;vertical-align:bottom"><div class="sig"><strong>${school.school_head||''}</strong><br/>
+    <span style="font-size:7pt">${school.designation||'Principal/Head Teacher'}</span><br/>
+    <span style="font-size:7pt">${school.short_name||school.name||''}</span></div></td>
+  <td style="width:20%"></td>
+  <td style="width:40%;vertical-align:bottom"><div class="sig"><strong>${BOOKKEEPER}</strong><br/>
+    <span style="font-size:7pt">${BOOKKEEPER_TITLE}</span><br/>
+    <span style="font-size:7pt">Dulag West District</span></div></td>
+</tr></table>`;
+
+    document.body.appendChild(wrap);
+    App.toast('Generating PDF…');
+    try {
+      await html2pdf().set({
+        margin: 0,
+        filename: `CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: [215.9, 330.2], orientation: 'landscape' },
+      }).from(wrap).save();
+      App.toast('PDF downloaded!');
+    } finally {
+      document.body.removeChild(wrap);
+    }
   },
 
   // ---- Download as Excel (matches CDR 2026 template exactly) ----
