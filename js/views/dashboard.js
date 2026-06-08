@@ -84,10 +84,10 @@ const DashboardView = {
     const el = document.getElementById('dash-summary');
     if (!el) return;
     el.innerHTML =
-      statCard('Total Downloaded', fmt(totalAmt),       '#0038A8', `${schoolCnt} school${schoolCnt !== 1 ? 's' : ''}`) +
-      statCard('Liquidated',       fmt(liqAmt),         '#166534', `${liqPct}% of total`) +
-      statCard('Unliquidated',     fmt(unliqAmt),       '#92400E', `${unliqPct}% of total`) +
-      statCard('Needs Attention',  String(unliqCnt),    '#b91c1c', 'unliquidated releases');
+      statCard('Total Downloaded', fmt(totalAmt),       '#1d6fb0', `${schoolCnt} school${schoolCnt !== 1 ? 's' : ''}`) +
+      statCard('Liquidated',       fmt(liqAmt),         '#16a34a', `${liqPct}% of total`) +
+      statCard('Unliquidated',     fmt(unliqAmt),       '#78350f', `${unliqPct}% of total`) +
+      statCard('Needs Attention',  String(unliqCnt),    '#dc2626', 'unliquidated releases');
   },
 
   setSchool(id) {
@@ -439,10 +439,10 @@ const DashboardSpecialView = {
 // Global helpers — used by dashboard, mooe, cdr, and other views
 // ============================================================
 function statCard(title, value, color, sub) {
-  return `<div class="stat-card border-l-4" style="border-color:${color}">
-    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">${title}</div>
-    <div class="text-2xl font-bold mb-1" style="color:${color}">${value}</div>
-    <div class="text-xs text-gray-400">${sub}</div>
+  return `<div class="stat-card" style="background:${color}">
+    <div class="text-xs font-semibold uppercase tracking-wide mb-1" style="color:rgba(255,255,255,0.75)">${title}</div>
+    <div class="text-2xl font-bold mb-1" style="color:#fff">${value}</div>
+    <div class="text-xs" style="color:rgba(255,255,255,0.65)">${sub}</div>
   </div>`;
 }
 function fmt(n) {
