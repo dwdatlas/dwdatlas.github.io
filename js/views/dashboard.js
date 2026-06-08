@@ -513,12 +513,13 @@ const AllFundsDashboardView = {
       const col = green ? '#166534' : '#92400e';
       return `<span class="badge" style="background:${bg};color:${col}">${n}%</span>`;
     };
+    const NUM = 'text-align:right;font-variant-numeric:tabular-nums';
     const splitRow = (label, r) =>
       `<tr>
         <td class="font-semibold text-sm">${label}</td>
-        <td style="text-align:right">${fmt(r.dl)}</td>
-        <td style="text-align:right;font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
-        <td style="text-align:right;font-weight:600;color:#b45309">${fmt(r.ul)}</td>
+        <td style="${NUM}">${fmt(r.dl)}</td>
+        <td style="${NUM};font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
+        <td style="${NUM};font-weight:600;color:#b45309">${fmt(r.ul)}</td>
         <td style="text-align:right">${pctBadge(r.pct, r.pct >= 50)}</td>
       </tr>`;
 
@@ -530,19 +531,19 @@ const AllFundsDashboardView = {
           <table class="data-table">
             <thead><tr>
               <th>Category</th>
-              <th class="text-right">Downloaded</th>
-              <th class="text-right">Liquidated</th>
-              <th class="text-right">Unliquidated</th>
-              <th class="text-right">Liq %</th>
+              <th style="text-align:right">Downloaded</th>
+              <th style="text-align:right">Liquidated</th>
+              <th style="text-align:right">Unliquidated</th>
+              <th style="text-align:right">Liq %</th>
             </tr></thead>
             <tbody>
               ${splitRow('MOOE', mRow)}
               ${splitRow('Special Funds', sRow)}
               <tr style="border-top:2px solid #e2e8f0">
                 <td class="font-bold text-sm">Total</td>
-                <td style="text-align:right;font-weight:700">${fmt(tRow.dl)}</td>
-                <td style="text-align:right;font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
-                <td style="text-align:right;font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
+                <td style="${NUM};font-weight:700">${fmt(tRow.dl)}</td>
+                <td style="${NUM};font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
+                <td style="${NUM};font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
                 <td style="text-align:right">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
               </tr>
             </tbody>
