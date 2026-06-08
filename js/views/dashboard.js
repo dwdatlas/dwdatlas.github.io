@@ -436,6 +436,164 @@ const DashboardSpecialView = {
 };
 
 // ============================================================
+// ALL-FUNDS DASHBOARD — combined read-only rollup
+// ============================================================
+const AllFundsDashboardView = {
+  _funds:   [],
+  _schools: [],
+
+  async render() {
+    const [fundsRes, schoolsRes] = await Promise.all([DB.getFunds(), DB.getSchools()]);
+    this._funds   = (fundsRes.data || []).map(f => ({
+      ...f,
+      fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
+    }));
+    this._schools = schoolsRes.data || [];
+    return `
+      <div id="afd-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+      <div id="afd-split"   class="mb-6"></div>
+      <div id="afd-queue"></div>`;
+  },
+
+  async afterRender() { this._paint(); },
+
+  _paint() {
+    const funds   = this._funds;
+    const schools = this._schools;
+    const today   = new Date(); today.setHours(0, 0, 0, 0);
+    const OVERDUE_DAYS = 60;
+
+    // ---- Totals (reuse DB data, no second computation) ----
+    const totalAmt  = funds.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+    const liqFunds  = funds.filter(f => f.status === 'liquidated');
+    const unliqFunds = funds.filter(f => f.status !== 'liquidated');
+    const liqAmt    = liqFunds.reduce((s, f)  => s + (parseFloat(f.amount) || 0), 0);
+    const unliqAmt  = totalAmt - liqAmt;
+    const liqPct    = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
+    const unliqPct  = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
+
+    // ---- Needs Attention: unliquidated AND issued >60 days ago ----
+    const attention = unliqFunds
+      .map(f => {
+        const issued  = f.ada_date ? new Date(f.ada_date + 'T00:00:00') : null;
+        const daysOld = issued ? Math.floor((today - issued) / 86400000) : 0;
+        return { f, school: schools.find(s => s.id === f.school_id), daysOld };
+      })
+      .filter(item => item.daysOld > OVERDUE_DAYS)
+      .sort((a, b) => b.daysOld - a.daysOld);
+
+    // ---- MOOE / Special split ----
+    function splitTotals(arr) {
+      const dl  = arr.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      const lq  = arr.filter(f => f.status === 'liquidated').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+      return { dl, lq, ul: dl - lq, pct: dl > 0 ? Math.round(lq / dl * 100) : 0 };
+    }
+    const mRow = splitTotals(funds.filter(f =>  DashboardView._isMOOE(f.fund_type)));
+    const sRow = splitTotals(funds.filter(f => !DashboardView._isMOOE(f.fund_type)));
+    const tRow = splitTotals(funds);
+
+    // ---- Summary cards (white + colored left border per spec) ----
+    const card = (title, value, color, sub) =>
+      `<div class="stat-card border-l-4" style="border-color:${color};background:#fff">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">${title}</div>
+        <div class="text-2xl font-bold mb-1" style="color:${color}">${value}</div>
+        <div class="text-xs text-gray-400">${sub}</div>
+      </div>`;
+
+    const sumEl = document.getElementById('afd-summary');
+    if (sumEl) sumEl.innerHTML =
+      card('Total Downloaded', fmt(totalAmt),              '#1d6fb0', funds.length + ' release' + (funds.length !== 1 ? 's' : '')) +
+      card('Liquidated',       fmt(liqAmt),                '#16a34a', liqPct  + '% of total') +
+      card('Unliquidated',     fmt(unliqAmt),              '#b45309', unliqPct + '% of total') +
+      card('Needs Attention',  String(attention.length),   '#dc2626', '>60 days unliquidated');
+
+    // ---- Fund-split table ----
+    const pctBadge = (n, green) => {
+      const bg  = green ? '#dcfce7' : '#fef3c7';
+      const col = green ? '#166534' : '#92400e';
+      return `<span class="badge" style="background:${bg};color:${col}">${n}%</span>`;
+    };
+    const splitRow = (label, r) =>
+      `<tr>
+        <td class="font-semibold text-sm">${label}</td>
+        <td class="text-right">${fmt(r.dl)}</td>
+        <td class="text-right font-semibold" style="color:#16a34a">${fmt(r.lq)}</td>
+        <td class="text-right font-semibold" style="color:#b45309">${fmt(r.ul)}</td>
+        <td class="text-right">${pctBadge(r.pct, r.pct >= 50)}</td>
+      </tr>`;
+
+    const splitEl = document.getElementById('afd-split');
+    if (splitEl) splitEl.innerHTML = `
+      <div class="section-card">
+        <div class="section-card-header"><h3>Fund Split</h3></div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr>
+              <th>Category</th>
+              <th class="text-right">Downloaded</th>
+              <th class="text-right">Liquidated</th>
+              <th class="text-right">Unliquidated</th>
+              <th class="text-right">Liq %</th>
+            </tr></thead>
+            <tbody>
+              ${splitRow('MOOE', mRow)}
+              ${splitRow('Special Funds', sRow)}
+              <tr style="border-top:2px solid #e2e8f0">
+                <td class="font-bold text-sm">Total</td>
+                <td class="text-right font-bold">${fmt(tRow.dl)}</td>
+                <td class="text-right font-bold" style="color:#16a34a">${fmt(tRow.lq)}</td>
+                <td class="text-right font-bold" style="color:#b45309">${fmt(tRow.ul)}</td>
+                <td class="text-right">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // ---- Needs Attention queue ----
+    const queueEl = document.getElementById('afd-queue');
+    if (!queueEl) return;
+    if (!attention.length) {
+      queueEl.innerHTML = `
+        <div class="section-card">
+          <div class="section-card-header"><h3>Needs Attention</h3></div>
+          <div class="section-card-body">${emptyState('All releases on track.')}</div>
+        </div>`;
+      return;
+    }
+    queueEl.innerHTML = `
+      <div class="section-card">
+        <div class="section-card-header">
+          <h3>Needs Attention</h3>
+          <span class="text-xs text-gray-500">Unliquidated &gt;60 days — worst first</span>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr>
+              <th>School</th><th>Fund Type</th>
+              <th class="text-right">Amount</th>
+              <th>ADA Date</th>
+              <th class="text-right">Days Old</th>
+            </tr></thead>
+            <tbody>
+              ${attention.map(({ f, school, daysOld }) => `
+              <tr>
+                <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
+                <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
+                <td class="text-right font-semibold">${fmt(f.amount)}</td>
+                <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
+                <td class="text-right">
+                  <span class="badge" style="background:#fef3c7;color:#92400e">${daysOld}d</span>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  },
+};
+
+// ============================================================
 // Global helpers — used by dashboard, mooe, cdr, and other views
 // ============================================================
 function statCard(title, value, color, sub) {

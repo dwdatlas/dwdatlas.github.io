@@ -5,15 +5,17 @@ const App = {
   currentView: null,
 
   views: {
-    dash_mooe:    { title: 'MOOE',          subtitle: 'Dashboard',          obj: () => DashboardMOOEView },
-    dash_special: { title: 'Special Funds', subtitle: 'Dashboard',          obj: () => DashboardSpecialView },
-    funds_mooe:    { title: 'MOOE',          subtitle: 'Fund Releases',     obj: () => FundsMOOEView },
-    funds_special: { title: 'Special Funds', subtitle: 'Fund Releases',     obj: () => FundsSpecialView },
-    cdr_mooe:    { title: 'MOOE',          subtitle: 'Cash Disbursement Register', obj: () => CDRMOOEView },
-    cdr_special: { title: 'Special Funds', subtitle: 'Cash Disbursement Register', obj: () => CDRSpecialView },
-    resources:  { title: 'Resources',                subtitle: 'Documents & Links',          obj: () => ResourcesView },
-    schools:    { title: 'Schools',                   subtitle: 'Accountable Officers',      obj: () => SchoolsView },
-    setup:      { title: 'Setup / Config',            subtitle: 'Supabase & Settings',       obj: () => SetupView },
+    dashboard:    { title: 'Dashboard',     subtitle: 'Fund Overview',                      obj: () => AllFundsDashboardView },
+    funds_mooe:   { title: 'MOOE',          subtitle: 'Fund Releases',                      obj: () => FundsMOOEView },
+    funds_special:{ title: 'Special Funds', subtitle: 'Fund Releases',                      obj: () => FundsSpecialView },
+    cdr_mooe:     { title: 'MOOE',          subtitle: 'Cash Disbursement Register',          obj: () => CDRMOOEView },
+    cdr_special:  { title: 'Special Funds', subtitle: 'Cash Disbursement Register',          obj: () => CDRSpecialView },
+    resources:    { title: 'Resources',     subtitle: 'Documents & Links',                  obj: () => ResourcesView },
+    schools:      { title: 'Schools',       subtitle: 'Accountable Officers',               obj: () => SchoolsView },
+    setup:        { title: 'Setup / Config',subtitle: 'Supabase & Settings',                obj: () => SetupView },
+    // legacy hash aliases — not in nav, kept for back-compat
+    dash_mooe:    { title: 'MOOE',          subtitle: 'Dashboard',                          obj: () => DashboardMOOEView },
+    dash_special: { title: 'Special Funds', subtitle: 'Dashboard',                          obj: () => DashboardSpecialView },
   },
 
   async init() {
@@ -44,8 +46,8 @@ const App = {
     });
 
     // Navigate to hash or default
-    const hash = location.hash.slice(1) || 'dash_mooe';
-    this.navigate(this.views[hash] ? hash : 'dash_mooe');
+    const hash = location.hash.slice(1) || 'dashboard';
+    this.navigate(this.views[hash] ? hash : 'dashboard');
   },
 
   async navigate(viewName) {
@@ -53,29 +55,12 @@ const App = {
     this.currentView = viewName;
     location.hash = viewName;
 
-    // Update nav active state (sub-views highlight their parent nav item)
-    const navParents = { funds_mooe: 'mooe', funds_special: 'mooe' };
+    // Update nav active state
+    // cdr_special highlights the cdr_mooe nav link; legacy dash routes highlight dashboard
+    const navParents = { cdr_special: 'cdr_mooe', dash_mooe: 'dashboard', dash_special: 'dashboard' };
     const activeNav  = navParents[viewName] || viewName;
     document.querySelectorAll('.nav-link').forEach(el => {
       el.classList.toggle('active', el.dataset.view === activeNav);
-    });
-
-    // Highlight toggle buttons and active sub-links
-    const isDashView  = ['dash_mooe',  'dash_special' ].includes(viewName);
-    const isFundsView = ['funds_mooe', 'funds_special'].includes(viewName);
-    const isCDRView   = ['cdr_mooe',   'cdr_special'  ].includes(viewName);
-    const dashToggle  = document.getElementById('nav-dashboard-toggle');
-    const fundsToggle = document.getElementById('nav-funds-toggle');
-    const cdrToggle   = document.getElementById('nav-cdr-toggle');
-    const toggleCls   = active => `w-full flex items-center justify-between px-5 py-3 text-sm hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors ${active ? 'text-white bg-white bg-opacity-10' : 'text-blue-100'}`;
-    if (dashToggle)  dashToggle.className  = toggleCls(isDashView);
-    if (fundsToggle) fundsToggle.className = toggleCls(isFundsView);
-    if (cdrToggle)   cdrToggle.className   = toggleCls(isCDRView);
-    ['dash_mooe', 'dash_special', 'funds_mooe', 'funds_special', 'cdr_mooe', 'cdr_special'].forEach(key => {
-      const el = document.getElementById('subnav-' + key.replace('_', '-'));
-      if (!el) return;
-      const active = viewName === key;
-      el.className = `flex items-center gap-2 pl-4 pr-2 py-1.5 text-xs transition-colors rounded ${active ? 'text-white font-semibold' : 'text-blue-300 hover:text-white hover:bg-white hover:bg-opacity-10'}`;
     });
 
     // Update header
@@ -131,30 +116,6 @@ const App = {
     el.classList.remove('hidden');
     clearTimeout(App._toastTimer);
     App._toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
-  },
-
-  toggleDashNav() {
-    const subnav  = document.getElementById('dash-subnav');
-    const chevron = document.getElementById('dash-chevron');
-    if (!subnav) return;
-    const isHidden = subnav.classList.toggle('hidden');
-    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
-  },
-
-  toggleFundsNav() {
-    const subnav  = document.getElementById('funds-subnav');
-    const chevron = document.getElementById('funds-chevron');
-    if (!subnav) return;
-    const isHidden = subnav.classList.toggle('hidden');
-    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
-  },
-
-  toggleCDRNav() {
-    const subnav  = document.getElementById('cdr-subnav');
-    const chevron = document.getElementById('cdr-chevron');
-    if (!subnav) return;
-    const isHidden = subnav.classList.toggle('hidden');
-    if (chevron) chevron.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
   },
 
   toggleSidebar() {
