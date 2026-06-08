@@ -84,8 +84,8 @@ const CDRPdf = {
     const bkT   = typeof BOOKKEEPER_TITLE !== 'undefined' ? BOOKKEEPER_TITLE : '';
     const COL_OFF='5020301000', COL_GEN='5021299000', COL_JAN='5021202000';
 
-    const th = s => `border:1px solid #000;background:#f0f0f0;font-size:6pt;padding:2px 3px;vertical-align:middle;text-align:center`;
-    const td = extra => `border:1px solid #000;padding:2px 3px;vertical-align:middle;font-size:6.5pt;${extra||''}`;
+    const th = s => `border:1px solid #000;background:#f0f0f0;font-size:5.5pt;padding:1.5px 2px;vertical-align:middle;text-align:center`;
+    const td = extra => `border:1px solid #000;padding:1.5px 2px;vertical-align:middle;font-size:6pt;${extra||''}`;
 
     const tableRows = rows.map(e => {
       const adv = parseFloat(e.advances)||0, pay = parseFloat(e.payment)||0;
@@ -115,18 +115,18 @@ const CDRPdf = {
     </tr>`).join('');
 
     return `<div class="cdr-page">
-<table style="width:100%;border-collapse:collapse;margin-bottom:3px">
+<table style="width:100%;border-collapse:collapse;margin-bottom:2px">
   <tr>
-    <td style="text-align:center;font-weight:bold;font-size:10pt">DEPED LEYTE DIVISION</td>
+    <td style="text-align:center;font-weight:bold;font-size:9.5pt;line-height:1.2">DEPED LEYTE DIVISION</td>
     <td></td>
   </tr>
   <tr>
-    <td style="text-align:center;font-weight:bold;font-size:10pt">${sName}</td>
-    <td style="text-align:right;font-style:italic;font-size:8pt">Appendix 43</td>
+    <td style="text-align:center;font-weight:bold;font-size:9.5pt;line-height:1.2">${sName}</td>
+    <td style="text-align:right;font-style:italic;font-size:7.5pt">Appendix 43</td>
   </tr>
 </table>
-<div style="text-align:center;font-weight:bold;font-size:11pt;text-decoration:underline;margin-bottom:5px">CASH DISBURSEMENTS REGISTER</div>
-<table style="width:100%;border-collapse:collapse;margin-bottom:5px">
+<div style="text-align:center;font-weight:bold;font-size:10.5pt;text-decoration:underline;margin-bottom:3px">CASH DISBURSEMENTS REGISTER</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:3px">
   <tr>
     <td style="width:50%;vertical-align:top;padding-right:8px">
       <div style="font-size:7pt;padding:1px 0"><strong>Entity Name:</strong> ${sName}</div>
@@ -208,9 +208,9 @@ const CDRPdf = {
     </tr>
   </tbody>
 </table>
-<div style="font-size:5.5pt;font-style:italic;margin:3px 0 6px">The total of the &#39;Advances for Operating Expenses &#x2013; Payments&#39; column must always be equal to the sum of the totals of the &#39;Breakdown of Payments&#39; columns.</div>
+<div style="font-size:5pt;font-style:italic;margin:2px 0 4px">The total of the &#39;Advances for Operating Expenses &#x2013; Payments&#39; column must always be equal to the sum of the totals of the &#39;Breakdown of Payments&#39; columns.</div>
 <table style="width:40%;border-collapse:collapse;margin-left:auto">
-  <tr><td colspan="3" style="font-weight:bold;font-size:7pt;padding:2px 0">Recapitulation:</td></tr>
+  <tr><td colspan="3" style="font-weight:bold;font-size:6.5pt;padding:1px 0">Recapitulation:</td></tr>
   <tr>
     <th style="${th()}">Account Description</th>
     <th style="${th()}">CS Object Code</th>
@@ -222,26 +222,26 @@ const CDRPdf = {
     <td style="${td('text-align:right')}">${fp(totalPay)}</td>
   </tr>
 </table>
-<table style="width:100%;border-collapse:collapse;margin-top:18px">
+<table style="width:100%;border-collapse:collapse;margin-top:10px">
   <tr>
-    <td style="width:45%;font-size:7.5pt">CERTIFIED CORRECT:</td>
+    <td style="width:45%;font-size:7pt">CERTIFIED CORRECT:</td>
     <td style="width:10%"></td>
-    <td style="width:45%;font-size:7.5pt">RECEIVED BY:</td>
+    <td style="width:45%;font-size:7pt">RECEIVED BY:</td>
   </tr>
-  <tr style="height:28px">
-    <td style="vertical-align:bottom;text-align:center;border-bottom:1px solid #000;font-weight:bold;font-size:8.5pt">${school.school_head||''}</td>
+  <tr style="height:22px">
+    <td style="vertical-align:bottom;text-align:center;border-bottom:1px solid #000;font-weight:bold;font-size:8pt">${school.school_head||''}</td>
     <td></td>
-    <td style="vertical-align:bottom;text-align:center;border-bottom:1px solid #000;font-weight:bold;font-size:8.5pt">${bk}</td>
-  </tr>
-  <tr>
-    <td style="text-align:center;font-size:7pt">${school.designation||'Principal/Head Teacher'}</td>
-    <td></td>
-    <td style="text-align:center;font-size:7pt">${bkT}</td>
+    <td style="vertical-align:bottom;text-align:center;border-bottom:1px solid #000;font-weight:bold;font-size:8pt">${bk}</td>
   </tr>
   <tr>
-    <td style="font-size:7pt;padding-top:8px">Date: ______________________</td>
+    <td style="text-align:center;font-size:6.5pt">${school.designation||'Principal/Head Teacher'}</td>
     <td></td>
-    <td style="font-size:7pt;padding-top:8px">Date: ______________________</td>
+    <td style="text-align:center;font-size:6.5pt">${bkT}</td>
+  </tr>
+  <tr>
+    <td style="font-size:6.5pt;padding-top:5px">Date: ______________________</td>
+    <td></td>
+    <td style="font-size:6.5pt;padding-top:5px">Date: ______________________</td>
   </tr>
 </table>
 </div>`;

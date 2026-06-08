@@ -4,7 +4,6 @@
 }
 .cdr-page {
   width: 7.7in;        /* 8.5in minus left+right margins */
-  min-height: 12in;    /* 13in minus top+bottom margins */
   box-sizing: border-box;
   background: #fff;
   padding: 0;
