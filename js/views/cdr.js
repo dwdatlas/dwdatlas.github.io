@@ -100,7 +100,7 @@ const CDRView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>Year</th><th>Quarter</th><th>Fund Type</th>
-        <th class="text-right">Opening Balance</th><th>Entries</th><th>Actions</th>
+        <th class="text-right">Cash Advance</th><th>Entries</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `
@@ -109,7 +109,7 @@ const CDRView = {
           <td>${r.year}</td>
           <td><span class="badge badge-submitted">${r.quarter}</span></td>
           <td class="text-xs text-gray-600">${r.fund_type || '—'}</td>
-          <td class="text-right font-semibold">${fmt(r.opening_balance)}</td>
+          <td class="text-right font-semibold">${fmt(r.cash_advance != null ? r.cash_advance : r.opening_balance)}</td>
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
           <td>
             <div class="flex gap-1">
@@ -177,7 +177,7 @@ const CDRView = {
         </div>
         ${this._category !== 'mooe' ? `
         <div class="col-span-2">
-          <label class="form-label">Opening Balance (Advances Received)</label>
+          <label class="form-label">Cash Advance</label>
           <input id="cdr-opening" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
         </div>` : '<input type="hidden" id="cdr-opening" value="0" />'}
       </div>
@@ -213,6 +213,7 @@ const CDRView = {
       quarter,
       fund_type:       fundType,
       opening_balance: this._category === 'mooe' ? 0 : (parseFloat(document.getElementById('cdr-opening').value) || 0),
+      cash_advance:    this._category === 'mooe' ? (matchingFund ? parseFloat(matchingFund.amount) || 0 : 0) : (parseFloat(document.getElementById('cdr-opening').value) || 0),
       entry_count:     matchingFund ? 1 : 0,
     };
 
@@ -302,7 +303,7 @@ const CDRView = {
           <div><span class="text-gray-500 text-xs block">School</span><strong>${school.name || '—'}</strong></div>
           <div><span class="text-gray-500 text-xs block">Year / Quarter</span><strong>${header.year} ${header.quarter}</strong></div>
           <div><span class="text-gray-500 text-xs block">Fund Type</span><strong>${header.fund_type || '—'}</strong></div>
-          <div><span class="text-gray-500 text-xs block">Opening Balance</span><strong class="text-blue-700">${fmt(header.opening_balance)}</strong></div>
+          <div><span class="text-gray-500 text-xs block">Cash Advance</span><strong class="text-blue-700">${fmt(header.cash_advance != null ? header.cash_advance : header.opening_balance)}</strong></div>
         </div>
       </div>
     </div>
