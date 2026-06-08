@@ -516,10 +516,10 @@ const AllFundsDashboardView = {
     const splitRow = (label, r) =>
       `<tr>
         <td class="font-semibold text-sm">${label}</td>
-        <td class="text-right">${fmt(r.dl)}</td>
-        <td class="text-right font-semibold" style="color:#16a34a">${fmt(r.lq)}</td>
-        <td class="text-right font-semibold" style="color:#b45309">${fmt(r.ul)}</td>
-        <td class="text-right">${pctBadge(r.pct, r.pct >= 50)}</td>
+        <td style="text-align:right">${fmt(r.dl)}</td>
+        <td style="text-align:right;font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
+        <td style="text-align:right;font-weight:600;color:#b45309">${fmt(r.ul)}</td>
+        <td style="text-align:right">${pctBadge(r.pct, r.pct >= 50)}</td>
       </tr>`;
 
     const splitEl = document.getElementById('afd-split');
@@ -540,10 +540,10 @@ const AllFundsDashboardView = {
               ${splitRow('Special Funds', sRow)}
               <tr style="border-top:2px solid #e2e8f0">
                 <td class="font-bold text-sm">Total</td>
-                <td class="text-right font-bold">${fmt(tRow.dl)}</td>
-                <td class="text-right font-bold" style="color:#16a34a">${fmt(tRow.lq)}</td>
-                <td class="text-right font-bold" style="color:#b45309">${fmt(tRow.ul)}</td>
-                <td class="text-right">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
+                <td style="text-align:right;font-weight:700">${fmt(tRow.dl)}</td>
+                <td style="text-align:right;font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
+                <td style="text-align:right;font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
+                <td style="text-align:right">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
               </tr>
             </tbody>
           </table>
