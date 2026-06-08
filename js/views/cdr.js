@@ -527,32 +527,6 @@ const CDRView = {
     const totalAdv = entries.reduce((s,e) => s+(parseFloat(e.advances)||0), 0);
     const totalPay = entries.reduce((s,e) => s+(parseFloat(e.payment)||0),  0);
     const finalBal = rows.length ? rows[rows.length-1].running_balance : startBalance;
-    const C_OFF='5020301000', C_GEN='5021299000', C_JAN='5021202000';
-    const tOff = entries.filter(e=>e.uacs_code===C_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const tGen = entries.filter(e=>e.uacs_code===C_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const tJan = entries.filter(e=>e.uacs_code===C_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-
-    const tRows = rows.map(e => {
-      const adv=parseFloat(e.advances)||0, pay=parseFloat(e.payment)||0;
-      const isOff=e.uacs_code===C_OFF, isGen=e.uacs_code===C_GEN, isJan=e.uacs_code===C_JAN;
-      const isOth=!isOff&&!isGen&&!isJan&&pay>0;
-      const othD=isOth?(e.uacs_desc||UACS_CODES.find(u=>u.code===e.uacs_code)?.desc||''):'';
-      return `<tr>
-        <td style="text-align:center;white-space:nowrap">${_fd(e.entry_date)}</td>
-        <td style="word-break:break-all;font-size:6pt">${e.ref_no||''}</td>
-        <td>${e.particulars||''}</td>
-        <td style="text-align:right">${adv>0?_fp(adv):''}</td>
-        <td style="text-align:right">${pay>0?_fp(pay):''}</td>
-        <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
-        <td style="text-align:right">${isOff?_fp(pay):''}</td>
-        <td style="text-align:right">${isGen?_fp(pay):''}</td>
-        <td style="text-align:right">${isJan?_fp(pay):''}</td>
-        <td style="font-size:6pt">${othD}</td>
-        <td style="text-align:center;font-size:6pt">${isOth?(e.uacs_code||''):''}</td>
-        <td style="text-align:right">${isOth?_fp(pay):''}</td>
-      </tr>`;
-    }).join('');
-
     App.toast('Preparing PDF…');
 
     const { jsPDF } = window.jspdf;
