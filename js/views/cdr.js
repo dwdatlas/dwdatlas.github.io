@@ -527,23 +527,39 @@ const CDRView = {
     const totalAdv = entries.reduce((s,e) => s+(parseFloat(e.advances)||0), 0);
     const totalPay = entries.reduce((s,e) => s+(parseFloat(e.payment)||0),  0);
     const finalBal = rows.length ? rows[rows.length-1].running_balance : startBalance;
+
+    const COL_OFF='5020301000', COL_GEN='5021299000', COL_JAN='5021202000';
+    const tOff = entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tGen = entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tJan = entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+
+    // Recapitulation
+    const recap = {};
+    entries.forEach(e => {
+      const p = parseFloat(e.payment)||0; if (!p) return;
+      const code = e.uacs_code||'';
+      const desc = e.uacs_desc || UACS_CODES.find(u=>u.code===code)?.desc || code;
+      if (!recap[code]) recap[code] = { code, desc, total:0 };
+      recap[code].total += p;
+    });
+
     App.toast('Preparing PDF…');
 
     const { jsPDF } = window.jspdf;
-    const doc  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [215.9, 330.2] });
+    const doc  = new jsPDF({ orientation:'landscape', unit:'mm', format:[215.9, 330.2] });
     const sName = (school.name || '').toUpperCase();
     const W = 330.2, M = 10;
-    const fmt2 = n => (parseFloat(n)||0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
-    const fmtN = n => n > 0 ? fmt2(n) : '';
+    const fmt2 = n => (parseFloat(n)||0).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    const fmtN = n => { const v=parseFloat(n)||0; return v>0 ? fmt2(v) : ''; };
 
     // ── Title block ──
-    doc.setFont('helvetica','bold').setFontSize(11);
-    doc.text('DEPED LEYTE DIVISION', W/2, 12, { align:'center' });
-    doc.text(sName, W/2, 18, { align:'center' });
+    doc.setFont('helvetica','bold').setFontSize(10);
+    doc.text('DEPED LEYTE DIVISION', W/2, 11, { align:'center' });
+    doc.text(sName, W/2, 16, { align:'center' });
     doc.setFont('helvetica','italic').setFontSize(8);
-    doc.text('Appendix 43', W - M, 18, { align:'right' });
+    doc.text('Appendix 43', W - M, 16, { align:'right' });
     doc.setFont('helvetica','bold').setFontSize(11);
-    doc.text('CASH DISBURSEMENTS REGISTER', W/2, 26, { align:'center' });
+    doc.text('CASH DISBURSEMENTS REGISTER', W/2, 24, { align:'center' });
 
     // ── Entity info ──
     doc.setFont('helvetica','normal').setFontSize(7.5);
@@ -552,17 +568,16 @@ const CDRView = {
       'Sub-Office/District/Division: DULAG WEST DISTRICT',
       'Municipality/City/Province: DULAG, LEYTE',
       'Fund Cluster: 01-REGULAR',
-    ].forEach((t, i) => doc.text(t, M, 33 + i*4.5));
+    ].forEach((t, i) => doc.text(t, M, 31 + i*4.5));
     [
       'Name of Accountable Officer: ' + (school.school_head || ''),
       'Official Designation: ' + (school.designation || ''),
       'Station: ' + (school.short_name || school.name || ''),
       'Register No.: ___________________________',
       'Sheet No.: ___________________________',
-    ].forEach((t, i) => doc.text(t, W/2 + 5, 33 + i*4.5));
+    ].forEach((t, i) => doc.text(t, W/2 + 5, 31 + i*4.5));
 
-    // ── Table rows ──
-    const COL_OFF='5020301000', COL_GEN='5021299000', COL_JAN='5021202000';
+    // ── Table data rows ──
     const tableBody = rows.map(e => {
       const adv=parseFloat(e.advances)||0, pay=parseFloat(e.payment)||0;
       const isOff=e.uacs_code===COL_OFF, isGen=e.uacs_code===COL_GEN, isJan=e.uacs_code===COL_JAN;
@@ -577,35 +592,43 @@ const CDRView = {
       ];
     });
 
-    const tOff=entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const tGen=entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const tJan=entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-
     tableBody.push([
-      { content:'TOTAL', colSpan:3, styles:{ halign:'center', fontStyle:'bold' } },
+      { content:'Totals', colSpan:3, styles:{ halign:'center', fontStyle:'bold' } },
       { content:fmtN(totalAdv), styles:{ halign:'right', fontStyle:'bold' } },
       { content:fmtN(totalPay), styles:{ halign:'right', fontStyle:'bold' } },
       { content:fmt2(finalBal), styles:{ halign:'right', fontStyle:'bold' } },
       { content:tOff>0?fmtN(tOff):'', styles:{ halign:'right' } },
       { content:tGen>0?fmtN(tGen):'', styles:{ halign:'right' } },
       { content:tJan>0?fmtN(tJan):'', styles:{ halign:'right' } },
-      '','','',
+      '','',{ content:fmtN(totalPay), styles:{ halign:'right' } },
     ]);
 
+    // 4-row header matching the Excel/print template
     doc.autoTable({
-      startY: 57,
+      startY: 55,
       head: [
         [
-          { content:'Date',            rowSpan:2 },
-          { content:'DV/Payroll/\nCheck No.', rowSpan:2 },
-          { content:'Particulars',     rowSpan:2 },
-          { content:'Advances for Operating Expenses\n(-19901010)', colSpan:3 },
-          { content:'BREAKDOWN OF PAYMENTS',  colSpan:6 },
+          { content:'Date',                  rowSpan:4, styles:{ valign:'bottom', halign:'center' } },
+          { content:'DV/Payroll/\nCheck No.', rowSpan:4, styles:{ valign:'bottom', halign:'center' } },
+          { content:'Particulars',            rowSpan:4, styles:{ valign:'bottom', halign:'center' } },
+          { content:'Advances for Operating Expenses', colSpan:3, styles:{ halign:'center' } },
+          { content:'BREAKDOWN OF PAYMENTS',           colSpan:6, styles:{ halign:'center' } },
+        ],
+        [
+          { content:'-19901010', colSpan:3, styles:{ halign:'center' } },
+          { content:'', colSpan:6 },
+        ],
+        [
+          { content:'Amount', colSpan:3, styles:{ halign:'center' } },
+          { content:'Office Supplies\nExpenses',  styles:{ halign:'center' } },
+          { content:'Other General\nServices',    styles:{ halign:'center' } },
+          { content:'Janitorial\nServices',       styles:{ halign:'center' } },
+          { content:'O T H E R S', colSpan:3,    styles:{ halign:'center' } },
         ],
         [
           'Cash Advance','Payments','Balance',
-          '5020301000\nOffice Supplies','5021299000\nOther General','5021202000\nJanitorial',
-          'Account Description','UACS Code','Amount',
+          '5020301000','5021299000','5021202000',
+          'Account Description','UACS Object Code','Amount',
         ],
       ],
       body: tableBody,
@@ -613,39 +636,84 @@ const CDRView = {
       styles:     { fontSize:6, cellPadding:1.2, valign:'middle', font:'helvetica', overflow:'linebreak' },
       headStyles: { fillColor:[230,230,230], textColor:[0,0,0], fontStyle:'bold', halign:'center', fontSize:5.5 },
       columnStyles: {
-        0: { cellWidth:14, halign:'center' },
-        1: { cellWidth:24 },
-        2: { cellWidth:74 },
-        3: { cellWidth:18, halign:'right' },
-        4: { cellWidth:18, halign:'right' },
-        5: { cellWidth:18, halign:'right' },
-        6: { cellWidth:20, halign:'right' },
-        7: { cellWidth:20, halign:'right' },
-        8: { cellWidth:18, halign:'right' },
-        9: { cellWidth:35 },
-        10:{ cellWidth:15, halign:'center' },
-        11:{ cellWidth:16, halign:'right' },
+        0:  { cellWidth:14, halign:'center' },
+        1:  { cellWidth:24 },
+        2:  { cellWidth:76 },
+        3:  { cellWidth:18, halign:'right' },
+        4:  { cellWidth:18, halign:'right' },
+        5:  { cellWidth:18, halign:'right' },
+        6:  { cellWidth:20, halign:'right' },
+        7:  { cellWidth:20, halign:'right' },
+        8:  { cellWidth:18, halign:'right' },
+        9:  { cellWidth:38 },
+        10: { cellWidth:16, halign:'center' },
+        11: { cellWidth:16, halign:'right' },
       },
       margin: { left:M, right:M },
     });
 
-    // ── Signature block ──
-    const sigY = (doc.lastAutoTable?.finalY || 160) + 12;
-    const s1 = M + 5, s2 = W - M - 70;
-    doc.setFont('helvetica','normal').setFontSize(8);
-    doc.line(s1, sigY+8, s1+65, sigY+8);
-    doc.setFont('helvetica','bold');
-    doc.text(school.school_head||'', s1+32.5, sigY+13, { align:'center' });
-    doc.setFont('helvetica','normal');
-    doc.text(school.designation||'Principal/Head Teacher', s1+32.5, sigY+18, { align:'center' });
-    doc.text(school.short_name||school.name||'', s1+32.5, sigY+23, { align:'center' });
+    let y = (doc.lastAutoTable?.finalY || 160) + 4;
 
-    doc.line(s2, sigY+8, s2+65, sigY+8);
-    doc.setFont('helvetica','bold');
-    doc.text(BOOKKEEPER, s2+32.5, sigY+13, { align:'center' });
-    doc.setFont('helvetica','normal');
-    doc.text(BOOKKEEPER_TITLE, s2+32.5, sigY+18, { align:'center' });
-    doc.text('Dulag West District', s2+32.5, sigY+23, { align:'center' });
+    // ── Note ──
+    doc.setFont('helvetica','italic').setFontSize(6);
+    doc.text(
+      "The total of the 'Advances for Operating Expenses – Payments' column must always be equal to the sum of the totals of the 'Breakdown of Payments' columns.",
+      M, y, { maxWidth: W - 2*M }
+    );
+    y += 8;
+
+    // ── Recapitulation (right-side small table) ──
+    const recapRows = Object.values(recap).map(r => [r.desc, r.code, fmt2(r.total)]);
+    recapRows.push([
+      { content:'Total', colSpan:2, styles:{ halign:'right', fontStyle:'bold' } },
+      { content:fmt2(totalPay), styles:{ halign:'right', fontStyle:'bold' } },
+    ]);
+    const recapLeft = W - M - 72;
+    doc.autoTable({
+      startY: y,
+      head: [
+        [{ content:'Recapitulation:', colSpan:3, styles:{ halign:'left', fontStyle:'bold', fillColor:[255,255,255], textColor:[0,0,0] } }],
+        [
+          { content:'Account Description', styles:{ halign:'center' } },
+          { content:'CS Object Code',      styles:{ halign:'center' } },
+          { content:'Amount',              styles:{ halign:'center' } },
+        ],
+      ],
+      body: recapRows,
+      theme: 'grid',
+      styles:     { fontSize:6, cellPadding:1.2, font:'helvetica', overflow:'linebreak' },
+      headStyles: { fillColor:[230,230,230], textColor:[0,0,0], fontStyle:'bold', halign:'center', fontSize:5.5 },
+      columnStyles: {
+        0: { cellWidth:38 },
+        1: { cellWidth:18, halign:'center' },
+        2: { cellWidth:16, halign:'right' },
+      },
+      margin: { left:recapLeft, right:M },
+    });
+
+    y = (doc.lastAutoTable?.finalY || y + 30) + 10;
+
+    // ── Signature block ──
+    const s1 = M + 10, s2 = W/2 + 15;
+    doc.setFont('helvetica','normal').setFontSize(8);
+    doc.text('CERTIFIED CORRECT:', s1, y);
+    doc.text('RECEIVED BY:', s2, y);
+
+    y += 14;
+    doc.line(s1, y, s1 + 70, y);
+    doc.line(s2, y, s2 + 70, y);
+
+    doc.setFont('helvetica','bold').setFontSize(9);
+    doc.text(school.school_head || '', s1 + 35, y - 3, { align:'center' });
+    doc.text(BOOKKEEPER,               s2 + 35, y - 3, { align:'center' });
+
+    doc.setFont('helvetica','normal').setFontSize(7.5);
+    doc.text(school.designation || 'Principal/Head Teacher', s1 + 35, y + 4, { align:'center' });
+    doc.text(BOOKKEEPER_TITLE,                                s2 + 35, y + 4, { align:'center' });
+
+    y += 14;
+    doc.text('Date: ____________________', s1, y);
+    doc.text('Date: ____________________', s2, y);
 
     doc.save(`CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.pdf`);
     App.toast('PDF downloaded!');
