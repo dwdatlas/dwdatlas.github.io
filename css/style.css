@@ -62,16 +62,11 @@
 .empty-state svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: .4; }
 .empty-state p { font-size: 0.875rem; }
 
-/* CDR Print styles */
-@media print {
-  body * { visibility: hidden; }
-  #cdr-print-area, #cdr-print-area * { visibility: visible; }
-  #cdr-print-area { position: fixed; top: 0; left: 0; width: 100%; font-size: 9pt; }
-  .no-print { display: none !important; }
-}
+/* CDR print table helper (popup window print) */
 .cdr-print-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
 .cdr-print-table th, .cdr-print-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: top; }
 .cdr-print-table th { background: #e5e7eb; text-align: center; font-size: 7pt; }
+.no-print { display: none !important; }
 
 /* Scrollable table container */
 .table-scroll { overflow-x: auto; }

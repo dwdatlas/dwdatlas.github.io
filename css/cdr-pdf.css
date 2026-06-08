@@ -1,0 +1,17 @@
+@page {
+  size: 8.5in 13in;
+  margin: 0.5in 0.4in 0.5in 0.4in;
+}
+.cdr-page {
+  width: 7.7in;        /* 8.5in minus left+right margins */
+  min-height: 12in;    /* 13in minus top+bottom margins */
+  box-sizing: border-box;
+  background: #fff;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+@media print {
+  body * { visibility: hidden; }
+  .cdr-page, .cdr-page * { visibility: visible; }
+  .cdr-page { position: absolute; left: 0; top: 0; }
+}
