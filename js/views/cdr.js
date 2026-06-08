@@ -577,9 +577,6 @@ const CDRView = {
       ];
     });
 
-    const totalAdv = entries.reduce((s,e)=>s+(parseFloat(e.advances)||0),0);
-    const totalPay = entries.reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const finalBal = rows.length ? rows[rows.length-1].running_balance : startBalance;
     const tOff=entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
     const tGen=entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
     const tJan=entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
