@@ -739,7 +739,7 @@ const CDRView = {
 
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
-    const entries = entriesRes.data || [];
+    let entries = entriesRes.data || [];
     if (!header) { w.close(); App.toast('CDR not found', 'error'); return; }
 
     const school = this._getSchool(header.school_id);
