@@ -482,15 +482,12 @@ const CDRView = {
     await this.showDetail(cdr_id);
   },
 
-  // ---- Download as PDF (F4 landscape, 8.5 × 13 in) ----
+  // ---- Download as PDF (F4 landscape, 8.5 × 13 in) using jsPDF ----
   async downloadPDF(id) {
-    if (typeof html2pdf === 'undefined') {
-      await new Promise((res, rej) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
-      });
+    // Lazy-load jsPDF then autoTable (sequential — autoTable requires jsPDF first)
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise((res, rej) => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+      await new Promise((res, rej) => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
     }
 
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
@@ -556,89 +553,131 @@ const CDRView = {
       </tr>`;
     }).join('');
 
-    const sName = (school.name||'').toUpperCase();
+    App.toast('Preparing PDF…');
 
-    // Inject CSS into <head> so html2canvas computes styles correctly
-    const styleEl = document.createElement('style');
-    styleEl.id = '_cdr_pdf_style';
-    styleEl.textContent = `
-      ._cdr-pdf table{border-collapse:collapse;width:100%}
-      ._cdr-pdf th,._cdr-pdf td{border:1px solid #000;padding:2px 3px;vertical-align:middle}
-      ._cdr-pdf th{text-align:center;font-size:6.5pt;background:#f0f0f0}
-      ._cdr-pdf .nb td,._cdr-pdf .nb th{border:none}
-      ._cdr-pdf .right{text-align:right} ._cdr-pdf .center{text-align:center} ._cdr-pdf .bold{font-weight:bold}
-      ._cdr-pdf .sig{border-top:1px solid #000;text-align:center;padding-top:3px;margin-top:30px}
-    `;
-    document.head.appendChild(styleEl);
+    const { jsPDF } = window.jspdf;
+    const doc  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [215.9, 330.2] });
+    const sName = (school.name || '').toUpperCase();
+    const W = 330.2, M = 10;
+    const fmt2 = n => (parseFloat(n)||0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+    const fmtN = n => n > 0 ? fmt2(n) : '';
 
-    const wrap = document.createElement('div');
-    wrap.className = '_cdr-pdf';
-    // position:absolute at top-left (visibility:hidden) — html2canvas cannot render position:fixed off-screen
-    wrap.style.cssText = 'position:absolute;top:0;left:0;width:330mm;padding:8mm 10mm;background:#fff;font-family:Arial,sans-serif;font-size:7.5pt;color:#000;visibility:hidden;pointer-events:none;z-index:-9999;';
-    wrap.innerHTML = `
-<table class="nb"><tr><td class="center bold" style="font-size:10pt">DEPED LEYTE DIVISION</td><td></td></tr>
-<tr><td class="center bold" style="font-size:10pt">${sName}</td><td class="right" style="font-style:italic;font-size:8pt">Appendix 43</td></tr></table>
-<br/><div class="center bold" style="font-size:11pt;text-decoration:underline">CASH DISBURSEMENTS REGISTER</div><br/>
-<table style="margin-bottom:6px" class="nb"><tr>
-  <td style="width:50%;vertical-align:top;padding-right:10px"><table><tr><td style="font-size:7.5pt"><strong>Entity Name:</strong> ${sName}</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Sub-Office/District/Division:</strong> DULAG WEST DISTRICT</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Municipality/City/Province:</strong> DULAG, LEYTE</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Fund Cluster:</strong> 01-REGULAR</td></tr></table></td>
-  <td style="width:50%;vertical-align:top"><table>
-  <tr><td style="font-size:7.5pt"><strong>Name of Accountable Officer:</strong> ${school.school_head||''}</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Official Designation:</strong> ${school.designation||''}</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Station:</strong> ${school.short_name||school.name||''}</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Register No.:</strong> ___________________________</td></tr>
-  <tr><td style="font-size:7.5pt"><strong>Sheet No.:</strong> ___________________________</td></tr></table></td>
-</tr></table>
-<table style="table-layout:fixed">
-  <colgroup><col style="width:5%"/><col style="width:11%"/><col style="width:22%"/>
-  <col style="width:7%"/><col style="width:7%"/><col style="width:7%"/>
-  <col style="width:8%"/><col style="width:8%"/><col style="width:7%"/>
-  <col style="width:9%"/><col style="width:6%"/><col style="width:6%"/></colgroup>
-  <thead>
-    <tr><th colspan="3"></th><th colspan="3">Advances for Operating Expenses</th><th colspan="6">BREAKDOWN OF PAYMENTS</th></tr>
-    <tr><th colspan="3"></th><th colspan="3">-19901010</th><th colspan="6"></th></tr>
-    <tr><th colspan="3"></th><th colspan="3">Amount</th><th>Office Supplies Expenses</th><th>Other General</th><th>Janitorial Services</th><th colspan="3">O T H E R S</th></tr>
-    <tr><th>Date</th><th>DV/Payroll/ Check No.</th><th>Particulars</th><th>Cash Advance</th><th>Payments</th><th>Balance</th>
-    <th>5020301000</th><th>5021299000</th><th>5021202000</th><th>Account Description</th><th>UACS Object Code</th><th>Amount</th></tr>
-  </thead>
-  <tbody>
-    ${tRows}
-    <tr class="bold"><td colspan="3" class="center">TOTAL</td>
-      <td class="right">${_fp(totalAdv)}</td><td class="right">${_fp(totalPay)}</td><td class="right">${_fp(finalBal)}</td>
-      <td class="right">${tOff>0?_fp(tOff):''}</td><td class="right">${tGen>0?_fp(tGen):''}</td><td class="right">${tJan>0?_fp(tJan):''}</td>
-      <td></td><td></td><td></td></tr>
-  </tbody>
-</table>
-<table style="margin-top:16px" class="nb"><tr>
-  <td style="width:40%;vertical-align:bottom"><div class="sig"><strong>${school.school_head||''}</strong><br/>
-    <span style="font-size:7pt">${school.designation||'Principal/Head Teacher'}</span><br/>
-    <span style="font-size:7pt">${school.short_name||school.name||''}</span></div></td>
-  <td style="width:20%"></td>
-  <td style="width:40%;vertical-align:bottom"><div class="sig"><strong>${BOOKKEEPER}</strong><br/>
-    <span style="font-size:7pt">${BOOKKEEPER_TITLE}</span><br/>
-    <span style="font-size:7pt">Dulag West District</span></div></td>
-</tr></table>`;
+    // ── Title block ──
+    doc.setFont('helvetica','bold').setFontSize(11);
+    doc.text('DEPED LEYTE DIVISION', W/2, 12, { align:'center' });
+    doc.text(sName, W/2, 18, { align:'center' });
+    doc.setFont('helvetica','italic').setFontSize(8);
+    doc.text('Appendix 43', W - M, 18, { align:'right' });
+    doc.setFont('helvetica','bold').setFontSize(11);
+    doc.text('CASH DISBURSEMENTS REGISTER', W/2, 26, { align:'center' });
 
-    document.body.appendChild(wrap);
-    // Allow browser to compute layout before html2canvas captures
-    await new Promise(r => setTimeout(r, 200));
-    App.toast('Generating PDF…');
-    try {
-      await html2pdf().set({
-        margin: 0,
-        filename: `CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: [215.9, 330.2], orientation: 'landscape' },
-      }).from(wrap).save();
-      App.toast('PDF downloaded!');
-    } finally {
-      document.body.removeChild(wrap);
-      const se = document.getElementById('_cdr_pdf_style');
-      if (se) se.remove();
-    }
+    // ── Entity info ──
+    doc.setFont('helvetica','normal').setFontSize(7.5);
+    [
+      'Entity Name: ' + sName,
+      'Sub-Office/District/Division: DULAG WEST DISTRICT',
+      'Municipality/City/Province: DULAG, LEYTE',
+      'Fund Cluster: 01-REGULAR',
+    ].forEach((t, i) => doc.text(t, M, 33 + i*4.5));
+    [
+      'Name of Accountable Officer: ' + (school.school_head || ''),
+      'Official Designation: ' + (school.designation || ''),
+      'Station: ' + (school.short_name || school.name || ''),
+      'Register No.: ___________________________',
+      'Sheet No.: ___________________________',
+    ].forEach((t, i) => doc.text(t, W/2 + 5, 33 + i*4.5));
+
+    // ── Table rows ──
+    const COL_OFF='5020301000', COL_GEN='5021299000', COL_JAN='5021202000';
+    const tableBody = rows.map(e => {
+      const adv=parseFloat(e.advances)||0, pay=parseFloat(e.payment)||0;
+      const isOff=e.uacs_code===COL_OFF, isGen=e.uacs_code===COL_GEN, isJan=e.uacs_code===COL_JAN;
+      const isOth=!isOff&&!isGen&&!isJan&&pay>0;
+      return [
+        _fd(e.entry_date)||'', e.ref_no||'', e.particulars||'',
+        adv>0?fmtN(adv):'', pay>0?fmtN(pay):'', fmt2(e.running_balance),
+        isOff?fmtN(pay):'', isGen?fmtN(pay):'', isJan?fmtN(pay):'',
+        isOth?(e.uacs_desc||UACS_CODES.find(u=>u.code===e.uacs_code)?.desc||''):'',
+        isOth?(e.uacs_code||''):'',
+        isOth?fmtN(pay):'',
+      ];
+    });
+
+    const totalAdv = entries.reduce((s,e)=>s+(parseFloat(e.advances)||0),0);
+    const totalPay = entries.reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const finalBal = rows.length ? rows[rows.length-1].running_balance : startBalance;
+    const tOff=entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tGen=entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+    const tJan=entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
+
+    tableBody.push([
+      { content:'TOTAL', colSpan:3, styles:{ halign:'center', fontStyle:'bold' } },
+      { content:fmtN(totalAdv), styles:{ halign:'right', fontStyle:'bold' } },
+      { content:fmtN(totalPay), styles:{ halign:'right', fontStyle:'bold' } },
+      { content:fmt2(finalBal), styles:{ halign:'right', fontStyle:'bold' } },
+      { content:tOff>0?fmtN(tOff):'', styles:{ halign:'right' } },
+      { content:tGen>0?fmtN(tGen):'', styles:{ halign:'right' } },
+      { content:tJan>0?fmtN(tJan):'', styles:{ halign:'right' } },
+      '','','',
+    ]);
+
+    doc.autoTable({
+      startY: 57,
+      head: [
+        [
+          { content:'Date',            rowSpan:2 },
+          { content:'DV/Payroll/\nCheck No.', rowSpan:2 },
+          { content:'Particulars',     rowSpan:2 },
+          { content:'Advances for Operating Expenses\n(-19901010)', colSpan:3 },
+          { content:'BREAKDOWN OF PAYMENTS',  colSpan:6 },
+        ],
+        [
+          'Cash Advance','Payments','Balance',
+          '5020301000\nOffice Supplies','5021299000\nOther General','5021202000\nJanitorial',
+          'Account Description','UACS Code','Amount',
+        ],
+      ],
+      body: tableBody,
+      theme: 'grid',
+      styles:     { fontSize:6, cellPadding:1.2, valign:'middle', font:'helvetica', overflow:'linebreak' },
+      headStyles: { fillColor:[230,230,230], textColor:[0,0,0], fontStyle:'bold', halign:'center', fontSize:5.5 },
+      columnStyles: {
+        0: { cellWidth:14, halign:'center' },
+        1: { cellWidth:24 },
+        2: { cellWidth:74 },
+        3: { cellWidth:18, halign:'right' },
+        4: { cellWidth:18, halign:'right' },
+        5: { cellWidth:18, halign:'right' },
+        6: { cellWidth:20, halign:'right' },
+        7: { cellWidth:20, halign:'right' },
+        8: { cellWidth:18, halign:'right' },
+        9: { cellWidth:35 },
+        10:{ cellWidth:15, halign:'center' },
+        11:{ cellWidth:16, halign:'right' },
+      },
+      margin: { left:M, right:M },
+    });
+
+    // ── Signature block ──
+    const sigY = (doc.lastAutoTable?.finalY || 160) + 12;
+    const s1 = M + 5, s2 = W - M - 70;
+    doc.setFont('helvetica','normal').setFontSize(8);
+    doc.line(s1, sigY+8, s1+65, sigY+8);
+    doc.setFont('helvetica','bold');
+    doc.text(school.school_head||'', s1+32.5, sigY+13, { align:'center' });
+    doc.setFont('helvetica','normal');
+    doc.text(school.designation||'Principal/Head Teacher', s1+32.5, sigY+18, { align:'center' });
+    doc.text(school.short_name||school.name||'', s1+32.5, sigY+23, { align:'center' });
+
+    doc.line(s2, sigY+8, s2+65, sigY+8);
+    doc.setFont('helvetica','bold');
+    doc.text(BOOKKEEPER, s2+32.5, sigY+13, { align:'center' });
+    doc.setFont('helvetica','normal');
+    doc.text(BOOKKEEPER_TITLE, s2+32.5, sigY+18, { align:'center' });
+    doc.text('Dulag West District', s2+32.5, sigY+23, { align:'center' });
+
+    doc.save(`CDR_${(school.name||'School').replace(/\s+/g,'_')}_${header.year}_${header.quarter}.pdf`);
+    App.toast('PDF downloaded!');
   },
 
   // ---- Download as Excel (matches CDR 2026 template exactly) ----
