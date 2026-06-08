@@ -744,7 +744,33 @@ const CDRView = {
 
     const school = this._getSchool(header.school_id);
 
-    let balance = parseFloat(header.opening_balance) || 0;
+    // If no entry already carries an advance amount, inject a cash advance row
+    // from the matching Fund Release so the printed CDR always shows it first.
+    const hasAdvanceEntry = entries.some(e => (parseFloat(e.advances) || 0) > 0);
+    let startBalance = parseFloat(header.opening_balance) || 0;
+
+    if (!hasAdvanceEntry) {
+      const { data: releaseFunds } = await DB.getFunds({ school_id: header.school_id });
+      const normalize = s => (s || '').trim().toLowerCase();
+      const releaseMatched = (releaseFunds || []).filter(f => normalize(f.fund_type) === normalize(header.fund_type));
+      releaseMatched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
+      const rf = releaseMatched[0] || null;
+      if (rf) {
+        const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
+        const isMOOE = typeof DashboardView !== 'undefined' && DashboardView._isMOOE(header.fund_type);
+        const particulars = isMOOE
+          ? `Operating Advances for ${ordinal[header.quarter] || header.quarter} Quarter`
+          : `Operating Advances for ${header.fund_type}`;
+        entries = [{
+          id: '_adv', entry_date: rf.ada_date, ref_no: rf.ada_no || '',
+          particulars, uacs_code: '', uacs_desc: '',
+          advances: parseFloat(rf.amount) || 0, payment: 0,
+        }, ...entries];
+        startBalance = 0;
+      }
+    }
+
+    let balance = startBalance;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
       const pay = parseFloat(e.payment)  || 0;
@@ -754,7 +780,7 @@ const CDRView = {
 
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
     const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
-    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : (parseFloat(header.opening_balance) || 0);
+    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : startBalance;
 
     const COL_OFFICE = '5020301000';
     const COL_GENSVC = '5021299000';
