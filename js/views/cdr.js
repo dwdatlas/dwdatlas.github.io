@@ -557,16 +557,25 @@ const CDRView = {
     }).join('');
 
     const sName = (school.name||'').toUpperCase();
+
+    // Inject CSS into <head> so html2canvas computes styles correctly
+    const styleEl = document.createElement('style');
+    styleEl.id = '_cdr_pdf_style';
+    styleEl.textContent = `
+      ._cdr-pdf table{border-collapse:collapse;width:100%}
+      ._cdr-pdf th,._cdr-pdf td{border:1px solid #000;padding:2px 3px;vertical-align:middle}
+      ._cdr-pdf th{text-align:center;font-size:6.5pt;background:#f0f0f0}
+      ._cdr-pdf .nb td,._cdr-pdf .nb th{border:none}
+      ._cdr-pdf .right{text-align:right} ._cdr-pdf .center{text-align:center} ._cdr-pdf .bold{font-weight:bold}
+      ._cdr-pdf .sig{border-top:1px solid #000;text-align:center;padding-top:3px;margin-top:30px}
+    `;
+    document.head.appendChild(styleEl);
+
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;font-family:Arial,sans-serif;font-size:7.5pt;color:#000;width:330mm;padding:8mm 10mm';
+    wrap.className = '_cdr-pdf';
+    // position:absolute at top-left (visibility:hidden) — html2canvas cannot render position:fixed off-screen
+    wrap.style.cssText = 'position:absolute;top:0;left:0;width:330mm;padding:8mm 10mm;background:#fff;font-family:Arial,sans-serif;font-size:7.5pt;color:#000;visibility:hidden;pointer-events:none;z-index:-9999;';
     wrap.innerHTML = `
-<style>
-  table{border-collapse:collapse;width:100%}
-  th,td{border:1px solid #000;padding:2px 3px;vertical-align:middle}
-  th{text-align:center;font-size:6.5pt;background:#f0f0f0}
-  .nb td,.nb th{border:none}.right{text-align:right}.center{text-align:center}.bold{font-weight:bold}
-  .sig{border-top:1px solid #000;text-align:center;padding-top:3px;margin-top:30px}
-</style>
 <table class="nb"><tr><td class="center bold" style="font-size:10pt">DEPED LEYTE DIVISION</td><td></td></tr>
 <tr><td class="center bold" style="font-size:10pt">${sName}</td><td class="right" style="font-style:italic;font-size:8pt">Appendix 43</td></tr></table>
 <br/><div class="center bold" style="font-size:11pt;text-decoration:underline">CASH DISBURSEMENTS REGISTER</div><br/>
@@ -613,6 +622,8 @@ const CDRView = {
 </tr></table>`;
 
     document.body.appendChild(wrap);
+    // Allow browser to compute layout before html2canvas captures
+    await new Promise(r => setTimeout(r, 200));
     App.toast('Generating PDF…');
     try {
       await html2pdf().set({
@@ -625,6 +636,8 @@ const CDRView = {
       App.toast('PDF downloaded!');
     } finally {
       document.body.removeChild(wrap);
+      const se = document.getElementById('_cdr_pdf_style');
+      if (se) se.remove();
     }
   },
 
