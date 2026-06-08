@@ -372,8 +372,8 @@ const CDRView = {
           </tr></thead>
           <tbody>
             <tr class="bg-blue-50 text-xs font-semibold">
-              <td colspan="7">Opening Balance</td>
-              <td class="text-right font-bold">${fmt(header.opening_balance)}</td>
+              <td colspan="7">Cash Advance</td>
+              <td class="text-right font-bold">${fmt(header.cash_advance != null ? header.cash_advance : header.opening_balance)}</td>
               <td></td>
             </tr>
             ${rows.length === 0
