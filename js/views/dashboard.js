@@ -472,15 +472,20 @@ const AllFundsDashboardView = {
     const liqPct    = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
     const unliqPct  = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
 
-    // ---- Needs Attention: unliquidated AND issued >60 days ago ----
+    // ---- Needs Attention: past deadline (if set) OR unliquidated >60 days ----
     const attention = unliqFunds
       .map(f => {
-        const issued  = f.ada_date ? new Date(f.ada_date + 'T00:00:00') : null;
+        const deadline = f.deadline ? new Date(f.deadline + 'T00:00:00') : null;
+        const issued   = f.ada_date ? new Date(f.ada_date + 'T00:00:00') : null;
+        if (deadline) {
+          const daysOverdue = Math.floor((today - deadline) / 86400000);
+          return { f, school: schools.find(s => s.id === f.school_id), daysOverdue, hasDeadline: true };
+        }
         const daysOld = issued ? Math.floor((today - issued) / 86400000) : 0;
-        return { f, school: schools.find(s => s.id === f.school_id), daysOld };
+        return { f, school: schools.find(s => s.id === f.school_id), daysOverdue: daysOld, hasDeadline: false };
       })
-      .filter(item => item.daysOld > OVERDUE_DAYS)
-      .sort((a, b) => b.daysOld - a.daysOld);
+      .filter(item => item.daysOverdue > (item.hasDeadline ? 0 : OVERDUE_DAYS))
+      .sort((a, b) => b.daysOverdue - a.daysOverdue);
 
     // ---- MOOE / Special split ----
     function splitTotals(arr) {
@@ -505,7 +510,7 @@ const AllFundsDashboardView = {
       card('Total Downloaded', fmt(totalAmt),              '#1d6fb0', funds.length + ' release' + (funds.length !== 1 ? 's' : '')) +
       card('Liquidated',       fmt(liqAmt),                '#16a34a', liqPct  + '% of total') +
       card('Unliquidated',     fmt(unliqAmt),              '#b45309', unliqPct + '% of total') +
-      card('Needs Attention',  String(attention.length),   '#dc2626', '>60 days unliquidated');
+      card('Needs Attention',  String(attention.length),   '#dc2626', 'past deadline or >60 days');
 
     // ---- Fund-split table ----
     const pctBadge = (n, green) => {
@@ -573,7 +578,7 @@ const AllFundsDashboardView = {
       <div class="section-card">
         <div class="section-card-header">
           <h3>Needs Attention</h3>
-          <span class="text-xs text-gray-500">Unliquidated &gt;60 days — worst first</span>
+          <span class="text-xs text-gray-500">Past deadline or unliquidated &gt;60 days — worst first</span>
         </div>
         <div class="table-scroll">
           <table class="data-table">
@@ -581,17 +586,19 @@ const AllFundsDashboardView = {
               <th>School</th><th>Fund Type</th>
               <th class="text-right">Amount</th>
               <th>ADA Date</th>
-              <th class="text-right">Days Old</th>
+              <th>Deadline</th>
+              <th class="text-right">Days Overdue</th>
             </tr></thead>
             <tbody>
-              ${attention.map(({ f, school, daysOld }) => `
+              ${attention.map(({ f, school, daysOverdue, hasDeadline }) => `
               <tr>
                 <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
                 <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
                 <td class="text-right font-semibold">${fmt(f.amount)}</td>
                 <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
+                <td class="text-xs whitespace-nowrap${hasDeadline ? ' font-semibold text-red-600' : ' text-gray-400'}">${f.deadline ? compactDate(f.deadline) : '—'}</td>
                 <td class="text-right">
-                  <span class="badge" style="background:#fef3c7;color:#92400e">${daysOld}d</span>
+                  <span class="badge" style="background:${hasDeadline ? '#fee2e2' : '#fef3c7'};color:${hasDeadline ? '#991b1b' : '#92400e'}">${daysOverdue}d</span>
                 </td>
               </tr>`).join('')}
             </tbody>
