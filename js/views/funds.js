@@ -126,7 +126,7 @@ const FundsView = {
         ${this._category === 'special' ? '<th>Bank</th>' : ''}
         <th class="text-right">Amount</th>
         <th>Status</th>
-        <th>Remarks</th>
+        <th>Deadline</th>
         ${isAdmin ? '<th>Actions</th>' : ''}
       </tr></thead>
       <tbody>
@@ -144,7 +144,7 @@ const FundsView = {
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="text-right font-semibold">${fmt(r.amount)}</td>
             <td>${badge}</td>
-            <td class="text-xs text-gray-500">${r.remarks || ''}</td>
+            <td class="text-xs text-gray-500">${r.deadline ? formatDate(r.deadline) : (r.remarks || '—')}</td>
             ${isAdmin ? `
             <td>
               <div class="flex gap-1">
@@ -237,8 +237,8 @@ const FundsView = {
             </select>
           </div>
           <div class="col-span-2">
-            <label class="form-label">Remarks</label>
-            <input id="fd-remarks" type="text" class="form-input" placeholder="e.g. submitted 4/4/2025" value="${rec?.remarks||''}" />
+            <label class="form-label">Deadline</label>
+            <input id="fd-remarks" type="date" class="form-input" value="${rec?.deadline||rec?.remarks||''}" />
           </div>
         </div>
         <div class="flex gap-2 justify-end">
@@ -261,7 +261,8 @@ const FundsView = {
       amount:     parseFloat(document.getElementById('fd-amount').value) || 0,
       year:       parseInt(document.getElementById('fd-year').value),
       status:     document.getElementById('fd-status').value,
-      remarks:    document.getElementById('fd-remarks').value.trim(),
+      deadline:   document.getElementById('fd-remarks').value || '',
+      remarks:    '',
     };
     const { error } = await DB.upsertFund(row);
     if (error) { App.toast('Error: ' + error, 'error'); return; }
