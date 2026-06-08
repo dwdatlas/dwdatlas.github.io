@@ -528,7 +528,14 @@ const AllFundsDashboardView = {
       <div class="section-card">
         <div class="section-card-header"><h3>Fund Split</h3></div>
         <div class="table-scroll">
-          <table class="data-table">
+          <table class="data-table" style="table-layout:fixed;width:100%">
+            <colgroup>
+              <col style="width:28%">
+              <col style="width:20%">
+              <col style="width:20%">
+              <col style="width:22%">
+              <col style="width:10%">
+            </colgroup>
             <thead><tr>
               <th>Category</th>
               <th style="text-align:right">Downloaded</th>
