@@ -7,11 +7,9 @@ const FundsView = {
   _schools: [],
   _category: '',
   _batchFunds: [],
-  _bankFilter: '',
 
   async render(category = '') {
-    this._category   = category;
-    this._bankFilter = '';
+    this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const [schoolsRes, ftRes] = await Promise.all([DB.getSchools(), DB.getFundTypes(category)]);
@@ -67,13 +65,6 @@ const FundsView = {
             <button class="btn btn-primary flex-1" onclick="FundsView.openBatch()">+ Add</button>
           </div>` : '<div></div>'}
         </div>
-        ${this._category === 'special' ? `
-        <div class="mt-3 flex items-center gap-2">
-          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Bank</span>
-          <button type="button" id="f-bank-all" class="btn btn-sm btn-primary"    onclick="FundsView.filterBank('')">All</button>
-          <button type="button" id="f-bank-lbp" class="btn btn-sm btn-secondary"  onclick="FundsView.filterBank('LBP')">LBP</button>
-          <button type="button" id="f-bank-dbp" class="btn btn-sm btn-secondary"  onclick="FundsView.filterBank('DBP')">DBP</button>
-        </div>` : ''}
       </div>
     </div>
 
@@ -92,15 +83,6 @@ const FundsView = {
     await this.load();
   },
 
-  filterBank(bank) {
-    this._bankFilter = bank;
-    ['', 'LBP', 'DBP'].forEach(b => {
-      const btn = document.getElementById(`f-bank-${b || 'all'}`);
-      if (btn) btn.className = 'btn btn-sm ' + (b === bank ? 'btn-primary' : 'btn-secondary');
-    });
-    this.load();
-  },
-
   async load() {
     const school_id = this._schoolId || document.getElementById('f-school')?.value || '';
     const year      = document.getElementById('f-year')?.value   || '';
@@ -117,7 +99,6 @@ const FundsView = {
     if (fundType) rows = rows.filter(r => (r.fund_type || '').toLowerCase().includes(fundType.toLowerCase()));
     if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
     if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
-    if (this._category === 'special' && this._bankFilter) rows = rows.filter(r => (r.bank || '') === this._bankFilter);
 
     const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const el = document.getElementById('funds-body');
