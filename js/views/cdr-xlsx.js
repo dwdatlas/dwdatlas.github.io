@@ -4,6 +4,7 @@
 const CDRXlsx = {
   async test() {
     try {
+      if (typeof XlsxPopulate === 'undefined') { App.toast('XlsxPopulate not loaded — check CDN in console.', 'error'); return; }
       App.toast('Loading template for format test…');
       const resp = await fetch('assets/cdr_template.xlsx');
       if (!resp.ok) throw new Error('Template not found');
