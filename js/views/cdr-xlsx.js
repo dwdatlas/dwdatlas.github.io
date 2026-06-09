@@ -96,6 +96,8 @@ const CDRXlsx = {
           else if (code === '5021202000') { ws.cell(rn, 9).value(pay).style('numberFormat', NUM); sumI += pay; }
           else {
             const desc = e.uacs_desc || '';
+            if (desc) ws.cell(rn, 10).value(desc);
+            if (code) ws.cell(rn, 11).value(code);
             ws.cell(rn, 12).value(pay).style('numberFormat', NUM);
             sumL += pay;
             recap.push({ desc, code, amt: pay });
