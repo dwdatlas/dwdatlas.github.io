@@ -628,14 +628,7 @@ function formatDate(d) {
 }
 function compactDate(d) {
   if (!d) return '—';
-  const dt    = new Date(d + 'T00:00:00');
-  const curYr = new Date().getFullYear();
-  const dtYr  = dt.getFullYear();
-  const mon   = dt.toLocaleDateString('en-PH', { month: 'short' });
-  const day   = dt.getDate();
-  return dtYr === curYr
-    ? `${mon} ${day}`
-    : `${mon} ${day}, '${String(dtYr).slice(-2)}`;
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 function bankBadge(fund_type) {
   const ft = (fund_type || '').toUpperCase();
