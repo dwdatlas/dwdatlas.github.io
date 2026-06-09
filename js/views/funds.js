@@ -217,7 +217,7 @@ const FundsView = {
           <label class="form-label">Deadline</label>
           <input id="fb-deadline" type="date" class="form-input" />
         </div>
-        <div id="fb-bank-wrap" class="col-span-2 md:col-span-3 hidden">
+        <div id="fb-bank-wrap" class="col-span-2 md:col-span-3 ${this._category === 'special' ? '' : 'hidden'}">
           <label class="form-label">Bank</label>
           <select id="fb-bank" class="form-select">
             ${BANKS.map(b=>`<option value="${b}">${b}</option>`).join('')}
