@@ -1,11 +1,12 @@
 // ============================================================
 // CDR EXCEL DOWNLOAD  —  fills assets/cdr_template.xlsx
+// Uses SheetJS (XLSX) — already loaded — for reliable template edits
 // ============================================================
 const CDRExcel = {
   async download(id) {
     try {
-      if (typeof ExcelJS === 'undefined') {
-        App.toast('Excel library not loaded. Please refresh the page.', 'error');
+      if (typeof XLSX === 'undefined') {
+        App.toast('SheetJS library not loaded. Please refresh.', 'error');
         return;
       }
 
@@ -36,7 +37,7 @@ const CDRExcel = {
         if (injected.length > allEntries.length) { allEntries = injected; startBal = 0; }
       }
 
-      // Compute running balances in JS — avoids ExcelJS formula-object issues
+      // Compute running balances in JS
       const COL_OFF = '5020301000', COL_GEN = '5021299000', COL_JAN = '5021202000';
       let bal = startBal;
       const rows = allEntries.map((e, i) => {
@@ -53,57 +54,93 @@ const CDRExcel = {
         return { e, i, adv, pay, bal, isOff, isGen, isJan, isOth, desc };
       });
 
-      // Load workbook from template buffer
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await tplResp.arrayBuffer());
+      // Load template with SheetJS (cellStyles preserves s= attributes on cells)
+      const buf = new Uint8Array(await tplResp.arrayBuffer());
+      const wb  = XLSX.read(buf, { type: 'array', cellStyles: true, cellDates: false });
 
       // Find and rename target sheet
-      const ws = wb.worksheets.find(s => s.name.endsWith(suffix));
-      if (!ws) throw new Error(`No sheet ending in "${suffix}" found in template`);
-      ws.name = shortName + suffix;
+      const wsIdx = wb.SheetNames.findIndex(n => n.endsWith(suffix));
+      if (wsIdx === -1) throw new Error(`No sheet ending in "${suffix}" found in template`);
+      const ws      = wb.Sheets[wb.SheetNames[wsIdx]];
+      const oldName = wb.SheetNames[wsIdx];
+      const newName = shortName + suffix;
+      wb.SheetNames[wsIdx] = newName;
+      wb.Sheets[newName]   = ws;
+      if (oldName !== newName) delete wb.Sheets[oldName];
 
       // Remove other quarter sheets; keep UACS
-      wb.worksheets
-        .filter(s => s !== ws && s.name !== 'UACS')
-        .forEach(s => wb.removeWorksheet(s.id));
+      [...wb.SheetNames].forEach(n => {
+        if (n === newName || n === 'UACS') return;
+        wb.SheetNames.splice(wb.SheetNames.indexOf(n), 1);
+        delete wb.Sheets[n];
+      });
 
-      // Write header cells (top-left of each merged region)
-      ws.getCell('A3').value  = sName;
-      ws.getCell('A8').value  = `Entity Name: ${sName}`;
-      ws.getCell('I8').value  = `Name of Accountable Officer: ${school.school_head || ''}`;
-      ws.getCell('I9').value  = `Official Designation: ${school.designation || ''}`;
-      ws.getCell('I10').value = `Station: ${shortName}`;
-      ws.getCell('I11').value = `Register No. : ${header.register_no || '_____'}`;
-      ws.getCell('I12').value = `Sheet No. : ${header.sheet_no || '_____'}`;
+      // In-place cell helpers — update value without destroying style (s= attribute)
+      const enc = (r, c) => XLSX.utils.encode_cell({ r: r - 1, c: c - 1 });
 
-      // Overwrite data rows 19–65 directly (no eachCell clear — avoids ExcelJS model corruption)
-      const FIRST_ROW = 19, LAST_ROW = 65;
-      for (let i = 0; i < rows.length && (FIRST_ROW + i) <= LAST_ROW; i++) {
-        const { e, adv, pay, bal: b, isOff, isGen, isJan, isOth, desc } = rows[i];
-        const rn = FIRST_ROW + i;
-        ws.getCell(rn, 1).value  = e.entry_date ? new Date(e.entry_date + 'T00:00:00') : null;
-        ws.getCell(rn, 2).value  = e.ref_no || null;
-        ws.getCell(rn, 3).value  = e.particulars || null;
-        ws.getCell(rn, 4).value  = (i === 0 && adv > 0) ? adv : null;
-        ws.getCell(rn, 5).value  = pay > 0 ? pay : null;
-        ws.getCell(rn, 6).value  = b;
-        ws.getCell(rn, 7).value  = isOff ? pay : null;
-        ws.getCell(rn, 8).value  = isGen ? pay : null;
-        ws.getCell(rn, 9).value  = isJan ? pay : null;
-        ws.getCell(rn, 10).value = isOth ? (desc || null) : null;
-        ws.getCell(rn, 11).value = isOth ? (e.uacs_code || null) : null;
-        ws.getCell(rn, 12).value = isOth ? pay : null;
+      const setStr = (a, v) => {
+        const cell = ws[a] || {};
+        ws[a] = { ...cell, v: String(v), t: 's', w: String(v) };
+        delete ws[a].f;
+      };
+      const setNum = (a, v, z) => {
+        const cell = ws[a] || {};
+        ws[a] = { ...cell, v, t: 'n' };
+        if (z) ws[a].z = z;
+        delete ws[a].f;
+        delete ws[a].w;
+      };
+      const clr = a => {
+        const cell = ws[a];
+        if (cell) { ws[a] = { ...cell, v: '', t: 's', w: '' }; delete ws[a].f; }
+      };
+
+      // Excel date serial (days since Jan 0, 1900; accounts for Excel's leap-year bug)
+      const toSerial = dateStr => {
+        const ms = new Date(dateStr + 'T00:00:00Z').getTime();
+        return Math.round(ms / 86400000) + 25569;
+      };
+
+      // ── Header cells ──
+      setStr('A3',  sName);
+      setStr('A8',  `Entity Name: ${sName}`);
+      setStr('I8',  `Name of Accountable Officer: ${school.school_head || ''}`);
+      setStr('I9',  `Official Designation: ${school.designation || ''}`);
+      setStr('I10', `Station: ${shortName}`);
+      setStr('I11', `Register No. : ${header.register_no || '_____'}`);
+      setStr('I12', `Sheet No. : ${header.sheet_no || '_____'}`);
+
+      // ── Clear data rows 19-65, columns A-L ──
+      const FIRST = 19, LAST = 65;
+      for (let r = FIRST; r <= LAST; r++) {
+        for (let c = 1; c <= 12; c++) clr(enc(r, c));
       }
 
-      // Null-out any leftover template rows below our data
-      for (let r = FIRST_ROW + rows.length; r <= LAST_ROW; r++) {
-        for (let c = 1; c <= 12; c++) ws.getCell(r, c).value = null;
-      }
+      // ── Write data rows ──
+      rows.forEach(({ e, i, adv, pay, bal: b, isOff, isGen, isJan, isOth, desc }) => {
+        const rn = FIRST + i;
+        if (rn > LAST) return;
 
-      // Trigger download
+        if (e.entry_date)  setNum(enc(rn, 1), toSerial(e.entry_date), 'MM/DD/YYYY');
+        if (e.ref_no)      setStr(enc(rn, 2), e.ref_no);
+        if (e.particulars) setStr(enc(rn, 3), e.particulars);
+        if (i === 0 && adv > 0) setNum(enc(rn, 4), adv, '#,##0.00');
+        if (pay > 0)            setNum(enc(rn, 5), pay, '#,##0.00');
+        setNum(enc(rn, 6), b, '#,##0.00');
+        if (isOff) setNum(enc(rn, 7), pay, '#,##0.00');
+        if (isGen) setNum(enc(rn, 8), pay, '#,##0.00');
+        if (isJan) setNum(enc(rn, 9), pay, '#,##0.00');
+        if (isOth) {
+          if (desc)        setStr(enc(rn, 10), desc);
+          if (e.uacs_code) setStr(enc(rn, 11), e.uacs_code);
+          setNum(enc(rn, 12), pay, '#,##0.00');
+        }
+      });
+
+      // ── Download ──
       const safeName = shortName.replace(/[\s/\\]+/g, '_');
-      const buf  = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const out  = XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellStyles: true });
+      const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href     = url;
