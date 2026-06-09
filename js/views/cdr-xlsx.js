@@ -96,8 +96,6 @@ const CDRXlsx = {
           else if (code === '5021202000') { ws.cell(rn, 9).value(pay).style('numberFormat', NUM); sumI += pay; }
           else {
             const desc = e.uacs_desc || '';
-            if (desc) ws.cell(rn, 10).value(desc);
-            if (code) ws.cell(rn, 11).value(code);
             ws.cell(rn, 12).value(pay).style('numberFormat', NUM);
             sumL += pay;
             recap.push({ desc, code, amt: pay });
@@ -115,7 +113,15 @@ const CDRXlsx = {
       ws.cell(tRow, 9).value(sumI).style('numberFormat', NUM);
       ws.cell(tRow, 12).value(sumL).style('numberFormat', NUM);
 
-      // ── Recap section ──
+      // ── Recap section — group by UACS code, sum amounts ──
+      const recapMap = new Map();
+      recap.forEach(({ desc, code, amt }) => {
+        const key = code || desc;
+        if (recapMap.has(key)) recapMap.get(key).amt += amt;
+        else recapMap.set(key, { desc, code, amt });
+      });
+      const recapGrouped = [...recapMap.values()];
+
       const acctRow = findRow('account description', tRow + 1, 120);
       if (acctRow) {
         for (let r = acctRow + 1; r < acctRow + 12; r++) {
@@ -123,7 +129,7 @@ const CDRXlsx = {
           ws.cell(r, 11).value(null);
           ws.cell(r, 12).value(null);
         }
-        recap.forEach((item, i) => {
+        recapGrouped.forEach((item, i) => {
           const r = acctRow + 1 + i;
           if (item.desc) ws.cell(r, 10).value(item.desc);
           if (item.code) ws.cell(r, 11).value(item.code);
