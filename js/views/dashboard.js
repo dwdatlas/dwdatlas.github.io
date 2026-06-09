@@ -567,10 +567,10 @@ const AllFundsDashboardView = {
             </colgroup>
             <thead><tr>
               <th>Category</th>
-              <th style="text-align:right">Downloaded</th>
-              <th style="text-align:right">Liquidated</th>
-              <th style="text-align:right">Unliquidated</th>
-              <th style="text-align:right">Liq %</th>
+              <th class="text-right">Downloaded</th>
+              <th class="text-right">Liquidated</th>
+              <th class="text-right">Unliquidated</th>
+              <th class="text-right">Liq %</th>
             </tr></thead>
             <tbody>
               ${splitRow('MOOE', mRow)}
