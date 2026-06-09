@@ -559,11 +559,11 @@ const AllFundsDashboardView = {
         <div class="table-scroll">
           <table class="data-table" style="table-layout:fixed;width:100%">
             <colgroup>
-              <col style="width:28%">
               <col style="width:20%">
               <col style="width:20%">
-              <col style="width:22%">
-              <col style="width:10%">
+              <col style="width:20%">
+              <col style="width:20%">
+              <col style="width:20%">
             </colgroup>
             <thead><tr>
               <th>Category</th>
