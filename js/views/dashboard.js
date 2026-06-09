@@ -83,10 +83,20 @@ const DashboardView = {
     const schoolCnt = new Set(funds.map(f => f.school_id).filter(Boolean)).size;
     const el = document.getElementById('dash-summary');
     if (!el) return;
+    
+    const clickableCard = (title, value, color, sub, status) => `
+      <div class="stat-card" style="background:${color};cursor:pointer;transition:all 0.2s" 
+        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" 
+        onclick="DashboardView.filterByStatus('${status}')">
+        <div class="text-xs font-semibold uppercase tracking-wide mb-1" style="color:rgba(255,255,255,0.75)">${title}</div>
+        <div class="text-2xl font-bold mb-1" style="color:#fff">${value}</div>
+        <div class="text-xs" style="color:rgba(255,255,255,0.65)">${sub}</div>
+      </div>`;
+    
     el.innerHTML =
       statCard('Total Downloaded', fmt(totalAmt),       '#1d6fb0', `${schoolCnt} school${schoolCnt !== 1 ? 's' : ''}`) +
-      statCard('Liquidated',       fmt(liqAmt),         '#16a34a', `${liqPct}% of total`) +
-      statCard('Unliquidated',     fmt(unliqAmt),       '#78350f', `${unliqPct}% of total`) +
+      clickableCard('Liquidated',       fmt(liqAmt),         '#16a34a', `${liqPct}% of total`, 'liquidated') +
+      clickableCard('Unliquidated',     fmt(unliqAmt),       '#78350f', `${unliqPct}% of total`, 'unliquidated') +
       statCard('Needs Attention',  String(unliqCnt),    '#dc2626', 'unliquidated releases');
   },
 
@@ -108,6 +118,19 @@ const DashboardView = {
     this._specialFund = '';
     this._specialTab  = 'all';
     this._renderSummary();
+    if (this._mode !== 'special') this._renderMOOE();
+    if (this._mode !== 'mooe')    this._renderSpecial();
+  },
+
+  filterByStatus(status) {
+    // Toggle: if already filtered by this status, go back to 'all'
+    if (this._mooeTab === status && this._specialTab === status) {
+      this._mooeTab = 'all';
+      this._specialTab = 'all';
+    } else {
+      this._mooeTab = status;
+      this._specialTab = status;
+    }
     if (this._mode !== 'special') this._renderMOOE();
     if (this._mode !== 'mooe')    this._renderSpecial();
   },
@@ -443,12 +466,19 @@ const AllFundsDashboardView = {
   _schools: [],
 
   async render() {
+    const schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const [fundsRes, schoolsRes] = await Promise.all([DB.getFunds(), DB.getSchools()]);
-    this._funds   = (fundsRes.data || []).map(f => ({
+    let funds   = (fundsRes.data || []).map(f => ({
       ...f,
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
-    this._schools = schoolsRes.data || [];
+    let schools = schoolsRes.data || [];
+    if (schoolId) {
+      funds   = funds.filter(f => f.school_id === schoolId);
+      schools = schools.filter(s => s.id === schoolId);
+    }
+    this._funds   = funds;
+    this._schools = schools;
     return `
       <div id="afd-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
       <div id="afd-split"   class="mb-6"></div>
