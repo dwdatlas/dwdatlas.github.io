@@ -41,8 +41,8 @@ const FundsView = {
           <div>
             <label class="form-label">Year</label>
             <select id="f-year" class="form-select" onchange="FundsView.load()">
-              <option value="">All Years</option>
-              ${years.map(y=>`<option value="${y}" ${y===yr?'selected':''}>${y}</option>`).join('')}
+              <option value="" ${this._category === 'special' ? 'selected' : ''}>All Years</option>
+              ${years.map(y=>`<option value="${y}" ${this._category !== 'special' && y===yr ? 'selected' : ''}>${y}</option>`).join('')}
             </select>
           </div>
           <div>
@@ -121,7 +121,7 @@ const FundsView = {
         <th>ADA No.</th>
         <th>ADA Date</th>
         <th>Fund Type</th>
-        <th>Quarter</th>
+        ${this._category !== 'special' ? '<th>Quarter</th>' : ''}
         ${!this._schoolId ? '<th>School</th>' : ''}
         ${this._category === 'special' ? '<th>Bank</th>' : ''}
         <th class="text-right">Amount</th>
@@ -140,7 +140,7 @@ const FundsView = {
             <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
             <td class="text-xs">${r.fund_type || '—'}</td>
-            <td class="text-xs text-center">${r.quarter || '—'}</td>
+            ${this._category !== 'special' ? `<td class="text-xs text-center">${r.quarter || '—'}</td>` : ''}
             ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="text-right font-semibold">${fmt(r.amount)}</td>
@@ -197,9 +197,9 @@ const FundsView = {
             <option value="2026">2026</option>
           </select>
         </div>
-        <div>
+        <div id="fb-quarter-wrap" ${this._category === 'special' ? 'class="hidden"' : ''}>
           <label class="form-label">Quarter *</label>
-          <select id="fb-quarter" class="form-select" required>
+          <select id="fb-quarter" class="form-select">
             <option value="Q1">Q1 (Jan–Mar)</option>
             <option value="Q2">Q2 (Apr–Jun)</option>
             <option value="Q3">Q3 (Jul–Sep)</option>
@@ -260,10 +260,11 @@ const FundsView = {
   },
 
   onBatchFundTypeChange() {
-    const ft     = document.getElementById('fb-fund-type')?.value || '';
-    const isMOOE = ft && typeof DashboardView !== 'undefined' && DashboardView._isMOOE(ft);
-    const yearSel = document.getElementById('fb-year');
-    const bankWrap = document.getElementById('fb-bank-wrap');
+    const ft         = document.getElementById('fb-fund-type')?.value || '';
+    const isMOOE     = ft && typeof DashboardView !== 'undefined' && DashboardView._isMOOE(ft);
+    const yearSel    = document.getElementById('fb-year');
+    const bankWrap   = document.getElementById('fb-bank-wrap');
+    const qWrap      = document.getElementById('fb-quarter-wrap');
 
     if (yearSel) {
       yearSel.innerHTML = isMOOE
@@ -271,6 +272,7 @@ const FundsView = {
         : '<option value="2026">2026</option><option value="2025">2025</option>';
     }
     if (bankWrap) bankWrap.classList.toggle('hidden', !!isMOOE);
+    if (qWrap)    qWrap.classList.toggle('hidden', !isMOOE);
     this.checkDuplicates();
   },
 
@@ -308,7 +310,7 @@ const FundsView = {
     const adaNo    = document.getElementById('fb-ada-no').value.trim();
     const adaDate  = document.getElementById('fb-ada-date').value;
     const year     = parseInt(document.getElementById('fb-year').value);
-    const quarter  = document.getElementById('fb-quarter').value;
+    const quarter  = this._category !== 'special' ? (document.getElementById('fb-quarter')?.value || '') : '';
     const status   = document.getElementById('fb-status').value;
     const deadline = document.getElementById('fb-deadline').value || '';
     const bank     = document.getElementById('fb-bank')?.value || '';
@@ -401,12 +403,13 @@ const FundsView = {
             ${years.map(y=>`<option value="${y}" ${(rec.year||yr)==y?'selected':''}>${y}</option>`).join('')}
           </select>
         </div>
+        ${this._category !== 'special' ? `
         <div>
           <label class="form-label">Quarter</label>
           <select id="fd-quarter" class="form-select">
             ${['Q1','Q2','Q3','Q4'].map(q=>`<option value="${q}" ${rec.quarter===q?'selected':''}>${q}</option>`).join('')}
           </select>
-        </div>
+        </div>` : ''}
         <div>
           <label class="form-label">Status *</label>
           <select id="fd-status" class="form-select" required>
@@ -446,7 +449,7 @@ const FundsView = {
       fund_type:document.getElementById('fd-fund').value,
       amount:   parseFloat(document.getElementById('fd-amount').value) || 0,
       year:     parseInt(document.getElementById('fd-year').value),
-      quarter:  document.getElementById('fd-quarter').value,
+      quarter:  document.getElementById('fd-quarter')?.value || rec?.quarter || '',
       status:   document.getElementById('fd-status').value,
       deadline: document.getElementById('fd-deadline').value || '',
       bank:     document.getElementById('fd-bank')?.value || rec?.bank || '',
