@@ -1201,7 +1201,6 @@ const CDRView = {
 </body></html>`);
     w.document.close();
   },
-};
 
   // ---- Auto-create CDR headers from unliquidated funds (admin only) ----
   async autoCreateFromFunds() {
