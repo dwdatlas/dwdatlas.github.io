@@ -160,15 +160,6 @@ const CDRView = {
             ${years.map(y => `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}</option>`).join('')}
           </select>
         </div>
-        <div>
-          <label class="form-label">Quarter *</label>
-          <select id="cdr-quarter" class="form-select" required>
-            <option value="Q1">Q1 (Jan–Mar)</option>
-            <option value="Q2">Q2 (Apr–Jun)</option>
-            <option value="Q3">Q3 (Jul–Sep)</option>
-            <option value="Q4">Q4 (Oct–Dec)</option>
-          </select>
-        </div>
         <div class="col-span-2">
           <label class="form-label">Fund Type</label>
           <select id="cdr-fund-type" class="form-select">
@@ -176,11 +167,6 @@ const CDRView = {
             ${ftOpts}
           </select>
         </div>
-        ${this._category !== 'mooe' ? `
-        <div class="col-span-2">
-          <label class="form-label">Opening Balance (Advances Received)</label>
-          <input id="cdr-opening" type="number" step="0.01" class="form-input" placeholder="0.00" value="0" />
-        </div>` : '<input type="hidden" id="cdr-opening" value="0" />'}
       </div>
       <div class="flex gap-2 justify-end">
         <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
@@ -194,7 +180,6 @@ const CDRView = {
     e.preventDefault();
     const schoolId  = document.getElementById('cdr-school').value;
     const year      = parseInt(document.getElementById('cdr-year').value);
-    const quarter   = document.getElementById('cdr-quarter').value;
     const fundType  = document.getElementById('cdr-fund-type').value;
 
     const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
@@ -206,15 +191,31 @@ const CDRView = {
     matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
     const matchingFund = matched[0] || null;
 
+    // Auto-derive quarter from matching fund's fund_type name or ada_date
+    let quarter = 'Q1';
+    const src = matchingFund || null;
+    if (src) {
+      const ft = (src.fund_type || '').toLowerCase();
+      if      (ft.includes('1st quarter')) quarter = 'Q1';
+      else if (ft.includes('2nd quarter')) quarter = 'Q2';
+      else if (ft.includes('3rd quarter')) quarter = 'Q3';
+      else if (ft.includes('4th quarter')) quarter = 'Q4';
+      else if (src.ada_date) {
+        const mo = parseInt((src.ada_date || '').split('-')[1] || '1', 10);
+        quarter = 'Q' + Math.ceil(mo / 3);
+      }
+    } else {
+      const mo = new Date().getMonth() + 1;
+      quarter = 'Q' + Math.ceil(mo / 3);
+    }
+
     const row = {
       id:              DB.newId(),
       school_id:       schoolId,
       year,
       quarter,
       fund_type:       fundType,
-      // opening_balance is 0 when a fund release is found (advance comes in as entry row)
-      // fallback to user-entered value for Special Funds with no matching release
-      opening_balance: matchingFund ? 0 : (this._category !== 'mooe' ? (parseFloat(document.getElementById('cdr-opening').value) || 0) : 0),
+      opening_balance: 0,
       entry_count:     matchingFund ? 1 : 0,
     };
 
