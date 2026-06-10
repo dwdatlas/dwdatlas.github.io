@@ -292,8 +292,8 @@ const CDRView = {
       <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
         ← Back to CDR List
       </button>
-      <button class="btn btn-primary btn-sm" onclick="CDRPdf.print('${id}')">
-        Print CDR
+      <button class="btn btn-primary btn-sm" onclick="CDRXlsx.download('${id}')">
+        Download Excel
       </button>
     </div>
 
