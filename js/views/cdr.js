@@ -7,7 +7,6 @@ const CDRView = {
   async render(category = '') {
     this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
-    const isAdmin   = typeof Auth !== 'undefined' && Auth.isAdmin();
     const [schoolsRes] = await Promise.all([DB.getSchools()]);
     const schools = schoolsRes.data || [];
 
@@ -63,9 +62,6 @@ const CDRView = {
     <div class="section-card">
       <div class="section-card-header">
         <h3>CDR List</h3>
-        ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.autoCreateFromFunds()">
-          Auto-create from Unliquidated Funds
-        </button>` : ''}
       </div>
       <div id="cdr-list-body" class="table-scroll">
         <div class="flex justify-center py-10"><div class="spinner"></div></div>
@@ -1201,78 +1197,7 @@ const CDRView = {
 </body></html>`);
     w.document.close();
   },
-
-  // ---- Auto-create CDR headers from unliquidated funds (admin only) ----
-  async autoCreateFromFunds() {
-    if (!(typeof Auth !== 'undefined' && Auth.isAdmin())) return;
-
-    App.toast('Scanning unliquidated funds…');
-
-    const [fundsRes, headersRes] = await Promise.all([
-      DB.getFunds(),
-      DB.getCDRHeaders(),
-    ]);
-
-    let funds = (fundsRes.data || []).filter(f => f.status !== 'liquidated');
-    if (this._category === 'mooe')    funds = funds.filter(f => DashboardView._isMOOE(f.fund_type));
-    if (this._category === 'special') funds = funds.filter(f => !DashboardView._isMOOE(f.fund_type));
-
-    const existingHeaders = headersRes.data || [];
-    const existingFundIds = new Set(existingHeaders.map(h => h.fund_id).filter(Boolean));
-    const existingKeys    = new Set(existingHeaders.map(h => `${h.school_id}|${h.year}|${h.fund_type}`));
-
-    const toCreate = funds.filter(f => {
-      if (existingFundIds.has(f.id)) return false;
-      const yr  = _cdrFundYear(f);
-      const key = `${f.school_id}|${yr}|${f.fund_type}`;
-      return !existingKeys.has(key);
-    });
-
-    if (!toCreate.length) {
-      App.toast('All unliquidated funds already have a CDR header.');
-      return;
-    }
-
-    let created = 0;
-    for (const fund of toCreate) {
-      const row = {
-        id:              DB.newId(),
-        school_id:       fund.school_id,
-        year:            _cdrFundYear(fund),
-        quarter:         _cdrFundQuarter(fund),
-        fund_type:       fund.fund_type,
-        opening_balance: parseFloat(fund.amount) || 0,
-        entry_count:     0,
-        fund_id:         fund.id,
-      };
-      const { error } = await DB.upsertCDRHeader(row);
-      if (!error) created++;
-    }
-
-    App.toast(`Created ${created} CDR header${created !== 1 ? 's' : ''}.`);
-    await this.load();
-  },
 };
-
-// ---- Quarter / year helpers for auto-create ----
-function _cdrFundQuarter(fund) {
-  const ft = (fund.fund_type || '').toLowerCase();
-  if (ft.includes('1st quarter')) return 'Q1';
-  if (ft.includes('2nd quarter')) return 'Q2';
-  if (ft.includes('3rd quarter')) return 'Q3';
-  if (ft.includes('4th quarter')) return 'Q4';
-  if (fund.quarter) return fund.quarter;
-  if (fund.ada_date) {
-    const mo = parseInt((fund.ada_date || '').split('-')[1] || '1', 10);
-    return 'Q' + Math.ceil(mo / 3);
-  }
-  return 'Q1';
-}
-function _cdrFundYear(fund) {
-  if (fund.year) return parseInt(fund.year);
-  if (fund.ada_date) return parseInt((fund.ada_date || '').split('-')[0]) || new Date().getFullYear();
-  return new Date().getFullYear();
-}
 
 const CDRMOOEView = {
   async render()      { return CDRView.render('mooe'); },
