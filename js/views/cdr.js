@@ -390,7 +390,7 @@ const CDRView = {
             <th>Date</th>
             <th>DV / Check No.</th>
             <th>Particulars</th>
-            <th>UACS Code</th>
+            <th>UACS Name</th>
             <th class="text-right">Cash Advance</th>
             <th class="text-right">Payment</th>
             <th class="text-right">Balance</th>
@@ -401,7 +401,7 @@ const CDRView = {
               ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
               : rows.map((e, i) => {
                   const uacsLabel = e.uacs_code
-                    ? `<span class="font-mono" title="${e.uacs_desc || ''}">${e.uacs_code}</span>`
+                    ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code)
                     : '—';
                   return `
                   <tr>
