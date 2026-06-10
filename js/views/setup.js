@@ -465,6 +465,7 @@ create table if not exists disbursements (
 create table if not exists cdr_headers (
   id text primary key,
   school_id text references schools(id) on delete cascade,
+  fund_id text,
   year integer,
   quarter text,
   fund_type text,
