@@ -193,12 +193,9 @@
   <!-- Toast -->
   <div id="toast" class="hidden fixed bottom-5 right-5 z-50 text-sm px-4 py-3 rounded-lg shadow-lg max-w-xs bg-gray-900 text-white"></div>
 
-  <!-- CDN libraries (loaded after HTML renders, so login screen appears immediately) -->
+  <!-- CDN libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-  <script src="https://unpkg.com/xlsx-populate@1.21.0/browser/xlsx-populate.min.js"></script>
+  <!-- xlsx-populate is loaded on demand inside cdr-xlsx.js when Download Excel is clicked -->
 
   <!-- Scripts (order matters) -->
   <script src="js/users-data.js"></script>

@@ -3,13 +3,22 @@
 // Unused data/recap rows are hidden (not deleted) so Totals and
 // signatures visually follow the last entry.
 // ============================================================
+async function _loadXlsxPopulate() {
+  if (typeof XlsxPopulate !== 'undefined') return;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/xlsx-populate@1.21.0/browser/xlsx-populate.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load xlsx-populate'));
+    document.head.appendChild(s);
+  });
+}
+
 const CDRXlsx = {
   async download(headerId) {
     try {
-      if (typeof XlsxPopulate === 'undefined') {
-        App.toast('XlsxPopulate not loaded.', 'error');
-        return;
-      }
+      App.toast('Loading Excel library…');
+      await _loadXlsxPopulate();
 
       App.toast('Building Excel…');
 
