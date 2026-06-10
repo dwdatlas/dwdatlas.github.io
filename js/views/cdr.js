@@ -7,8 +7,9 @@ const CDRView = {
   async render(category = '') {
     this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
-    const [schoolsRes] = await Promise.all([DB.getSchools()]);
-    const schools = schoolsRes.data || [];
+    const [schoolsRes, ftRes] = await Promise.all([DB.getSchools(), DB.getFundTypes(category)]);
+    const schools   = schoolsRes.data || [];
+    const fundTypes = (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
 
     const schoolOpts = schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
@@ -43,10 +44,10 @@ const CDRView = {
             </select>
           </div>
           <div>
-            <label class="form-label">Quarter</label>
-            <select id="cdr-filter-quarter" class="form-select" onchange="CDRView.load()">
-              <option value="">All Quarters</option>
-              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            <label class="form-label">Fund Type</label>
+            <select id="cdr-filter-fundtype" class="form-select" onchange="CDRView.load()">
+              <option value="">All Fund Types</option>
+              ${fundTypes}
             </select>
           </div>
           <div class="flex items-end gap-2">
@@ -78,7 +79,7 @@ const CDRView = {
   async load() {
     const school_id = this._schoolId || document.getElementById('cdr-filter-school')?.value || '';
     const year      = document.getElementById('cdr-filter-year')?.value || '';
-    const quarter   = document.getElementById('cdr-filter-quarter')?.value || '';
+    const fundType  = document.getElementById('cdr-filter-fundtype')?.value || '';
 
     const filters = {};
     if (school_id) filters.school_id = school_id;
@@ -91,7 +92,8 @@ const CDRView = {
     let rows = data || [];
     const funds = fundsData || [];
 
-    if (quarter) rows = rows.filter(r => r.quarter === quarter);
+    const norm = s => (s || '').trim().toLowerCase();
+    if (fundType) rows = rows.filter(r => norm(r.fund_type) === norm(fundType));
     if (this._category === 'mooe') {
       rows = rows.filter(r => DashboardView._isMOOE(r.fund_type) && parseInt(r.year) === 2026);
     } else if (this._category === 'special') {
@@ -106,7 +108,6 @@ const CDRView = {
       return;
     }
 
-    const norm = s => (s || '').trim().toLowerCase();
     const fundAmt = r => {
       const f = (r.fund_id && funds.find(f => f.id === r.fund_id))
              || funds.find(f => f.school_id === r.school_id && norm(f.fund_type) === norm(r.fund_type));
@@ -119,7 +120,6 @@ const CDRView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>Year</th>
-        ${isSpecial ? '' : '<th>Quarter</th>'}
         <th>Fund Type</th>
         <th class="text-right">Fund Amount</th>
         <th>Entries</th><th>Actions</th>
@@ -129,7 +129,6 @@ const CDRView = {
         <tr>
           <td class="font-medium">${this._schoolName(r.school_id)}</td>
           <td>${r.year}</td>
-          ${isSpecial ? '' : `<td><span class="badge badge-submitted">${r.quarter}</span></td>`}
           <td class="text-xs text-gray-600">${r.fund_type || '—'}</td>
           <td class="text-right font-semibold">${fmt(fundAmt(r))}</td>
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
