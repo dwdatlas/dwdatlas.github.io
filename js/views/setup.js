@@ -469,7 +469,6 @@ create table if not exists cdr_headers (
   year integer,
   quarter text,
   fund_type text,
-  opening_balance numeric(14,2) default 0,
   register_no text,
   sheet_no text,
   entry_count integer default 0,

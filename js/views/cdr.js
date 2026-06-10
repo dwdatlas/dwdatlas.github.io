@@ -232,7 +232,6 @@ const CDRView = {
       year,
       quarter,
       fund_type:       fundType,
-      opening_balance: 0,
       entry_count:     matchingFund ? 1 : 0,
     };
 
@@ -287,8 +286,8 @@ const CDRView = {
     if (pt) pt.textContent = 'Cash Disbursement Register';
     if (ps) ps.textContent = `${school.name || ''} — ${header.year} ${header.quarter}`;
 
-    // Running balance
-    let balance = parseFloat(header.opening_balance) || 0;
+    // Running balance — starts at 0; first entry is the cash advance receipt
+    let balance = 0;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
       const pay = parseFloat(e.payment) || 0;
@@ -298,7 +297,7 @@ const CDRView = {
 
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
     const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment) || 0), 0);
-    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : (parseFloat(header.opening_balance) || 0);
+    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : 0;
 
     const uacsOpts = UACS_CODES.map(u =>
       `<option value="${u.code}" data-desc="${u.desc}">${u.code} — ${u.desc}</option>`
@@ -322,7 +321,6 @@ const CDRView = {
           <div><span class="text-gray-500 text-xs block">School</span><strong>${school.name || '—'}</strong></div>
           <div><span class="text-gray-500 text-xs block">Year / Quarter</span><strong>${header.year} ${header.quarter}</strong></div>
           <div><span class="text-gray-500 text-xs block">Fund Type</span><strong>${header.fund_type || '—'}</strong></div>
-          <div><span class="text-gray-500 text-xs block">Opening Balance</span><strong class="text-blue-700">${fmt(header.opening_balance)}</strong></div>
         </div>
       </div>
     </div>
@@ -390,11 +388,6 @@ const CDRView = {
             <th></th>
           </tr></thead>
           <tbody>
-            <tr class="bg-blue-50 text-xs font-semibold">
-              <td colspan="7">Opening Balance</td>
-              <td class="text-right font-bold">${fmt(header.opening_balance)}</td>
-              <td></td>
-            </tr>
             ${rows.length === 0
               ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
               : rows.map((e, i) => {
@@ -515,7 +508,7 @@ const CDRView = {
 
     // Cash advance injection — same as printCDR
     const hasAdvanceEntry = entries.some(e => (parseFloat(e.advances) || 0) > 0);
-    let startBalance = parseFloat(header.opening_balance) || 0;
+    let startBalance = 0;
     if (!hasAdvanceEntry) {
       const { data: releaseFunds } = await DB.getFunds({ school_id: header.school_id });
       const normalize = s => (s || '').trim().toLowerCase();
@@ -751,7 +744,7 @@ const CDRView = {
     const COL_JAN  = '5021202000';
     const numFmt   = '#,##0.00';
 
-    let bal = parseFloat(header.opening_balance) || 0;
+    let bal = 0;
     const rows = entries.map(e => {
       bal += (parseFloat(e.advances)||0) - (parseFloat(e.payment)||0);
       return { ...e, running_balance: bal };
@@ -759,7 +752,7 @@ const CDRView = {
 
     const totalAdv  = entries.reduce((s,e)=>s+(parseFloat(e.advances)||0),0);
     const totalPay  = entries.reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
-    const finalBal  = rows.length ? rows[rows.length-1].running_balance : (parseFloat(header.opening_balance)||0);
+    const finalBal  = rows.length ? rows[rows.length-1].running_balance : 0;
     const totOff    = entries.filter(e=>e.uacs_code===COL_OFF).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
     const totGen    = entries.filter(e=>e.uacs_code===COL_GEN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
     const totJan    = entries.filter(e=>e.uacs_code===COL_JAN).reduce((s,e)=>s+(parseFloat(e.payment)||0),0);
@@ -1000,7 +993,7 @@ const CDRView = {
     // If no entry already carries an advance amount, inject a cash advance row
     // from the matching Fund Release so the printed CDR always shows it first.
     const hasAdvanceEntry = entries.some(e => (parseFloat(e.advances) || 0) > 0);
-    let startBalance = parseFloat(header.opening_balance) || 0;
+    let startBalance = 0;
 
     if (!hasAdvanceEntry) {
       const { data: releaseFunds } = await DB.getFunds({ school_id: header.school_id });

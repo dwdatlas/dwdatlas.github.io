@@ -31,10 +31,10 @@ const CDRExcel = {
 
       // Inject cash advance entry if none present (matches printCDR logic)
       let allEntries = [...(entriesRes.data || [])];
-      let startBal   = parseFloat(header.opening_balance) || 0;
+      let startBal   = 0;
       if (!allEntries.some(e => (parseFloat(e.advances) || 0) > 0)) {
         const injected = await _cdrInjectAdvance(header, allEntries);
-        if (injected.length > allEntries.length) { allEntries = injected; startBal = 0; }
+        if (injected.length > allEntries.length) { allEntries = injected; }
       }
 
       // Compute running balances in JS
