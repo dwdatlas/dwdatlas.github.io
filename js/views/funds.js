@@ -457,6 +457,19 @@ const FundsView = {
     };
     const { error } = await DB.upsertFund(row);
     if (error) { App.toast('Error: ' + error, 'error'); return; }
+
+    // Sync updated amount into the advance entry of any linked CDR
+    const norm = s => (s || '').trim().toLowerCase();
+    const { data: headers } = await DB.getCDRHeaders({ school_id: row.school_id });
+    const linked = (headers || []).filter(h =>
+      h.fund_id === id || norm(h.fund_type) === norm(row.fund_type)
+    );
+    for (const h of linked) {
+      const { data: entries } = await DB.getCDREntries(h.id);
+      const adv = (entries || []).find(e => parseFloat(e.advances) > 0);
+      if (adv) await DB.upsertCDREntry({ ...adv, advances: row.amount });
+    }
+
     App.closeModal();
     App.toast('Record updated!');
     await this.load();
