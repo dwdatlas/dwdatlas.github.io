@@ -20,9 +20,9 @@ const CDRView = {
            <option value="">All Schools</option>${schoolOpts}
          </select>`;
 
-    const yearLabel = this._category === 'mooe'
-      ? '<span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">Year: 2026</span>'
-      : '<span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">Year: 2025 – 2026</span>';
+    const yearOpts = this._category === 'mooe'
+      ? `<option value="">All Years</option><option value="2026">2026</option>`
+      : `<option value="">All Years</option><option value="2026">2026</option><option value="2025">2025</option>`;
 
     return `
     <div class="section-card mb-4">
@@ -38,7 +38,9 @@ const CDRView = {
           </div>
           <div>
             <label class="form-label">Year</label>
-            <div class="mt-1">${yearLabel}</div>
+            <select id="cdr-filter-year" class="form-select" onchange="CDRView.load()">
+              ${yearOpts}
+            </select>
           </div>
           <div>
             <label class="form-label">Quarter</label>
@@ -75,10 +77,12 @@ const CDRView = {
 
   async load() {
     const school_id = this._schoolId || document.getElementById('cdr-filter-school')?.value || '';
-    const quarter = document.getElementById('cdr-filter-quarter')?.value || '';
+    const year      = document.getElementById('cdr-filter-year')?.value || '';
+    const quarter   = document.getElementById('cdr-filter-quarter')?.value || '';
 
     const filters = {};
     if (school_id) filters.school_id = school_id;
+    if (year)      filters.year = year;
 
     const [{ data }, { data: fundsData }] = await Promise.all([
       DB.getCDRHeaders(filters),
