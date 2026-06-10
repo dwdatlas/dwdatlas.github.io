@@ -245,7 +245,7 @@ const CDRView = {
     };
 
     const { error } = await DB.upsertCDRHeader(row);
-    if (error) { App.toast('Error saving CDR: ' + error, 'error'); return; }
+    if (error) { App.toast('Error saving CDR: ' + (error?.message || error), 'error'); return; }
 
     if (matchingFund) {
       const particulars = this._category === 'mooe'
@@ -482,7 +482,7 @@ const CDRView = {
       sort_order: Date.now(),
     };
     const { error } = await DB.upsertCDREntry(row);
-    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
 
     const { data: existing } = await DB.getCDREntries(cdr_id);
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });

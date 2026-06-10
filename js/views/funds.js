@@ -346,7 +346,7 @@ const FundsView = {
       };
 
       const { error } = await DB.upsertFund(row);
-      if (error) { App.toast(`Error saving ${s.name}: ${error}`, 'error'); return; }
+      if (error) { App.toast(`Error saving ${s.name}: ${error?.message || error}`, 'error'); return; }
       saved++;
     }
 
@@ -456,7 +456,7 @@ const FundsView = {
       remarks:  '',
     };
     const { error } = await DB.upsertFund(row);
-    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
 
     // Sync updated amount into the advance entry of any linked CDR
     const norm = s => (s || '').trim().toLowerCase();

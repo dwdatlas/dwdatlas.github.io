@@ -133,7 +133,7 @@ const SchoolsView = {
       confirmation_expiry: document.getElementById('s-expiry').value || null,
     };
     const { error } = await DB.upsertSchool(row);
-    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
     App.closeModal();
     App.toast(id ? 'School updated!' : 'School added!');
     await this.load();

@@ -212,7 +212,7 @@ const MOOEView = {
   async deleteDisbursement(id) {
     if (!confirm('Delete this disbursement?')) return;
     const { error } = await DB.deleteDisbursement(id);
-    if (error) { App.toast('Error: ' + error, 'error'); return; }
+    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
     App.toast('Deleted.');
     await this.loadTable();
   },
