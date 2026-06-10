@@ -19,7 +19,7 @@ const App = {
   },
 
   async init() {
-    const connected = DB.init();
+    const connected = await DB.init();
     this.updateConnectionStatus(connected);
 
     // For school users on Supabase: resolve the actual DB school_id in case

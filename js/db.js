@@ -7,18 +7,30 @@ const DB = (() => {
   let sb = null;
   let useLocal = true;
 
-  function init() {
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+  async function init() {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+    if (typeof supabase === 'undefined') {
       try {
-        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        useLocal = false;
-        return true;
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+          s.onload = resolve;
+          s.onerror = () => reject(new Error('Supabase CDN failed to load'));
+          document.head.appendChild(s);
+        });
       } catch (e) {
-        console.warn('Supabase init failed, using localStorage:', e);
+        console.warn('Supabase CDN unavailable, using localStorage:', e);
         return false;
       }
     }
-    return false;
+    try {
+      sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      useLocal = false;
+      return true;
+    } catch (e) {
+      console.warn('Supabase init failed, using localStorage:', e);
+      return false;
+    }
   }
 
   // ---- localStorage helpers ----
