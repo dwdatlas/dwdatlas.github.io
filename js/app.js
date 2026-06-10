@@ -132,23 +132,6 @@ const App = {
     overlay.classList.add('hidden');
   },
 
-  toggleCDRNav() {
-    const links   = document.getElementById('cdr-nav-links');
-    const chevron = document.getElementById('cdr-nav-chevron');
-    const collapsed = links.style.display === 'none';
-    links.style.display   = collapsed ? '' : 'none';
-    chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
-    localStorage.setItem('cdr_nav_collapsed', collapsed ? '0' : '1');
-  },
-
-  _initCDRNav() {
-    if (localStorage.getItem('cdr_nav_collapsed') === '1') {
-      const links   = document.getElementById('cdr-nav-links');
-      const chevron = document.getElementById('cdr-nav-chevron');
-      if (links)   links.style.display = 'none';
-      if (chevron) chevron.style.transform = 'rotate(-90deg)';
-    }
-  },
 };
 
 // Close modal on backdrop click
@@ -158,6 +141,5 @@ document.getElementById('modal').addEventListener('click', (e) => {
 
 // Boot — only start app if already authenticated (Auth.guard handles the rest)
 document.addEventListener('DOMContentLoaded', () => {
-  App._initCDRNav();
   if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) App.init();
 });
