@@ -84,8 +84,13 @@ const CDRView = {
     if (school_id) filters.school_id = school_id;
     if (year) filters.year = year;
 
-    const { data } = await DB.getCDRHeaders(filters);
+    const [{ data }, { data: fundsData }] = await Promise.all([
+      DB.getCDRHeaders(filters),
+      DB.getFunds(school_id ? { school_id } : {}),
+    ]);
     let rows = data || [];
+    const funds = fundsData || [];
+
     if (quarter) rows = rows.filter(r => r.quarter === quarter);
     if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
     if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
@@ -98,20 +103,32 @@ const CDRView = {
       return;
     }
 
+    const norm = s => (s || '').trim().toLowerCase();
+    const fundAmt = r => {
+      const f = (r.fund_id && funds.find(f => f.id === r.fund_id))
+             || funds.find(f => f.school_id === r.school_id && norm(f.fund_type) === norm(r.fund_type));
+      return f ? parseFloat(f.amount) || 0 : 0;
+    };
+
+    const isSpecial = this._category === 'special';
+
     el.innerHTML = `
     <table class="data-table">
       <thead><tr>
-        <th>School</th><th>Year</th><th>Quarter</th><th>Fund Type</th>
-        <th class="text-right">Opening Balance</th><th>Entries</th><th>Actions</th>
+        <th>School</th><th>Year</th>
+        ${isSpecial ? '' : '<th>Quarter</th>'}
+        <th>Fund Type</th>
+        <th class="text-right">Fund Amount</th>
+        <th>Entries</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `
         <tr>
           <td class="font-medium">${this._schoolName(r.school_id)}</td>
           <td>${r.year}</td>
-          <td><span class="badge badge-submitted">${r.quarter}</span></td>
+          ${isSpecial ? '' : `<td><span class="badge badge-submitted">${r.quarter}</span></td>`}
           <td class="text-xs text-gray-600">${r.fund_type || '—'}</td>
-          <td class="text-right font-semibold">${fmt(r.opening_balance)}</td>
+          <td class="text-right font-semibold">${fmt(fundAmt(r))}</td>
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
           <td>
             <div class="flex gap-1">
