@@ -121,7 +121,6 @@ const FundsView = {
         <th>ADA No.</th>
         <th>ADA Date</th>
         <th>Fund Type</th>
-        ${this._category !== 'special' ? '<th>Quarter</th>' : ''}
         ${!this._schoolId ? '<th>School</th>' : ''}
         ${this._category === 'special' ? '<th>Bank</th>' : ''}
         <th class="text-right">Amount</th>
@@ -140,7 +139,6 @@ const FundsView = {
             <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
             <td class="text-xs">${r.fund_type || '—'}</td>
-            ${this._category !== 'special' ? `<td class="text-xs text-center">${r.quarter || '—'}</td>` : ''}
             ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="text-right font-semibold">${fmt(r.amount)}</td>
@@ -195,15 +193,6 @@ const FundsView = {
           <label class="form-label">Year *</label>
           <select id="fb-year" class="form-select" required>
             <option value="2026">2026</option>
-          </select>
-        </div>
-        <div id="fb-quarter-wrap" ${this._category === 'special' ? 'class="hidden"' : ''}>
-          <label class="form-label">Quarter *</label>
-          <select id="fb-quarter" class="form-select">
-            <option value="Q1">Q1 (Jan–Mar)</option>
-            <option value="Q2">Q2 (Apr–Jun)</option>
-            <option value="Q3">Q3 (Jul–Sep)</option>
-            <option value="Q4">Q4 (Oct–Dec)</option>
           </select>
         </div>
         <div>
@@ -262,9 +251,8 @@ const FundsView = {
   onBatchFundTypeChange() {
     const ft         = document.getElementById('fb-fund-type')?.value || '';
     const isMOOE     = ft && typeof DashboardView !== 'undefined' && DashboardView._isMOOE(ft);
-    const yearSel    = document.getElementById('fb-year');
-    const bankWrap   = document.getElementById('fb-bank-wrap');
-    const qWrap      = document.getElementById('fb-quarter-wrap');
+    const yearSel  = document.getElementById('fb-year');
+    const bankWrap = document.getElementById('fb-bank-wrap');
 
     if (yearSel) {
       yearSel.innerHTML = isMOOE
@@ -272,7 +260,6 @@ const FundsView = {
         : '<option value="2026">2026</option><option value="2025">2025</option>';
     }
     if (bankWrap) bankWrap.classList.toggle('hidden', !!isMOOE);
-    if (qWrap)    qWrap.classList.toggle('hidden', !isMOOE);
     this.checkDuplicates();
   },
 
@@ -403,13 +390,6 @@ const FundsView = {
             ${years.map(y=>`<option value="${y}" ${(rec.year||yr)==y?'selected':''}>${y}</option>`).join('')}
           </select>
         </div>
-        ${this._category !== 'special' ? `
-        <div>
-          <label class="form-label">Quarter</label>
-          <select id="fd-quarter" class="form-select">
-            ${['Q1','Q2','Q3','Q4'].map(q=>`<option value="${q}" ${rec.quarter===q?'selected':''}>${q}</option>`).join('')}
-          </select>
-        </div>` : ''}
         <div>
           <label class="form-label">Status *</label>
           <select id="fd-status" class="form-select" required>
