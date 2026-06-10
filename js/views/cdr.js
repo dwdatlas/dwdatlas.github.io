@@ -167,10 +167,14 @@ const CDRView = {
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div class="col-span-2">
           <label class="form-label">School *</label>
-          <select id="cdr-school" class="form-select" required>
-            <option value="">Select school…</option>
-            ${schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
-          </select>
+          ${this._schoolId
+            ? `<select id="cdr-school" class="form-select" required>
+                 <option value="${this._schoolId}">${schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
+               </select>`
+            : `<select id="cdr-school" class="form-select" required>
+                 <option value="">Select school…</option>
+                 ${schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+               </select>`}
         </div>
         <div>
           <label class="form-label">Year *</label>
