@@ -6,6 +6,7 @@
 const DB = (() => {
   let sb = null;
   let useLocal = true;
+  let _schoolsCache = null;
 
   async function init() {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
@@ -69,11 +70,15 @@ const DB = (() => {
   // SCHOOLS
   // ============================================================
   async function getSchools() {
-    if (useLocal) return lsAll('schools');
-    const { data, error } = await sb.from('schools').select('*').order('name');
-    return { data, error };
+    if (_schoolsCache) return { data: _schoolsCache, error: null };
+    const result = useLocal
+      ? lsAll('schools')
+      : await sb.from('schools').select('*').order('name');
+    if (!result.error && result.data) _schoolsCache = result.data;
+    return result;
   }
   async function upsertSchool(school) {
+    _schoolsCache = null;
     if (useLocal) {
       const rows = lsGet('schools');
       const idx = rows.findIndex(r => r.id === school.id);
@@ -84,6 +89,7 @@ const DB = (() => {
     return { data, error };
   }
   async function deleteSchool(id) {
+    _schoolsCache = null;
     if (useLocal) return lsDelete('schools', id);
     const { error } = await sb.from('schools').delete().eq('id', id);
     return { error };

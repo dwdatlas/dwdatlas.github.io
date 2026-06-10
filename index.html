@@ -193,7 +193,8 @@
   <!-- Toast -->
   <div id="toast" class="hidden fixed bottom-5 right-5 z-50 text-sm px-4 py-3 rounded-lg shadow-lg max-w-xs bg-gray-900 text-white"></div>
 
-  <!-- No CDN scripts here — supabase and xlsx-populate are loaded on demand after login -->
+  <!-- Supabase loads async in the background while user is on login screen -->
+  <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Scripts (order matters) -->
   <script src="js/users-data.js"></script>
