@@ -9,9 +9,14 @@ const DB = (() => {
 
   function init() {
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      useLocal = false;
-      return true;
+      try {
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        useLocal = false;
+        return true;
+      } catch (e) {
+        console.warn('Supabase init failed, using localStorage:', e);
+        return false;
+      }
     }
     return false;
   }
