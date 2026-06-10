@@ -56,8 +56,7 @@ const App = {
     location.hash = viewName;
 
     // Update nav active state
-    // cdr_special highlights the cdr_mooe nav link; legacy dash routes highlight dashboard
-    const navParents = { cdr_special: 'cdr_mooe', dash_mooe: 'dashboard', dash_special: 'dashboard' };
+    const navParents = { dash_mooe: 'dashboard', dash_special: 'dashboard' };
     const activeNav  = navParents[viewName] || viewName;
     document.querySelectorAll('.nav-link').forEach(el => {
       el.classList.toggle('active', el.dataset.view === activeNav);
