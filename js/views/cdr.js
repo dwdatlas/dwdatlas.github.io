@@ -199,11 +199,20 @@ const CDRView = {
     const year      = parseInt(document.getElementById('cdr-year').value);
     const fundType  = document.getElementById('cdr-fund-type').value;
 
+    const normalize = s => (s || '').trim().toLowerCase();
+
+    // Duplicate check — block if same school + year + fund_type already exists
+    const { data: existing } = await DB.getCDRHeaders({ school_id: schoolId, year });
+    const duplicate = (existing || []).find(h => normalize(h.fund_type) === normalize(fundType));
+    if (duplicate) {
+      App.toast('A CDR for this school, year, and fund type already exists.', 'error');
+      return;
+    }
+
     const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
 
     // Find matching Fund Release for both MOOE and Special Funds
     const { data: funds } = await DB.getFunds({ school_id: schoolId });
-    const normalize = s => (s || '').trim().toLowerCase();
     const matched = (funds || []).filter(f => normalize(f.fund_type) === normalize(fundType));
     matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
     const matchingFund = matched[0] || null;
