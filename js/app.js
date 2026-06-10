@@ -22,6 +22,23 @@ const App = {
     const connected = DB.init();
     this.updateConnectionStatus(connected);
 
+    // For school users on Supabase: resolve the actual DB school_id in case
+    // users-data.js has fixed IDs (e.g. 's_arado') but Supabase schools were
+    // added manually with random IDs. Match by name as fallback.
+    const _user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
+    if (connected && _user && _user.role === 'school') {
+      const { data: _schools } = await DB.getSchools();
+      if (_schools && _schools.length > 0) {
+        const _match = _schools.find(s => s.id === _user.school_id)
+                    || _schools.find(s => s.name === _user.school_name);
+        if (_match && _match.id !== _user.school_id) {
+          _user.school_id = _match.id;
+          Auth.currentUser = _user;
+          sessionStorage.setItem(Auth.SESSION_KEY, JSON.stringify(_user));
+        }
+      }
+    }
+
     // Apply role-based UI
     const isAdmin = typeof Auth !== 'undefined' && Auth.isAdmin();
     const user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
