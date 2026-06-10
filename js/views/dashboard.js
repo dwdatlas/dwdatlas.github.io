@@ -45,7 +45,7 @@ const DashboardView = {
     return funds;
   },
 
-  // ---- render() — loads data, returns skeleton HTML ----
+  // ---- render() — loads data, returns single container ----
   async render(mode = 'all') {
     this._mode     = mode;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
@@ -58,21 +58,23 @@ const DashboardView = {
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
 
-    return `
-    <div id="dash-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
-    ${mode !== 'special' ? '<div id="dash-mooe" class="mb-6"></div>'    : ''}
-    ${mode !== 'mooe'    ? '<div id="dash-special" class="mb-6"></div>' : ''}
-    `;
+    return `<div id="dash-root"></div>`;
   },
 
-  async afterRender() {
-    this._renderSummary();
-    if (this._mode !== 'special') this._renderMOOE();
-    if (this._mode !== 'mooe')    this._renderSpecial();
+  // Single DOM write on load — avoids multiple Tailwind CDN rescans
+  async afterRender() { this._paintAll(); },
+
+  _paintAll() {
+    const root = document.getElementById('dash-root');
+    if (!root) return;
+    const sum  = this._buildSummaryHtml();
+    const mooe = this._mode !== 'special' ? `<div class="mb-6">${this._buildMOOEHtml()}</div>` : '';
+    const spec = this._mode !== 'mooe'    ? `<div>${this._buildSpecialHtml()}</div>` : '';
+    root.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">${sum}</div>${mooe}${spec}`;
   },
 
-  // ---- Global summary cards (never change with filters) ----
-  _renderSummary() {
+  // ---- Summary cards ----
+  _buildSummaryHtml() {
     const funds    = this._visibleFunds();
     const totalAmt = funds.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
     const liqAmt   = funds.filter(f => f.status === 'liquidated').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
@@ -81,23 +83,22 @@ const DashboardView = {
     const liqPct   = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
     const unliqPct = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
     const schoolCnt = new Set(funds.map(f => f.school_id).filter(Boolean)).size;
-    const el = document.getElementById('dash-summary');
-    if (!el) return;
-    
+
     const clickableCard = (title, value, color, sub, status) => `
-      <div class="stat-card" style="background:${color};cursor:pointer;transition:all 0.2s" 
-        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" 
+      <div class="stat-card" style="background:${color};cursor:pointer;transition:all 0.2s"
+        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'"
         onclick="DashboardView.filterByStatus('${status}')">
         <div class="text-xs font-semibold uppercase tracking-wide mb-1" style="color:rgba(255,255,255,0.75)">${title}</div>
         <div class="text-2xl font-bold mb-1" style="color:#fff">${value}</div>
         <div class="text-xs" style="color:rgba(255,255,255,0.65)">${sub}</div>
       </div>`;
-    
-    el.innerHTML =
+
+    return (
       statCard('Total Downloaded', fmt(totalAmt),       '#1d6fb0', `${schoolCnt} school${schoolCnt !== 1 ? 's' : ''}`) +
-      clickableCard('Liquidated',       fmt(liqAmt),         '#16a34a', `${liqPct}% of total`, 'liquidated') +
-      clickableCard('Unliquidated',     fmt(unliqAmt),       '#78350f', `${unliqPct}% of total`, 'unliquidated') +
-      statCard('Needs Attention',  String(unliqCnt),    '#dc2626', 'unliquidated releases');
+      clickableCard('Liquidated',   fmt(liqAmt),        '#16a34a', `${liqPct}% of total`, 'liquidated') +
+      clickableCard('Unliquidated', fmt(unliqAmt),      '#78350f', `${unliqPct}% of total`, 'unliquidated') +
+      statCard('Needs Attention', String(unliqCnt),     '#dc2626', 'unliquidated releases')
+    );
   },
 
   setSchool(id) {
@@ -106,9 +107,7 @@ const DashboardView = {
     this._mooeTab     = 'all';
     this._specialFund = '';
     this._specialTab  = 'all';
-    this._renderSummary();
-    if (this._mode !== 'special') this._renderMOOE();
-    if (this._mode !== 'mooe')    this._renderSpecial();
+    this._paintAll();
   },
 
   setYear(yr) {
@@ -117,13 +116,10 @@ const DashboardView = {
     this._mooeTab     = 'all';
     this._specialFund = '';
     this._specialTab  = 'all';
-    this._renderSummary();
-    if (this._mode !== 'special') this._renderMOOE();
-    if (this._mode !== 'mooe')    this._renderSpecial();
+    this._paintAll();
   },
 
   filterByStatus(status) {
-    // Toggle: if already filtered by this status, go back to 'all'
     if (this._mooeTab === status && this._specialTab === status) {
       this._mooeTab = 'all';
       this._specialTab = 'all';
@@ -131,14 +127,13 @@ const DashboardView = {
       this._mooeTab = status;
       this._specialTab = status;
     }
-    if (this._mode !== 'special') this._renderMOOE();
-    if (this._mode !== 'mooe')    this._renderSpecial();
+    this._paintAll();
   },
 
   // ============================================================
   // MOOE SECTION
   // ============================================================
-  _renderMOOE() {
+  _buildMOOEHtml() {
     const mooeFunds     = this._visibleFunds().filter(f => this._isMOOE(f.fund_type));
     const schoolsToShow = this._schoolId
       ? this._schools.filter(s => s.id === this._schoolId)
@@ -149,32 +144,27 @@ const DashboardView = {
       .sort((a, b) => {
         const [aq, ay] = a.slice(1).split('-').map(Number);
         const [bq, by] = b.slice(1).split('-').map(Number);
-        return (by - ay) || (bq - aq); // newest first
+        return (by - ay) || (bq - aq);
       });
 
-    const el = document.getElementById('dash-mooe');
-    if (!el) return;
-
     if (!qKeys.length) {
-      el.innerHTML = `<div class="section-card"><div class="section-card-header"><h3>MOOE (quarterly)</h3></div><div class="section-card-body">${emptyState('No MOOE records found. Add records via Fund Releases.')}</div></div>`;
-      return;
+      return `<div class="section-card"><div class="section-card-header"><h3>MOOE (quarterly)</h3></div><div class="section-card-body">${emptyState('No MOOE records found. Add records via Fund Releases.')}</div></div>`;
     }
 
     if (!this._mooeQuarter || !qKeys.includes(this._mooeQuarter)) {
       this._mooeQuarter = qKeys[0];
     }
 
-    const [qn, yr]   = this._mooeQuarter.split('-');
-    const qFunds      = mooeFunds.filter(f => this._quarterKey(f) === this._mooeQuarter);
-    const withRecord  = new Set(qFunds.map(f => f.school_id));
-    const notRecvCnt  = schoolsToShow.filter(s => !withRecord.has(s.id)).length;
-    const allCnt      = qFunds.length + notRecvCnt;
-    const liqCnt      = qFunds.filter(f => f.status === 'liquidated').length;
-    const unliqCnt    = qFunds.filter(f => f.status !== 'liquidated').length;
+    const [qn, yr]  = this._mooeQuarter.split('-');
+    const qFunds     = mooeFunds.filter(f => this._quarterKey(f) === this._mooeQuarter);
+    const withRecord = new Set(qFunds.map(f => f.school_id));
+    const notRecvCnt = schoolsToShow.filter(s => !withRecord.has(s.id)).length;
+    const allCnt     = qFunds.length + notRecvCnt;
+    const liqCnt     = qFunds.filter(f => f.status === 'liquidated').length;
+    const unliqCnt   = qFunds.filter(f => f.status !== 'liquidated').length;
+    const qOpts      = qKeys.map(q => `<option value="${q}" ${q === this._mooeQuarter ? 'selected' : ''}>${q.replace('-', ' ')}</option>`).join('');
 
-    const qOpts = qKeys.map(q => `<option value="${q}" ${q === this._mooeQuarter ? 'selected' : ''}>${q.replace('-', ' ')}</option>`).join('');
-
-    el.innerHTML = `
+    return `
     <div class="section-card">
       <div class="section-card-header">
         <div>
@@ -198,22 +188,19 @@ const DashboardView = {
           ${this._tabBtn('mooe','liquidated',   `Liquidated (${liqCnt})`)}
         </div>
       </div>
-      <div id="dash-mooe-table" class="table-scroll"></div>
+      <div id="dash-mooe-table" class="table-scroll">${this._buildMOOETableHtml(qFunds, schoolsToShow)}</div>
     </div>`;
-
-    this._renderMOOETable(qFunds, schoolsToShow);
   },
 
-  _renderMOOETable(qFunds, schoolsToShow) {
+  _buildMOOETableHtml(qFunds, schoolsToShow) {
     if (!qFunds) {
       const mooeFunds = this._visibleFunds().filter(f => this._isMOOE(f.fund_type));
-      qFunds       = mooeFunds.filter(f => this._quarterKey(f) === this._mooeQuarter);
+      qFunds        = mooeFunds.filter(f => this._quarterKey(f) === this._mooeQuarter);
       schoolsToShow = this._schoolId
         ? this._schools.filter(s => s.id === this._schoolId)
         : this._schools;
     }
 
-    // Build one row per school per ADA record; "Not received" for missing schools
     const rows = [];
     for (const school of schoolsToShow) {
       const recs = qFunds.filter(f => f.school_id === school.id);
@@ -228,14 +215,11 @@ const DashboardView = {
     if (this._mooeTab === 'liquidated')   visible = rows.filter(r => !r.notReceived && r.fund.status === 'liquidated');
     if (this._mooeTab === 'unliquidated') visible = rows.filter(r => !r.notReceived && r.fund.status !== 'liquidated');
 
-    const el = document.getElementById('dash-mooe-table');
-    if (!el) return;
     if (!visible.length) {
-      el.innerHTML = `<div class="py-8 text-center text-gray-400 text-sm">No records match this filter.</div>`;
-      return;
+      return `<div class="py-8 text-center text-gray-400 text-sm">No records match this filter.</div>`;
     }
 
-    el.innerHTML = `
+    return `
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>ADA No.</th><th>Date</th><th>Bank</th>
@@ -272,10 +256,15 @@ const DashboardView = {
     </table>`;
   },
 
+  _renderMOOETable() {
+    const el = document.getElementById('dash-mooe-table');
+    if (el) el.innerHTML = this._buildMOOETableHtml();
+  },
+
   setMOOEQuarter(q) {
     this._mooeQuarter = q;
     this._mooeTab     = 'all';
-    this._renderMOOE();
+    this._paintAll();
   },
 
   setMOOETab(tab) {
@@ -290,16 +279,12 @@ const DashboardView = {
   // ============================================================
   // SPECIAL FUNDS SECTION
   // ============================================================
-  _renderSpecial() {
+  _buildSpecialHtml() {
     const specFunds = this._visibleFunds().filter(f => !this._isMOOE(f.fund_type));
     const fundTypes = [...new Set(specFunds.map(f => f.fund_type).filter(Boolean))].sort();
 
-    const el = document.getElementById('dash-special');
-    if (!el) return;
-
     if (!specFunds.length) {
-      el.innerHTML = `<div class="section-card"><div class="section-card-header"><h3>Special Funds (per release)</h3></div><div class="section-card-body">${emptyState('No special fund records found.')}</div></div>`;
-      return;
+      return `<div class="section-card"><div class="section-card-header"><h3>Special Funds (per release)</h3></div><div class="section-card-body">${emptyState('No special fund records found.')}</div></div>`;
     }
 
     if (this._specialFund && !fundTypes.includes(this._specialFund)) this._specialFund = '';
@@ -315,7 +300,7 @@ const DashboardView = {
     const ftOpts = `<option value="">All special funds</option>` +
       fundTypes.map(ft => `<option value="${ft}" ${ft === this._specialFund ? 'selected' : ''}>${ft}</option>`).join('');
 
-    el.innerHTML = `
+    return `
     <div class="section-card">
       <div class="section-card-header">
         <div>
@@ -339,35 +324,31 @@ const DashboardView = {
           ${this._tabBtn('special','liquidated',   `Liquidated (${liqCnt})`)}
         </div>
       </div>
-      <div id="dash-special-table" class="table-scroll"></div>
+      <div id="dash-special-table" class="table-scroll">${this._buildSpecialTableHtml(filtered)}</div>
     </div>`;
-
-    this._renderSpecialTable();
   },
 
-  _renderSpecialTable() {
-    const specFunds = this._visibleFunds().filter(f => !this._isMOOE(f.fund_type));
-    let filtered = this._specialFund
-      ? specFunds.filter(f => f.fund_type === this._specialFund)
-      : specFunds;
+  _buildSpecialTableHtml(filtered) {
+    if (!filtered) {
+      const specFunds = this._visibleFunds().filter(f => !this._isMOOE(f.fund_type));
+      filtered = this._specialFund
+        ? specFunds.filter(f => f.fund_type === this._specialFund)
+        : specFunds;
+    }
 
     if (this._specialTab === 'liquidated')   filtered = filtered.filter(f => f.status === 'liquidated');
     if (this._specialTab === 'unliquidated') filtered = filtered.filter(f => f.status !== 'liquidated');
 
-    // Sort: unliquidated first, then amount descending within each group
     filtered = [...filtered].sort((a, b) => {
       if (a.status !== b.status) return a.status === 'liquidated' ? 1 : -1;
       return (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0);
     });
 
-    const el = document.getElementById('dash-special-table');
-    if (!el) return;
     if (!filtered.length) {
-      el.innerHTML = `<div class="py-8 text-center text-gray-400 text-sm">No records match this filter.</div>`;
-      return;
+      return `<div class="py-8 text-center text-gray-400 text-sm">No records match this filter.</div>`;
     }
 
-    el.innerHTML = `
+    return `
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>Fund</th><th>ADA No.</th><th>Date</th>
@@ -395,10 +376,19 @@ const DashboardView = {
     </table>`;
   },
 
+  _renderSpecialTable() {
+    const specFunds = this._visibleFunds().filter(f => !this._isMOOE(f.fund_type));
+    const filtered  = this._specialFund
+      ? specFunds.filter(f => f.fund_type === this._specialFund)
+      : specFunds;
+    const el = document.getElementById('dash-special-table');
+    if (el) el.innerHTML = this._buildSpecialTableHtml(filtered);
+  },
+
   setSpecialFund(ft) {
     this._specialFund = ft;
     this._specialTab  = 'all';
-    this._renderSpecial();
+    this._paintAll();
   },
 
   setSpecialTab(tab) {
@@ -416,9 +406,7 @@ const DashboardView = {
     localStorage.removeItem('dwd_funds');
     this._allFunds = [];
     App.toast('All fund data cleared.');
-    this._renderSummary();
-    this._renderMOOE();
-    this._renderSpecial();
+    this._paintAll();
   },
 
   // ---- Toggle status (admin only) ----
@@ -427,11 +415,9 @@ const DashboardView = {
     const fund = this._allFunds.find(f => f.id === id);
     if (!fund) return;
     await DB.upsertFund({ ...fund, status: newStatus });
-    fund.status = newStatus; // update local cache immediately
+    fund.status = newStatus;
     App.toast(`Marked as ${newStatus === 'liquidated' ? 'Liquidated ✓' : 'Unliquidated ⚠'}`);
-    this._renderSummary();
-    this._renderMOOE();
-    this._renderSpecial();
+    this._paintAll();
   },
 
   // ---- Tab helpers ----
@@ -479,28 +465,28 @@ const AllFundsDashboardView = {
     }
     this._funds   = funds;
     this._schools = schools;
-    return `
-      <div id="afd-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
-      <div id="afd-split"   class="mb-6"></div>
-      <div id="afd-queue"></div>`;
+    return `<div id="afd-root" class="space-y-6"></div>`;
   },
 
   async afterRender() { this._paint(); },
 
   _paint() {
+    const root = document.getElementById('afd-root');
+    if (!root) return;
+
     const funds   = this._funds;
     const schools = this._schools;
     const today   = new Date(); today.setHours(0, 0, 0, 0);
-    // ---- Totals (reuse DB data, no second computation) ----
-    const totalAmt  = funds.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
-    const liqFunds  = funds.filter(f => f.status === 'liquidated');
-    const unliqFunds = funds.filter(f => f.status !== 'liquidated');
-    const liqAmt    = liqFunds.reduce((s, f)  => s + (parseFloat(f.amount) || 0), 0);
-    const unliqAmt  = totalAmt - liqAmt;
-    const liqPct    = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
-    const unliqPct  = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
 
-    // ---- Needs Attention: has a deadline AND past it (no deadline = never flagged) ----
+    const totalAmt   = funds.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
+    const liqFunds   = funds.filter(f => f.status === 'liquidated');
+    const unliqFunds = funds.filter(f => f.status !== 'liquidated');
+    const liqAmt     = liqFunds.reduce((s, f)  => s + (parseFloat(f.amount) || 0), 0);
+    const unliqAmt   = totalAmt - liqAmt;
+    const liqPct     = totalAmt > 0 ? Math.round(liqAmt   / totalAmt * 100) : 0;
+    const unliqPct   = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
+
+    // Needs Attention: has a deadline AND is past it
     const attention = unliqFunds
       .filter(f => f.deadline)
       .map(f => {
@@ -511,7 +497,7 @@ const AllFundsDashboardView = {
       .filter(item => item.daysOverdue > 0)
       .sort((a, b) => b.daysOverdue - a.daysOverdue);
 
-    // ---- MOOE / Special split ----
+    // MOOE / Special split
     function splitTotals(arr) {
       const dl  = arr.reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
       const lq  = arr.filter(f => f.status === 'liquidated').reduce((s, f) => s + (parseFloat(f.amount) || 0), 0);
@@ -521,7 +507,7 @@ const AllFundsDashboardView = {
     const sRow = splitTotals(funds.filter(f => !DashboardView._isMOOE(f.fund_type)));
     const tRow = splitTotals(funds);
 
-    // ---- Summary cards (white + colored left border per spec) ----
+    // Summary cards
     const card = (title, value, color, sub) =>
       `<div class="stat-card border-l-4" style="border-color:${color};background:#fff">
         <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">${title}</div>
@@ -529,14 +515,13 @@ const AllFundsDashboardView = {
         <div class="text-xs text-gray-400">${sub}</div>
       </div>`;
 
-    const sumEl = document.getElementById('afd-summary');
-    if (sumEl) sumEl.innerHTML =
-      card('Total Downloaded', fmt(totalAmt),              '#1d6fb0', funds.length + ' release' + (funds.length !== 1 ? 's' : '')) +
-      card('Liquidated',       fmt(liqAmt),                '#16a34a', liqPct  + '% of total') +
-      card('Unliquidated',     fmt(unliqAmt),              '#b45309', unliqPct + '% of total') +
-      card('Needs Attention',  String(attention.length),   '#dc2626', 'past deadline');
+    const sumHtml =
+      card('Total Downloaded', fmt(totalAmt),            '#1d6fb0', funds.length + ' release' + (funds.length !== 1 ? 's' : '')) +
+      card('Liquidated',       fmt(liqAmt),              '#16a34a', liqPct  + '% of total') +
+      card('Unliquidated',     fmt(unliqAmt),            '#b45309', unliqPct + '% of total') +
+      card('Needs Attention',  String(attention.length), '#dc2626', 'past deadline');
 
-    // ---- Fund-split table ----
+    // Fund-split table
     const pctBadge = (n, green) => {
       const bg  = green ? '#dcfce7' : '#fef3c7';
       const col = green ? '#166534' : '#92400e';
@@ -552,8 +537,7 @@ const AllFundsDashboardView = {
         <td style="text-align:right">${pctBadge(r.pct, r.pct >= 50)}</td>
       </tr>`;
 
-    const splitEl = document.getElementById('afd-split');
-    if (splitEl) splitEl.innerHTML = `
+    const splitHtml = `
       <div class="section-card">
         <div class="section-card-header"><h3>Fund Split</h3></div>
         <div class="table-scroll">
@@ -587,48 +571,48 @@ const AllFundsDashboardView = {
         </div>
       </div>`;
 
-    // ---- Needs Attention queue ----
-    const queueEl = document.getElementById('afd-queue');
-    if (!queueEl) return;
-    if (!attention.length) {
-      queueEl.innerHTML = `
-        <div class="section-card">
+    // Needs Attention queue
+    const queueHtml = !attention.length
+      ? `<div class="section-card">
           <div class="section-card-header"><h3>Needs Attention</h3></div>
           <div class="section-card-body">${emptyState('All releases on track.')}</div>
+        </div>`
+      : `<div class="section-card">
+          <div class="section-card-header">
+            <h3>Needs Attention</h3>
+            <span class="text-xs text-gray-500">Past deadline — worst first</span>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr>
+                <th>School</th><th>Fund Type</th>
+                <th class="text-right">Amount</th>
+                <th>ADA Date</th>
+                <th>Deadline</th>
+                <th class="text-right">Days Overdue</th>
+              </tr></thead>
+              <tbody>
+                ${attention.map(({ f, school, daysOverdue }) => `
+                <tr>
+                  <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
+                  <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
+                  <td class="text-right font-semibold">${fmt(f.amount)}</td>
+                  <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
+                  <td class="text-xs whitespace-nowrap font-semibold text-red-600">${compactDate(f.deadline)}</td>
+                  <td class="text-right">
+                    <span class="badge" style="background:#fee2e2;color:#991b1b">${daysOverdue}d</span>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>`;
-      return;
-    }
-    queueEl.innerHTML = `
-      <div class="section-card">
-        <div class="section-card-header">
-          <h3>Needs Attention</h3>
-          <span class="text-xs text-gray-500">Past deadline — worst first</span>
-        </div>
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead><tr>
-              <th>School</th><th>Fund Type</th>
-              <th class="text-right">Amount</th>
-              <th>ADA Date</th>
-              <th>Deadline</th>
-              <th class="text-right">Days Overdue</th>
-            </tr></thead>
-            <tbody>
-              ${attention.map(({ f, school, daysOverdue }) => `
-              <tr>
-                <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
-                <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
-                <td class="text-right font-semibold">${fmt(f.amount)}</td>
-                <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
-                <td class="text-xs whitespace-nowrap font-semibold text-red-600">${compactDate(f.deadline)}</td>
-                <td class="text-right">
-                  <span class="badge" style="background:#fee2e2;color:#991b1b">${daysOverdue}d</span>
-                </td>
-              </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>`;
+
+    // Single DOM write — eliminates multiple Tailwind CDN rescans
+    root.innerHTML =
+      `<div class="grid grid-cols-2 md:grid-cols-4 gap-4">${sumHtml}</div>` +
+      splitHtml +
+      queueHtml;
   },
 };
 

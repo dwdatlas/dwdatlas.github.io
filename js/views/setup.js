@@ -429,6 +429,24 @@ create table if not exists schools (
   updated_at timestamptz default now()
 );
 
+-- Fund Releases (MOOE + Special Funds)
+create table if not exists downloaded_funds (
+  id text primary key,
+  school_id text references schools(id) on delete cascade,
+  ada_no text,
+  ada_date date,
+  fund_type text,
+  amount numeric(14,2) default 0,
+  status text default 'unliquidated',
+  year integer,
+  quarter text,
+  bank text,
+  deadline date,
+  remarks text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- MOOE Disbursements
 create table if not exists disbursements (
   id text primary key,
@@ -437,7 +455,7 @@ create table if not exists disbursements (
   ada_date date,
   fund_type text,
   amount numeric(14,2) default 0,
-  status text default 'pending',
+  status text default 'unliquidated',
   remarks text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -451,6 +469,8 @@ create table if not exists cdr_headers (
   quarter text,
   fund_type text,
   opening_balance numeric(14,2) default 0,
+  register_no text,
+  sheet_no text,
   entry_count integer default 0,
   created_at timestamptz default now()
 );
@@ -482,17 +502,42 @@ create table if not exists resources (
   created_at timestamptz default now()
 );
 
--- Enable Row Level Security and allow all operations (adjust as needed)
+-- Bank Reconciliation
+create table if not exists bank_reconciliation (
+  id text primary key,
+  school_id text references schools(id) on delete cascade,
+  period text,
+  bank text,
+  year integer,
+  month integer,
+  balance numeric(14,2) default 0,
+  remarks text,
+  created_at timestamptz default now()
+);
+
+-- Enable Row Level Security and allow all operations
 alter table schools enable row level security;
+alter table downloaded_funds enable row level security;
 alter table disbursements enable row level security;
 alter table cdr_headers enable row level security;
 alter table cdr_entries enable row level security;
 alter table resources enable row level security;
+alter table bank_reconciliation enable row level security;
+
+drop policy if exists "Allow all" on schools;
+drop policy if exists "Allow all" on downloaded_funds;
+drop policy if exists "Allow all" on disbursements;
+drop policy if exists "Allow all" on cdr_headers;
+drop policy if exists "Allow all" on cdr_entries;
+drop policy if exists "Allow all" on resources;
+drop policy if exists "Allow all" on bank_reconciliation;
 
 create policy "Allow all" on schools for all using (true) with check (true);
+create policy "Allow all" on downloaded_funds for all using (true) with check (true);
 create policy "Allow all" on disbursements for all using (true) with check (true);
 create policy "Allow all" on cdr_headers for all using (true) with check (true);
 create policy "Allow all" on cdr_entries for all using (true) with check (true);
-create policy "Allow all" on resources for all using (true) with check (true);`;
+create policy "Allow all" on resources for all using (true) with check (true);
+create policy "Allow all" on bank_reconciliation for all using (true) with check (true);`;
   },
 };
