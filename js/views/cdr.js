@@ -158,8 +158,7 @@ const CDRView = {
   async openCreate() {
     const schools = this._schools || [];
     const yr = new Date().getFullYear();
-    const years = [];
-    for (let y = yr; y >= yr - 4; y--) years.push(y);
+    const years = this._category === 'mooe' ? [2026] : [2026, 2025];
 
     const { data: ftData } = await DB.getFundTypes(this._category);
     const ftOpts = (ftData || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
