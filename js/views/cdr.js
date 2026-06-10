@@ -11,9 +11,6 @@ const CDRView = {
     const schools = schoolsRes.data || [];
 
     const schoolOpts = schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    const years = [];
-    const yr = new Date().getFullYear();
-    for (let y = yr; y >= yr - 4; y--) years.push(y);
 
     const schoolDropdown = this._schoolId
       ? `<select id="cdr-filter-school" class="form-select" disabled>
@@ -22,6 +19,10 @@ const CDRView = {
       : `<select id="cdr-filter-school" class="form-select" onchange="CDRView.load()">
            <option value="">All Schools</option>${schoolOpts}
          </select>`;
+
+    const yearLabel = this._category === 'mooe'
+      ? '<span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">Year: 2026</span>'
+      : '<span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">Year: 2025 – 2026</span>';
 
     return `
     <div class="section-card mb-4">
@@ -37,10 +38,7 @@ const CDRView = {
           </div>
           <div>
             <label class="form-label">Year</label>
-            <select id="cdr-filter-year" class="form-select" onchange="CDRView.load()">
-              <option value="">All Years</option>
-              ${years.map(y => `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}</option>`).join('')}
-            </select>
+            <div class="mt-1">${yearLabel}</div>
           </div>
           <div>
             <label class="form-label">Quarter</label>
@@ -77,12 +75,10 @@ const CDRView = {
 
   async load() {
     const school_id = this._schoolId || document.getElementById('cdr-filter-school')?.value || '';
-    const year = document.getElementById('cdr-filter-year')?.value || '';
     const quarter = document.getElementById('cdr-filter-quarter')?.value || '';
 
     const filters = {};
     if (school_id) filters.school_id = school_id;
-    if (year) filters.year = year;
 
     const [{ data }, { data: fundsData }] = await Promise.all([
       DB.getCDRHeaders(filters),
@@ -92,8 +88,11 @@ const CDRView = {
     const funds = fundsData || [];
 
     if (quarter) rows = rows.filter(r => r.quarter === quarter);
-    if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
-    if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
+    if (this._category === 'mooe') {
+      rows = rows.filter(r => DashboardView._isMOOE(r.fund_type) && parseInt(r.year) === 2026);
+    } else if (this._category === 'special') {
+      rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type) && [2025, 2026].includes(parseInt(r.year)));
+    }
 
     const el = document.getElementById('cdr-list-body');
     if (!el) return;

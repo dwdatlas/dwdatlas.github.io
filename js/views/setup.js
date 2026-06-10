@@ -141,12 +141,12 @@ const SetupView = {
         <span class="badge badge-missing">Irreversible</span>
       </div>
       <div class="section-card-body">
-        <p class="text-sm text-gray-600 mb-1">Removes old-year data per archive policy:</p>
+        <p class="text-sm text-gray-600 mb-1">Removes old CDR records per archive policy:</p>
         <ul class="text-sm text-gray-700 list-disc list-inside mb-3 space-y-0.5">
-          <li><strong>Special Funds</strong> — delete years 2022, 2023, 2024 (keep 2025 &amp; 2026)</li>
-          <li><strong>MOOE</strong> — delete all years except 2026</li>
+          <li><strong>CDR MOOE</strong> — keep 2026 only, delete all other years</li>
+          <li><strong>CDR Special Funds</strong> — keep 2025 &amp; 2026, delete all other years</li>
         </ul>
-        <p class="text-xs text-gray-500 mb-3">Also deletes all CDR records (and their entries) linked to those fund years.</p>
+        <p class="text-xs text-gray-500 mb-3">CDR entries are removed automatically. Fund records are not affected.</p>
         <button class="btn btn-danger" onclick="SetupView.purgeOldData()">Purge Old Data…</button>
       </div>
     </div>
@@ -448,30 +448,22 @@ const SetupView = {
     const funds   = fundsRes.data   || [];
     const headers = headersRes.data || [];
 
-    const fundsToDelete = funds.filter(f => {
-      const yr = parseInt(f.year, 10);
-      return isMOOE(f.fund_type) ? yr !== 2026 : (yr >= 2022 && yr <= 2024);
-    });
-
     const cdrsToDelete = headers.filter(h => {
       const yr = parseInt(h.year, 10);
-      return isMOOE(h.fund_type) ? yr !== 2026 : (yr >= 2022 && yr <= 2024);
+      // MOOE: keep only 2026. Special Funds: keep only 2025 and 2026.
+      return isMOOE(h.fund_type) ? yr !== 2026 : (yr !== 2025 && yr !== 2026);
     });
 
-    if (!fundsToDelete.length && !cdrsToDelete.length) {
-      App.toast('Nothing to delete — data is already clean.');
+    if (!cdrsToDelete.length) {
+      App.toast('Nothing to delete — CDR data is already clean.');
       return;
     }
 
-    const msg = `This will permanently delete:\n• ${fundsToDelete.length} fund record(s)\n• ${cdrsToDelete.length} CDR record(s) + all their entries\n\nThis CANNOT be undone. Continue?`;
+    const msg = `This will permanently delete:\n• ${cdrsToDelete.length} CDR record(s) + all their entries\n\nMOOE: keeps 2026 only.\nSpecial Funds: keeps 2025 and 2026 only.\n\nThis CANNOT be undone. Continue?`;
     if (!confirm(msg)) return;
-    if (!confirm('Final confirmation: delete old data now?')) return;
+    if (!confirm('Final confirmation: delete old CDR data now?')) return;
 
     let errors = 0;
-    for (const f of fundsToDelete) {
-      const { error } = await DB.deleteFund(f.id);
-      if (error) { console.error('deleteFund', f.id, error); errors++; }
-    }
     for (const h of cdrsToDelete) {
       const { error } = await DB.deleteCDRHeader(h.id);
       if (error) { console.error('deleteCDRHeader', h.id, error); errors++; }
@@ -480,7 +472,7 @@ const SetupView = {
     if (errors) {
       App.toast(`Done with ${errors} error(s). Check console for details.`, 'error');
     } else {
-      App.toast(`Deleted ${fundsToDelete.length} fund record(s) and ${cdrsToDelete.length} CDR(s).`);
+      App.toast(`Deleted ${cdrsToDelete.length} CDR record(s) successfully.`);
     }
   },
 
