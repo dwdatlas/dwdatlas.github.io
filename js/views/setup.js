@@ -134,6 +134,23 @@ const SetupView = {
       </div>
     </div>
 
+    <!-- Data Cleanup -->
+    <div class="section-card mb-4">
+      <div class="section-card-header">
+        <h3>Data Cleanup</h3>
+        <span class="badge badge-missing">Irreversible</span>
+      </div>
+      <div class="section-card-body">
+        <p class="text-sm text-gray-600 mb-1">Removes old-year data per archive policy:</p>
+        <ul class="text-sm text-gray-700 list-disc list-inside mb-3 space-y-0.5">
+          <li><strong>Special Funds</strong> — delete years 2022, 2023, 2024 (keep 2025 &amp; 2026)</li>
+          <li><strong>MOOE</strong> — delete all years except 2026</li>
+        </ul>
+        <p class="text-xs text-gray-500 mb-3">Also deletes all CDR records (and their entries) linked to those fund years.</p>
+        <button class="btn btn-danger" onclick="SetupView.purgeOldData()">Purge Old Data…</button>
+      </div>
+    </div>
+
     <!-- Backup / Restore -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Data Backup &amp; Restore</h3></div>
@@ -410,6 +427,61 @@ const SetupView = {
     });
     App.toast('All data cleared.');
     App.navigate('dashboard');
+  },
+
+  async purgeOldData() {
+    App.toast('Scanning data…');
+
+    const isMOOE = ft => {
+      if (!ft) return false;
+      const f = ft.toLowerCase();
+      return /(1st|2nd|3rd|4th)\s+quarter/.test(f)
+          || f.includes('regular mooe')
+          || f.includes('additional mooe');
+    };
+
+    const [fundsRes, headersRes] = await Promise.all([
+      DB.getFunds(),
+      DB.getCDRHeaders(),
+    ]);
+
+    const funds   = fundsRes.data   || [];
+    const headers = headersRes.data || [];
+
+    const fundsToDelete = funds.filter(f => {
+      const yr = parseInt(f.year, 10);
+      return isMOOE(f.fund_type) ? yr !== 2026 : (yr >= 2022 && yr <= 2024);
+    });
+
+    const cdrsToDelete = headers.filter(h => {
+      const yr = parseInt(h.year, 10);
+      return isMOOE(h.fund_type) ? yr !== 2026 : (yr >= 2022 && yr <= 2024);
+    });
+
+    if (!fundsToDelete.length && !cdrsToDelete.length) {
+      App.toast('Nothing to delete — data is already clean.');
+      return;
+    }
+
+    const msg = `This will permanently delete:\n• ${fundsToDelete.length} fund record(s)\n• ${cdrsToDelete.length} CDR record(s) + all their entries\n\nThis CANNOT be undone. Continue?`;
+    if (!confirm(msg)) return;
+    if (!confirm('Final confirmation: delete old data now?')) return;
+
+    let errors = 0;
+    for (const f of fundsToDelete) {
+      const { error } = await DB.deleteFund(f.id);
+      if (error) { console.error('deleteFund', f.id, error); errors++; }
+    }
+    for (const h of cdrsToDelete) {
+      const { error } = await DB.deleteCDRHeader(h.id);
+      if (error) { console.error('deleteCDRHeader', h.id, error); errors++; }
+    }
+
+    if (errors) {
+      App.toast(`Done with ${errors} error(s). Check console for details.`, 'error');
+    } else {
+      App.toast(`Deleted ${fundsToDelete.length} fund record(s) and ${cdrsToDelete.length} CDR(s).`);
+    }
   },
 
   schemaSql() {
