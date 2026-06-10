@@ -312,7 +312,7 @@ const FundsView = {
     const year     = parseInt(document.getElementById('fb-year').value);
     const quarter  = this._category !== 'special' ? (document.getElementById('fb-quarter')?.value || '') : '';
     const status   = document.getElementById('fb-status').value;
-    const deadline = document.getElementById('fb-deadline').value || '';
+    const deadline = document.getElementById('fb-deadline').value || null;
     const bank     = document.getElementById('fb-bank')?.value || '';
 
     const schools = [...this._schools].sort((a, b) => a.name.localeCompare(b.name));
@@ -451,7 +451,7 @@ const FundsView = {
       year:     parseInt(document.getElementById('fd-year').value),
       quarter:  document.getElementById('fd-quarter')?.value || rec?.quarter || '',
       status:   document.getElementById('fd-status').value,
-      deadline: document.getElementById('fd-deadline').value || '',
+      deadline: document.getElementById('fd-deadline').value || null,
       bank:     document.getElementById('fd-bank')?.value || rec?.bank || '',
       remarks:  '',
     };
