@@ -497,7 +497,7 @@ const CDRView = {
           <button type="button" class="btn btn-secondary btn-sm"
                   onclick="CDRView.addUACSLine()">+ Add UACS</button>
         </div>
-        <div id="mi-uacs-lines">${lineHtml}${lineHtml}</div>
+        <div id="mi-uacs-lines">${lineHtml}</div>
       </div>
       <div class="flex items-center justify-between pt-2 border-t border-gray-200">
         <div class="text-sm font-semibold text-gray-700">Total: ₱<span id="mi-total">0.00</span></div>
@@ -617,7 +617,7 @@ const CDRView = {
         <button type="button" class="btn btn-danger btn-sm"
                 onclick="this.closest('.uacs-line').remove(); CDRView.updateMultiTotal()">×</button>
       </div>`;
-      miLines.innerHTML = line + line;
+      miLines.innerHTML = line;
     }
 
     // Background save — revert on error
