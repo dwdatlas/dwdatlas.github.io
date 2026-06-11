@@ -123,10 +123,10 @@ const FundsView = {
         <th>Fund Type</th>
         ${!this._schoolId ? '<th>School</th>' : ''}
         ${this._category === 'special' ? '<th>Bank</th>' : ''}
-        <th class="text-center">Amount</th>
-        <th class="text-center">Status</th>
-        <th>Deadline</th>
-        ${isAdmin ? '<th>Actions</th>' : ''}
+        <th class="col-amount">Amount</th>
+        <th class="col-center">Status</th>
+        <th class="col-center">Deadline</th>
+        ${isAdmin ? '<th class="col-center">Actions</th>' : ''}
       </tr></thead>
       <tbody>
         ${rows.map(r => {
@@ -141,12 +141,12 @@ const FundsView = {
             <td class="text-xs">${r.fund_type || '—'}</td>
             ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
-            <td class="text-center font-semibold">${fmt(r.amount)}</td>
-            <td class="text-center">${badge}</td>
-            <td class="text-xs text-gray-500">${r.deadline ? formatDate(r.deadline) : (r.remarks || '—')}</td>
+            <td class="col-amount font-semibold">${fmt(r.amount)}</td>
+            <td class="col-center">${badge}</td>
+            <td class="col-center text-xs text-gray-500">${r.deadline ? formatDate(r.deadline) : (r.remarks || '—')}</td>
             ${isAdmin ? `
-            <td>
-              <div class="flex gap-1">
+            <td class="col-center">
+              <div class="flex gap-1 justify-center">
                 <button class="btn btn-secondary btn-sm" onclick="FundsView.openForm('${r.id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="FundsView.deleteFund('${r.id}')">Del</button>
               </div>
