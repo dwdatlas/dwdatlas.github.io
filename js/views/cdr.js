@@ -317,6 +317,18 @@ const CDRView = {
       `<option value="${u.code}" data-desc="${u.desc}">${u.code} — ${u.desc}</option>`
     ).join('');
 
+    const eiLine = `
+      <div class="ei-uacs-line flex gap-2 mb-2 items-center">
+        <select class="form-select flex-1 ei-uacs-code" style="min-width:0">
+          <option value="">— Select UACS —</option>${uacsOpts}
+        </select>
+        <input type="number" step="0.01" min="0" class="form-input ei-uacs-amount"
+               style="width:110px;flex-shrink:0" placeholder="0.00"
+               oninput="CDRView.updateInlineTotal()" />
+        <button type="button" class="btn btn-danger btn-sm"
+                onclick="this.closest('.ei-uacs-line').remove(); CDRView.updateInlineTotal()">×</button>
+      </div>`;
+
     el.innerHTML = `
     <!-- Top bar -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -345,43 +357,33 @@ const CDRView = {
         <h3>Add Transaction</h3>
       </div>
       <div class="section-card-body">
-        <form id="cdr-entry-form" onsubmit="CDRView.saveInlineEntry(event,'${id}')">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            <div>
-              <label class="form-label">Date *</label>
-              <input id="ei-date" type="date" class="form-input" required value="${new Date().toISOString().slice(0,10)}" />
-            </div>
-            <div>
-              <label class="form-label">DV / Check No.</label>
-              <input id="ei-ref" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="form-label">Particulars *</label>
-              <input id="ei-particulars" type="text" class="form-input" required placeholder="Description of transaction" />
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <div>
+            <label class="form-label">Date *</label>
+            <input id="ei-date" type="date" class="form-input" value="${new Date().toISOString().slice(0,10)}" />
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
-            <div>
-              <label class="form-label">Payment (₱)</label>
-              <input id="ei-payment" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="form-label">UACS Object Code & Name</label>
-              <select id="ei-uacs" class="form-select">
-                <option value="">— Select UACS (required for payments) —</option>
-                ${uacsOpts}
-              </select>
-            </div>
+          <div>
+            <label class="form-label">DV / Check No.</label>
+            <input id="ei-ref" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
           </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-secondary" onclick="CDRView.openCreateMulti('${id}')">
-              + Multi-UACS Entry
-            </button>
-            <button type="submit" class="btn btn-primary">
-              + Add Transaction
-            </button>
+          <div>
+            <label class="form-label">Particulars *</label>
+            <input id="ei-particulars" type="text" class="form-input" placeholder="Description of transaction" />
           </div>
-        </form>
+        </div>
+        <div class="mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <label class="form-label mb-0">UACS Breakdown</label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="CDRView.addInlineUACSLine()">+ Add UACS</button>
+          </div>
+          <div id="ei-uacs-lines">${eiLine}${eiLine}</div>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-semibold text-gray-700">Total: ₱<span id="ei-total">0.00</span></div>
+          <button type="button" class="btn btn-primary" onclick="CDRView.saveInlineEntry('${id}')">
+            + Add Transaction
+          </button>
+        </div>
       </div>
     </div>
 
@@ -461,34 +463,45 @@ const CDRView = {
     if (inp) inp.value = desc;
   },
 
-  async saveInlineEntry(e, cdr_id) {
-    e.preventDefault();
-    const uacs_code = document.getElementById('ei-uacs').value;
-    const uacs_desc = uacs_code
-      ? (UACS_CODES.find(u => u.code === uacs_code)?.desc || '')
-      : '';
-    const advances = 0;
-    const payment  = parseFloat(document.getElementById('ei-payment').value)  || 0;
+  async saveInlineEntry(cdr_id) {
+    const date        = document.getElementById('ei-date').value;
+    const ref_no      = document.getElementById('ei-ref').value.trim();
+    const particulars = document.getElementById('ei-particulars').value.trim();
 
-    if (payment === 0) {
-      App.toast('Enter a Payment amount.', 'error'); return;
+    if (!date || !particulars) {
+      App.toast('Date and Particulars are required.', 'error'); return;
     }
-    if (!uacs_code) {
-      App.toast('Please select a UACS code for the payment.', 'error'); return;
+
+    const uacs_lines = [];
+    let total = 0;
+    for (const line of document.querySelectorAll('#ei-uacs-lines .ei-uacs-line')) {
+      const code   = line.querySelector('.ei-uacs-code').value;
+      const amount = parseFloat(line.querySelector('.ei-uacs-amount').value) || 0;
+      if (!code)       { App.toast('Select a UACS code for every line.', 'error'); return; }
+      if (amount <= 0) { App.toast('Each UACS amount must be greater than 0.', 'error'); return; }
+      const desc = UACS_CODES.find(u => u.code === code)?.desc || '';
+      uacs_lines.push({ code, desc, amount });
+      total += amount;
+    }
+
+    if (uacs_lines.length === 0) {
+      App.toast('Add at least one UACS line.', 'error'); return;
     }
 
     const row = {
-      id: DB.newId(),
+      id:         DB.newId(),
       cdr_id,
-      entry_date:  document.getElementById('ei-date').value,
-      particulars: document.getElementById('ei-particulars').value.trim(),
-      uacs_code,
-      uacs_desc,
-      advances,
-      payment,
-      ref_no: document.getElementById('ei-ref').value.trim(),
+      entry_date: date,
+      ref_no,
+      particulars,
+      uacs_code:  null,
+      uacs_desc:  null,
+      advances:   0,
+      payment:    total,
+      uacs_lines: JSON.stringify(uacs_lines),
       sort_order: Date.now(),
     };
+
     const { error } = await DB.upsertCDREntry(row);
     if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
 
@@ -497,6 +510,33 @@ const CDRView = {
 
     App.toast('Transaction added!');
     await this.showDetail(cdr_id);
+  },
+
+  addInlineUACSLine() {
+    const container = document.getElementById('ei-uacs-lines');
+    if (!container) return;
+    const uacsOpts = UACS_CODES.map(u =>
+      `<option value="${u.code}">${u.code} — ${u.desc}</option>`
+    ).join('');
+    const div = document.createElement('div');
+    div.className = 'ei-uacs-line flex gap-2 mb-2 items-center';
+    div.innerHTML = `
+      <select class="form-select flex-1 ei-uacs-code" style="min-width:0">
+        <option value="">— Select UACS —</option>${uacsOpts}
+      </select>
+      <input type="number" step="0.01" min="0" class="form-input ei-uacs-amount"
+             style="width:110px;flex-shrink:0" placeholder="0.00"
+             oninput="CDRView.updateInlineTotal()" />
+      <button type="button" class="btn btn-danger btn-sm"
+              onclick="this.closest('.ei-uacs-line').remove(); CDRView.updateInlineTotal()">×</button>`;
+    container.appendChild(div);
+  },
+
+  updateInlineTotal() {
+    const total = Array.from(document.querySelectorAll('.ei-uacs-amount'))
+      .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
+    const el = document.getElementById('ei-total');
+    if (el) el.textContent = total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
   async deleteEntry(entry_id, cdr_id) {
