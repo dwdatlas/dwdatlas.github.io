@@ -7,25 +7,27 @@ const CheckIssuedView = {
   _headers:     [],
   _entries:     [],
   _currentRows: [],
-  _schoolFilter: '',
-  _yearFilter:   '',
+  _schoolFilter:   '',
+  _yearFilter:     '',
+  _fundTypeFilter: '',
 
   async render() {
     return `<div class="flex justify-center py-20"><div class="spinner"></div></div>`;
   },
 
   async afterRender() {
-    const [schoolsRes, headersRes, entriesRes] = await Promise.all([
+    const [schoolsRes, headersRes, entriesRes, ftRes] = await Promise.all([
       DB.getSchools(),
       DB.getCDRHeaders(),
       DB.getAllCDREntries(),
+      DB.getFundTypes(),
     ]);
     this._schools = schoolsRes.data  || [];
     this._headers = headersRes.data  || [];
     this._entries = (entriesRes.data || []).filter(e => (parseFloat(e.payment) || 0) > 0);
 
     const years = [...new Set(this._headers.map(h => h.year).filter(Boolean))].sort((a, b) => b - a);
-    const isAdmin     = typeof Auth !== 'undefined' && Auth.isAdmin();
+    const isAdmin      = typeof Auth !== 'undefined' && Auth.isAdmin();
     const userSchoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
 
     const schoolOpts = isAdmin
@@ -36,12 +38,16 @@ const CheckIssuedView = {
     const yearOpts = `<option value="">All Years</option>` +
       years.map(y => `<option value="${y}">${y}</option>`).join('');
 
+    const fundTypeOpts = `<option value="">All Fund Types</option>` +
+      (ftRes.data || []).map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+
     const el = document.getElementById('view-container');
     el.innerHTML = `
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <div class="flex gap-2 flex-wrap">
         ${isAdmin ? `<select id="ci-school" class="form-select" style="min-width:180px">${schoolOpts}</select>` : ''}
         <select id="ci-year" class="form-select" style="min-width:120px">${yearOpts}</select>
+        <select id="ci-fundtype" class="form-select" style="min-width:200px">${fundTypeOpts}</select>
       </div>
       <button class="btn btn-primary btn-sm" onclick="CheckIssuedView.downloadExcel()">Download Excel</button>
     </div>
@@ -66,8 +72,9 @@ const CheckIssuedView = {
       </div>
     </div>`;
 
-    this._schoolFilter = isAdmin ? '' : (userSchoolId || '');
-    this._yearFilter   = '';
+    this._schoolFilter   = isAdmin ? '' : (userSchoolId || '');
+    this._yearFilter     = '';
+    this._fundTypeFilter = '';
 
     if (isAdmin) {
       document.getElementById('ci-school').addEventListener('change', e => {
@@ -75,6 +82,10 @@ const CheckIssuedView = {
         this._paint();
       });
     }
+    document.getElementById('ci-fundtype').addEventListener('change', e => {
+      this._fundTypeFilter = e.target.value;
+      this._paint();
+    });
     document.getElementById('ci-year').addEventListener('change', e => {
       this._yearFilter = e.target.value;
       this._paint();
@@ -96,8 +107,9 @@ const CheckIssuedView = {
       return { ...e, fund_type: h.fund_type || '—', school_id: h.school_id, year: h.year };
     });
 
-    if (this._schoolFilter) rows = rows.filter(r => r.school_id === this._schoolFilter);
-    if (this._yearFilter)   rows = rows.filter(r => String(r.year) === String(this._yearFilter));
+    if (this._schoolFilter)   rows = rows.filter(r => r.school_id === this._schoolFilter);
+    if (this._yearFilter)     rows = rows.filter(r => String(r.year) === String(this._yearFilter));
+    if (this._fundTypeFilter) rows = rows.filter(r => r.fund_type === this._fundTypeFilter);
 
     rows.sort((a, b) => (a.entry_date || '').localeCompare(b.entry_date || ''));
 
