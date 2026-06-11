@@ -218,7 +218,7 @@ const FundsView = {
         <table class="data-table">
           <thead><tr>
             <th>School</th>
-            <th class="text-right">
+            <th class="col-amount">
               Amount (₱)
               <span class="font-normal text-gray-400 text-xs ml-1">— leave blank to skip</span>
             </th>
