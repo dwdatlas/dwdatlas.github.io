@@ -23,9 +23,7 @@ const SchoolsView = {
     </div>`;
   },
 
-  async afterRender() {
-    await this.load();
-  },
+  afterRender() { this.load(); },
 
   async load() {
     const { data } = await DB.getSchools();

@@ -31,9 +31,9 @@ const ResourcesView = {
     </div>`;
   },
 
-  async afterRender() {
-    if (!this.activeCategory || this.activeCategory === 'uacs_reference') await this.loadUACSRef();
-    await this.loadList();
+  afterRender() {
+    if (!this.activeCategory || this.activeCategory === 'uacs_reference') this.loadUACSRef();
+    this.loadList();
   },
 
   async loadUACSRef() {

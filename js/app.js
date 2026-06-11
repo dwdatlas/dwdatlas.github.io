@@ -21,12 +21,35 @@ const App = {
   },
 
   async init() {
+    // Apply role-based UI immediately — no network needed
+    const isAdmin = typeof Auth !== 'undefined' && Auth.isAdmin();
+    const user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
+
+    const setupNav = document.getElementById('nav-setup');
+    if (setupNav) setupNav.style.display = isAdmin ? '' : 'none';
+
+    const nameEl = document.getElementById('sidebar-user-name');
+    const roleEl = document.getElementById('sidebar-user-role');
+    if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
+    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III (Sr. Bookkeeper)' : 'School Account';
+
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.navigate(el.dataset.view);
+        this.closeSidebar();
+      });
+    });
+
+    // Navigate immediately — don't wait for Supabase
+    const hash = location.hash.slice(1) || 'dashboard';
+    this.navigate(this.views[hash] ? hash : 'dashboard');
+
+    // Init DB in background, then refresh with live Supabase data
     const connected = await DB.init();
     this.updateConnectionStatus(connected);
 
-    // For school users on Supabase: resolve the actual DB school_id in case
-    // users-data.js has fixed IDs (e.g. 's_arado') but Supabase schools were
-    // added manually with random IDs. Match by name as fallback.
+    // School user ID resolution (edge case: IDs mismatched between local and Supabase)
     const _user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
     if (connected && _user && _user.role === 'school') {
       const { data: _schools } = await DB.getSchools();
@@ -41,32 +64,15 @@ const App = {
       }
     }
 
-    // Apply role-based UI
-    const isAdmin = typeof Auth !== 'undefined' && Auth.isAdmin();
-    const user = typeof Auth !== 'undefined' ? Auth.currentUser : null;
-
-    // Hide Setup nav for school users
-    const setupNav = document.getElementById('nav-setup');
-    if (setupNav) setupNav.style.display = isAdmin ? '' : 'none';
-
-    // Show logged-in user in sidebar footer
-    const nameEl = document.getElementById('sidebar-user-name');
-    const roleEl = document.getElementById('sidebar-user-role');
-    if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
-    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III (Sr. Bookkeeper)' : 'School Account';
-
-    // Handle nav clicks
-    document.querySelectorAll('.nav-link').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.navigate(el.dataset.view);
-        this.closeSidebar();
-      });
-    });
-
-    // Navigate to hash or default
-    const hash = location.hash.slice(1) || 'dashboard';
-    this.navigate(this.views[hash] ? hash : 'dashboard');
+    // Refresh current view with Supabase data (in case it loaded from localStorage first)
+    if (connected) {
+      const v = this.views[this.currentView];
+      if (v) {
+        const obj = v.obj();
+        const reload = obj._fetchAndPaint || obj._loadAFD || obj._initView || obj.load;
+        if (typeof reload === 'function') reload.call(obj);
+      }
+    }
   },
 
   async navigate(viewName) {
