@@ -317,18 +317,6 @@ const CDRView = {
       `<option value="${u.code}" data-desc="${u.desc}">${u.code} — ${u.desc}</option>`
     ).join('');
 
-    const eiLine = `
-      <div class="ei-uacs-line flex gap-2 mb-2 items-center">
-        <select class="form-select flex-1 ei-uacs-code" style="min-width:0">
-          <option value="">— Select UACS —</option>${uacsOpts}
-        </select>
-        <input type="number" step="0.01" min="0" class="form-input ei-uacs-amount"
-               style="width:110px;flex-shrink:0" placeholder="0.00"
-               oninput="CDRView.updateInlineTotal()" />
-        <button type="button" class="btn btn-danger btn-sm"
-                onclick="this.closest('.ei-uacs-line').remove(); CDRView.updateInlineTotal()">×</button>
-      </div>`;
-
     el.innerHTML = `
     <!-- Top bar -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -351,40 +339,11 @@ const CDRView = {
       </div>
     </div>
 
-    <!-- Add Transaction Form -->
-    <div class="section-card mb-4">
-      <div class="section-card-header">
-        <h3>Add Transaction</h3>
-      </div>
-      <div class="section-card-body">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-          <div>
-            <label class="form-label">Date *</label>
-            <input id="ei-date" type="date" class="form-input" value="${new Date().toISOString().slice(0,10)}" />
-          </div>
-          <div>
-            <label class="form-label">DV / Check No.</label>
-            <input id="ei-ref" type="text" class="form-input" placeholder="e.g. 2026-01-001 1496368" />
-          </div>
-          <div>
-            <label class="form-label">Particulars *</label>
-            <input id="ei-particulars" type="text" class="form-input" placeholder="Description of transaction" />
-          </div>
-        </div>
-        <div class="mb-3">
-          <div class="flex items-center justify-between mb-2">
-            <label class="form-label mb-0">UACS Breakdown</label>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="CDRView.addInlineUACSLine()">+ Add UACS</button>
-          </div>
-          <div id="ei-uacs-lines">${eiLine}${eiLine}</div>
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="text-sm font-semibold text-gray-700">Total: ₱<span id="ei-total">0.00</span></div>
-          <button type="button" class="btn btn-primary" onclick="CDRView.saveInlineEntry('${id}')">
-            + Add Transaction
-          </button>
-        </div>
-      </div>
+    <!-- Add Transaction Button -->
+    <div class="flex justify-end mb-4">
+      <button class="btn btn-primary" onclick="CDRView.openCreateMulti('${id}')">
+        + Add Transaction
+      </button>
     </div>
 
     <!-- Transactions Table -->
@@ -461,82 +420,6 @@ const CDRView = {
     const inp = document.getElementById('entry-uacs-desc');
     if (row) row.style.display = desc ? '' : 'none';
     if (inp) inp.value = desc;
-  },
-
-  async saveInlineEntry(cdr_id) {
-    const date        = document.getElementById('ei-date').value;
-    const ref_no      = document.getElementById('ei-ref').value.trim();
-    const particulars = document.getElementById('ei-particulars').value.trim();
-
-    if (!date || !particulars) {
-      App.toast('Date and Particulars are required.', 'error'); return;
-    }
-
-    const uacs_lines = [];
-    let total = 0;
-    for (const line of document.querySelectorAll('#ei-uacs-lines .ei-uacs-line')) {
-      const code   = line.querySelector('.ei-uacs-code').value;
-      const amount = parseFloat(line.querySelector('.ei-uacs-amount').value) || 0;
-      if (!code)       { App.toast('Select a UACS code for every line.', 'error'); return; }
-      if (amount <= 0) { App.toast('Each UACS amount must be greater than 0.', 'error'); return; }
-      const desc = UACS_CODES.find(u => u.code === code)?.desc || '';
-      uacs_lines.push({ code, desc, amount });
-      total += amount;
-    }
-
-    if (uacs_lines.length === 0) {
-      App.toast('Add at least one UACS line.', 'error'); return;
-    }
-
-    const row = {
-      id:         DB.newId(),
-      cdr_id,
-      entry_date: date,
-      ref_no,
-      particulars,
-      uacs_code:  null,
-      uacs_desc:  null,
-      advances:   0,
-      payment:    total,
-      uacs_lines: JSON.stringify(uacs_lines),
-      sort_order: Date.now(),
-    };
-
-    const { error } = await DB.upsertCDREntry(row);
-    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
-
-    const { data: existing } = await DB.getCDREntries(cdr_id);
-    await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
-
-    App.toast('Transaction added!');
-    await this.showDetail(cdr_id);
-  },
-
-  addInlineUACSLine() {
-    const container = document.getElementById('ei-uacs-lines');
-    if (!container) return;
-    const uacsOpts = UACS_CODES.map(u =>
-      `<option value="${u.code}">${u.code} — ${u.desc}</option>`
-    ).join('');
-    const div = document.createElement('div');
-    div.className = 'ei-uacs-line flex gap-2 mb-2 items-center';
-    div.innerHTML = `
-      <select class="form-select flex-1 ei-uacs-code" style="min-width:0">
-        <option value="">— Select UACS —</option>${uacsOpts}
-      </select>
-      <input type="number" step="0.01" min="0" class="form-input ei-uacs-amount"
-             style="width:110px;flex-shrink:0" placeholder="0.00"
-             oninput="CDRView.updateInlineTotal()" />
-      <button type="button" class="btn btn-danger btn-sm"
-              onclick="this.closest('.ei-uacs-line').remove(); CDRView.updateInlineTotal()">×</button>`;
-    container.appendChild(div);
-  },
-
-  updateInlineTotal() {
-    const total = Array.from(document.querySelectorAll('.ei-uacs-amount'))
-      .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
-    const el = document.getElementById('ei-total');
-    if (el) el.textContent = total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
   async deleteEntry(entry_id, cdr_id) {
@@ -673,9 +556,35 @@ const CDRView = {
     const { data: existing } = await DB.getCDREntries(cdr_id);
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
 
-    App.closeModal();
-    App.toast('Multi-UACS entry saved!');
+    App.toast('Transaction added!');
+
+    // Refresh the transactions table without closing the modal
     await this.showDetail(cdr_id);
+
+    // Reset form fields for the next entry
+    const miDate = document.getElementById('mi-date');
+    const miRef  = document.getElementById('mi-ref');
+    const miPart = document.getElementById('mi-particulars');
+    const miLines = document.getElementById('mi-uacs-lines');
+    const miTotal = document.getElementById('mi-total');
+    if (miDate)  miDate.value = new Date().toISOString().slice(0, 10);
+    if (miRef)   miRef.value  = '';
+    if (miPart)  miPart.value = '';
+    if (miTotal) miTotal.textContent = '0.00';
+    if (miLines) {
+      const opts = UACS_CODES.map(u => `<option value="${u.code}">${u.code} — ${u.desc}</option>`).join('');
+      const line = `<div class="uacs-line flex gap-2 mb-2 items-center">
+        <select class="form-select flex-1 uacs-line-code" style="min-width:0">
+          <option value="">— Select UACS —</option>${opts}
+        </select>
+        <input type="number" step="0.01" min="0" class="form-input uacs-line-amount"
+               style="width:110px;flex-shrink:0" placeholder="0.00"
+               oninput="CDRView.updateMultiTotal()" />
+        <button type="button" class="btn btn-danger btn-sm"
+                onclick="this.closest('.uacs-line').remove(); CDRView.updateMultiTotal()">×</button>
+      </div>`;
+      miLines.innerHTML = line + line;
+    }
   },
 
   // ---- Download as PDF (F4 landscape, 8.5 × 13 in) using jsPDF ----
