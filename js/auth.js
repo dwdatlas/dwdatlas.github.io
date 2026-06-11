@@ -68,24 +68,24 @@ const Auth = {
     const password = document.getElementById('login-password').value;
     const errEl    = document.getElementById('login-error');
     const btn      = e.target.querySelector('button[type="submit"]');
+    const hash     = this._hash(password);
 
-    if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+    // 1. Try local users first — instant, no network (covers admin always)
+    let user = this._getUsers().find(u => u.username === username && u.passwordHash === hash);
 
-    // Start with local users (always includes admin)
-    let users = this._getUsers();
+    // 2. Not found locally — check Supabase school accounts
+    if (!user) {
+      if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+      try {
+        if (typeof DB !== 'undefined') await DB.init(); // ensure ready if still initialising
+        const { data } = await DB.getAppUsers();
+        if (data && data.length) {
+          user = data.find(u => u.username === username && u.passwordHash === hash);
+        }
+      } catch {}
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+    }
 
-    // Merge in Supabase school users (if connected)
-    try {
-      const { data } = await DB.getAppUsers();
-      if (data && data.length) {
-        const supaIds = new Set(data.map(u => u.id));
-        users = [...users.filter(u => !supaIds.has(u.id)), ...data];
-      }
-    } catch {}
-
-    if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
-
-    const user = users.find(u => u.username === username && u.passwordHash === this._hash(password));
     if (user) {
       this.currentUser = user;
       sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
@@ -158,7 +158,7 @@ const Auth = {
   },
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-  if (typeof DB !== 'undefined') await DB.init();
-  Auth.guard();
+document.addEventListener('DOMContentLoaded', () => {
+  Auth.guard(); // show login screen immediately — no network wait
+  if (typeof DB !== 'undefined') DB.init(); // initialise Supabase in background
 });

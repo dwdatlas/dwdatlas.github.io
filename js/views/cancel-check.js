@@ -196,20 +196,24 @@ const CancelCheckView = {
       reason:    document.getElementById('cc-reason').value.trim(),
     };
 
-    const btn = e.target.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-
-    const { error } = await DB.upsertCancelledCheck(row);
-    if (btn) { btn.disabled = false; btn.textContent = id ? 'Update Record' : 'Save Record'; }
-    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
-
+    // Optimistic update — close modal and refresh table immediately
+    const isNew = !id;
+    const idx   = this._records.findIndex(r => r.id === row.id);
+    const prev  = idx > -1 ? { ...this._records[idx] } : null;
+    if (idx > -1) this._records[idx] = row; else this._records.push(row);
     App.closeModal();
-    App.toast(id ? 'Record updated!' : 'Record saved!');
-
-    const idx = this._records.findIndex(r => r.id === row.id);
-    if (idx > -1) this._records[idx] = row;
-    else this._records.push(row);
     this._paint();
+    App.toast(isNew ? 'Record saved!' : 'Record updated!');
+
+    // Background save to Supabase
+    const { error } = await DB.upsertCancelledCheck(row);
+    if (error) {
+      // Revert on failure
+      if (isNew) this._records = this._records.filter(r => r.id !== row.id);
+      else if (prev && idx > -1) this._records[idx] = prev;
+      this._paint();
+      App.toast('Error saving: ' + (error?.message || error), 'error');
+    }
   },
 
   async deleteRecord(id) {
