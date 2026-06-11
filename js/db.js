@@ -273,6 +273,37 @@ const DB = (() => {
   // ============================================================
   // FUND TYPES (localStorage only)
   // ============================================================
+  // CANCELLED CHECKS
+  // ============================================================
+  async function getCancelledChecks(filters = {}) {
+    if (useLocal) {
+      let rows = lsGet('cancelled_checks');
+      if (filters.school_id) rows = rows.filter(r => r.school_id === filters.school_id);
+      rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      return { data: rows, error: null };
+    }
+    let q = sb.from('cancelled_checks').select('*').order('date', { ascending: false });
+    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    const { data, error } = await q;
+    return { data: data || [], error };
+  }
+  async function upsertCancelledCheck(row) {
+    if (useLocal) {
+      const rows = lsGet('cancelled_checks');
+      const idx  = rows.findIndex(r => r.id === row.id);
+      if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('cancelled_checks', rows); return { data: rows[idx], error: null }; }
+      return lsInsert('cancelled_checks', row);
+    }
+    const { data, error } = await sb.from('cancelled_checks').upsert(row).select().single();
+    return { data, error };
+  }
+  async function deleteCancelledCheck(id) {
+    if (useLocal) return lsDelete('cancelled_checks', id);
+    const { error } = await sb.from('cancelled_checks').delete().eq('id', id);
+    return { error };
+  }
+
+  // ============================================================
   // APP USERS — school accounts stored in Supabase (auto-synced)
   // ============================================================
   function _userToRow(u) {
@@ -457,6 +488,8 @@ const DB = (() => {
     getUACS, upsertUACS,
     // downloaded funds
     getFunds, upsertFund, deleteFund,
+    // cancelled checks
+    getCancelledChecks, upsertCancelledCheck, deleteCancelledCheck,
     // app users
     getAppUsers, upsertAppUser, deleteAppUser,
     // files
