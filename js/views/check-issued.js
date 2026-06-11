@@ -12,42 +12,15 @@ const CheckIssuedView = {
   _fundTypeFilter: '',
 
   async render() {
-    return `<div class="flex justify-center py-20"><div class="spinner"></div></div>`;
-  },
-
-  async afterRender() {
-    const [schoolsRes, headersRes, entriesRes, ftRes] = await Promise.all([
-      DB.getSchools(),
-      DB.getCDRHeaders(),
-      DB.getAllCDREntries(),
-      DB.getFundTypes(),
-    ]);
-    this._schools = schoolsRes.data  || [];
-    this._headers = headersRes.data  || [];
-    this._entries = (entriesRes.data || []).filter(e => (parseFloat(e.payment) || 0) > 0);
-
-    const years = [...new Set(this._headers.map(h => h.year).filter(Boolean))].sort((a, b) => b - a);
     const isAdmin      = typeof Auth !== 'undefined' && Auth.isAdmin();
     const userSchoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
 
-    const schoolOpts = isAdmin
-      ? `<option value="">All Schools</option>` +
-        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
-      : `<option value="${userSchoolId}">${this._schools.find(s => s.id === userSchoolId)?.name || 'My School'}</option>`;
-
-    const yearOpts = `<option value="">All Years</option>` +
-      years.map(y => `<option value="${y}">${y}</option>`).join('');
-
-    const fundTypeOpts = `<option value="">All Fund Types</option>` +
-      (ftRes.data || []).map(f => `<option value="${f.name}">${f.name}</option>`).join('');
-
-    const el = document.getElementById('view-container');
-    el.innerHTML = `
+    return `
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <div class="flex gap-2 flex-wrap">
-        ${isAdmin ? `<select id="ci-school" class="form-select" style="min-width:180px">${schoolOpts}</select>` : ''}
-        <select id="ci-year" class="form-select" style="min-width:120px">${yearOpts}</select>
-        <select id="ci-fundtype" class="form-select" style="min-width:200px">${fundTypeOpts}</select>
+        ${isAdmin ? `<select id="ci-school" class="form-select" style="min-width:180px"><option value="">All Schools</option></select>` : ''}
+        <select id="ci-year"     class="form-select" style="min-width:120px"><option value="">All Years</option></select>
+        <select id="ci-fundtype" class="form-select" style="min-width:200px"><option value="">All Fund Types</option></select>
       </div>
       <button class="btn btn-primary btn-sm" onclick="CheckIssuedView.downloadExcel()">Download Excel</button>
     </div>
@@ -67,29 +40,65 @@ const CheckIssuedView = {
             <th>School</th>
             <th class="text-right">Amount</th>
           </tr></thead>
-          <tbody id="ci-tbody"></tbody>
+          <tbody id="ci-tbody">
+            <tr><td colspan="7" class="text-center text-gray-400 py-8 text-sm">
+              <div class="spinner" style="margin:0 auto"></div>
+            </td></tr>
+          </tbody>
         </table>
       </div>
     </div>`;
+  },
+
+  async afterRender() {
+    const isAdmin      = typeof Auth !== 'undefined' && Auth.isAdmin();
+    const userSchoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
 
     this._schoolFilter   = isAdmin ? '' : (userSchoolId || '');
     this._yearFilter     = '';
     this._fundTypeFilter = '';
 
+    // Wire up filter events immediately (dropdowns exist now)
     if (isAdmin) {
-      document.getElementById('ci-school').addEventListener('change', e => {
-        this._schoolFilter = e.target.value;
-        this._paint();
+      document.getElementById('ci-school')?.addEventListener('change', e => {
+        this._schoolFilter = e.target.value; this._paint();
       });
     }
-    document.getElementById('ci-fundtype').addEventListener('change', e => {
-      this._fundTypeFilter = e.target.value;
-      this._paint();
+    document.getElementById('ci-year')?.addEventListener('change', e => {
+      this._yearFilter = e.target.value; this._paint();
     });
-    document.getElementById('ci-year').addEventListener('change', e => {
-      this._yearFilter = e.target.value;
-      this._paint();
+    document.getElementById('ci-fundtype')?.addEventListener('change', e => {
+      this._fundTypeFilter = e.target.value; this._paint();
     });
+
+    // Load all data in parallel
+    const [schoolsRes, headersRes, entriesRes, ftRes] = await Promise.all([
+      DB.getSchools(),
+      DB.getCDRHeaders(),
+      DB.getAllCDREntries(),
+      DB.getFundTypes(),
+    ]);
+    this._schools = schoolsRes.data  || [];
+    this._headers = headersRes.data  || [];
+    this._entries = (entriesRes.data || []).filter(e => (parseFloat(e.payment) || 0) > 0);
+
+    // Populate school dropdown
+    if (isAdmin) {
+      const sel = document.getElementById('ci-school');
+      if (sel) sel.innerHTML = `<option value="">All Schools</option>` +
+        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    // Populate year dropdown
+    const years = [...new Set(this._headers.map(h => h.year).filter(Boolean))].sort((a, b) => b - a);
+    const yrSel = document.getElementById('ci-year');
+    if (yrSel) yrSel.innerHTML = `<option value="">All Years</option>` +
+      years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+    // Populate fund type dropdown
+    const ftSel = document.getElementById('ci-fundtype');
+    if (ftSel) ftSel.innerHTML = `<option value="">All Fund Types</option>` +
+      (ftRes.data || []).map(f => `<option value="${f.name}">${f.name}</option>`).join('');
 
     this._paint();
   },
