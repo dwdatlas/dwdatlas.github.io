@@ -42,7 +42,6 @@ const CDRView = {
             <label class="form-label">Fund Type</label>
             <select id="cdr-filter-fundtype" class="form-select" onchange="CDRView.load()">
               <option value="">All Fund Types</option>
-              ${fundTypes}
             </select>
           </div>
           <div class="flex items-end gap-2">
