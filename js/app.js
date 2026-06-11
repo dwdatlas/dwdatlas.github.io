@@ -64,8 +64,11 @@ const App = {
       }
     }
 
-    // Refresh current view with Supabase data (in case it loaded from localStorage first)
     if (connected) {
+      // Populate localStorage with fresh Supabase data for the next page load
+      DB.preload();
+
+      // Refresh current view with live Supabase data
       const v = this.views[this.currentView];
       if (v) {
         const obj = v.obj();

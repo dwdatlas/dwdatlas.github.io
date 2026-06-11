@@ -72,11 +72,14 @@ const DB = (() => {
   // ============================================================
   async function getSchools() {
     if (_schoolsCache) return { data: _schoolsCache, error: null };
-    const result = useLocal
-      ? lsAll('schools')
-      : await sb.from('schools').select('*').order('name');
-    if (!result.error && result.data) _schoolsCache = result.data;
-    return result;
+    if (useLocal) {
+      const data = lsGet('schools');
+      if (data.length) _schoolsCache = data;
+      return { data, error: null };
+    }
+    const { data, error } = await sb.from('schools').select('*').order('name');
+    if (!error && data) { _schoolsCache = data; lsSet('schools', data); }
+    return { data: data || [], error };
   }
   async function upsertSchool(school) {
     _schoolsCache = null;
@@ -451,7 +454,11 @@ const DB = (() => {
     if (filters.year)      q = q.eq('year', filters.year);
     if (filters.status)    q = q.eq('status', filters.status);
     const { data, error } = await q;
-    return { data, error };
+    // Write-through: cache the full unfiltered result for instant startup reads
+    if (!error && data && !filters.school_id && !filters.year && !filters.status) {
+      lsSet('funds', data);
+    }
+    return { data: data || [], error };
   }
   async function upsertFund(row) {
     if (useLocal) {
@@ -469,8 +476,33 @@ const DB = (() => {
     return { error };
   }
 
+  // Fetch all key tables from Supabase and write to localStorage so the
+  // next page load can read data instantly (before Supabase reconnects).
+  async function preload() {
+    if (useLocal) return;
+    try {
+      const [schoolsRes, fundsRes] = await Promise.all([
+        sb.from('schools').select('*').order('name'),
+        sb.from('downloaded_funds').select('*').order('ada_date'),
+      ]);
+      if (!schoolsRes.error && schoolsRes.data) { _schoolsCache = schoolsRes.data; lsSet('schools', schoolsRes.data); }
+      if (!fundsRes.error && fundsRes.data) lsSet('funds', fundsRes.data);
+
+      const [disbRes, cdrRes, cancelRes] = await Promise.all([
+        sb.from('disbursements').select('*').order('ada_date', { ascending: false }),
+        sb.from('cdr_headers').select('*, schools(name,short_name,school_head,designation)').order('created_at', { ascending: false }),
+        sb.from('cancelled_checks').select('*').order('date', { ascending: false }),
+      ]);
+      if (!disbRes.error && disbRes.data) lsSet('disbursements', disbRes.data);
+      if (!cdrRes.error && cdrRes.data) lsSet('cdr_headers', cdrRes.data);
+      if (!cancelRes.error && cancelRes.data) lsSet('cancelled_checks', cancelRes.data);
+    } catch (e) {
+      console.warn('DB.preload:', e);
+    }
+  }
+
   return {
-    init, isLocal: () => useLocal,
+    init, isLocal: () => useLocal, preload,
     // schools
     getSchools, upsertSchool, deleteSchool,
     // disbursements
