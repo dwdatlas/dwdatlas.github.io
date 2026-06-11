@@ -552,6 +552,7 @@ create table if not exists cdr_entries (
   ref_no text,
   payee text,
   sort_order bigint,
+  uacs_lines text,
   created_at timestamptz default now()
 );
 

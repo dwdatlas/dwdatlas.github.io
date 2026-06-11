@@ -88,8 +88,10 @@ const CDRXlsx = {
       let bal = 0, sumPay = 0, sumG = 0, sumH = 0, sumI = 0, sumL = 0;
       const recap = [];
 
-      entries.forEach((e, i) => {
-        const rn  = DATA_START + i;
+      let dr = DATA_START;  // current data row (may advance extra for multi-UACS continuation rows)
+
+      entries.forEach(e => {
+        const rn  = dr;
         const adv = parseFloat(e.advances) || 0;
         const pay = parseFloat(e.payment)  || 0;
 
@@ -104,27 +106,67 @@ const CDRXlsx = {
           ws.cell(rn, 5).value(pay).style('numberFormat', NUM);
           bal    -= pay;
           sumPay += pay;
-          const code = e.uacs_code || '';
-          if      (code === '5020301000') { ws.cell(rn, 7).value(pay).style('numberFormat', NUM); sumG += pay; }
-          else if (code === '5021299000') { ws.cell(rn, 8).value(pay).style('numberFormat', NUM); sumH += pay; }
-          else if (code === '5021202000') { ws.cell(rn, 9).value(pay).style('numberFormat', NUM); sumI += pay; }
-          else {
-            const desc = e.uacs_desc || '';
-            if (desc) ws.cell(rn, 10).value(desc);
-            if (code) ws.cell(rn, 11).value(code);
-            ws.cell(rn, 12).value(pay).style('numberFormat', NUM);
-            sumL += pay;
-            recap.push({ desc, code, amt: pay });
+
+          if (e.uacs_lines) {
+            // Multi-UACS entry — spread amounts across UACS columns
+            let lines; try { lines = JSON.parse(e.uacs_lines); } catch { lines = []; }
+            const otherLines = [];
+            lines.forEach(line => {
+              const lineAmt = parseFloat(line.amount) || 0;
+              const lcode   = line.code || '';
+              if      (lcode === '5020301000') { ws.cell(rn, 7).value(lineAmt).style('numberFormat', NUM); sumG += lineAmt; }
+              else if (lcode === '5021299000') { ws.cell(rn, 8).value(lineAmt).style('numberFormat', NUM); sumH += lineAmt; }
+              else if (lcode === '5021202000') { ws.cell(rn, 9).value(lineAmt).style('numberFormat', NUM); sumI += lineAmt; }
+              else {
+                otherLines.push(line);
+                sumL += lineAmt;
+                recap.push({ desc: line.desc || '', code: lcode, amt: lineAmt });
+              }
+            });
+            // First "other" on the main row
+            if (otherLines.length > 0) {
+              const fo = otherLines[0];
+              const foAmt = parseFloat(fo.amount) || 0;
+              if (fo.desc) ws.cell(rn, 10).value(fo.desc);
+              if (fo.code) ws.cell(rn, 11).value(fo.code);
+              ws.cell(rn, 12).value(foAmt).style('numberFormat', NUM);
+            }
+            // Continuation rows for additional "other" UACS lines
+            for (let k = 1; k < otherLines.length; k++) {
+              dr++;
+              const xo = otherLines[k];
+              const xAmt = parseFloat(xo.amount) || 0;
+              if (xo.desc) ws.cell(dr, 10).value(xo.desc);
+              if (xo.code) ws.cell(dr, 11).value(xo.code);
+              ws.cell(dr, 12).value(xAmt).style('numberFormat', NUM);
+            }
+          } else {
+            // Single UACS entry
+            const code = e.uacs_code || '';
+            if      (code === '5020301000') { ws.cell(rn, 7).value(pay).style('numberFormat', NUM); sumG += pay; }
+            else if (code === '5021299000') { ws.cell(rn, 8).value(pay).style('numberFormat', NUM); sumH += pay; }
+            else if (code === '5021202000') { ws.cell(rn, 9).value(pay).style('numberFormat', NUM); sumI += pay; }
+            else {
+              const desc = e.uacs_desc || '';
+              if (desc) ws.cell(rn, 10).value(desc);
+              if (code) ws.cell(rn, 11).value(code);
+              ws.cell(rn, 12).value(pay).style('numberFormat', NUM);
+              sumL += pay;
+              recap.push({ desc, code, amt: pay });
+            }
           }
         }
         ws.cell(rn, 6).value(bal).style('numberFormat', NUM);
+        dr++;
       });
 
+      const rowsWritten = dr - DATA_START;
+
       // ── Hide unused data rows (pulls Totals up visually) ──
-      if (n > capacity) {
+      if (rowsWritten > capacity) {
         App.toast('Warning: too many entries for one page — all rows filled.', 'error');
       } else {
-        for (let r = DATA_START + n; r <= DATA_END; r++) ws.row(r).hidden(true);
+        for (let r = DATA_START + rowsWritten; r <= DATA_END; r++) ws.row(r).hidden(true);
       }
 
       // ── Totals row ──

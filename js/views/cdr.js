@@ -343,6 +343,7 @@ const CDRView = {
     <div class="section-card mb-4">
       <div class="section-card-header">
         <h3>Add Transaction</h3>
+        <button class="btn btn-secondary btn-sm" onclick="CDRView.openCreateMulti('${id}')">+ Multi-UACS Entry</button>
       </div>
       <div class="section-card-body">
         <form id="cdr-entry-form" onsubmit="CDRView.saveInlineEntry(event,'${id}')">
@@ -405,9 +406,9 @@ const CDRView = {
             ${rows.length === 0
               ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
               : rows.map((e, i) => {
-                  const uacsLabel = e.uacs_code
-                    ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code)
-                    : '—';
+                  const uacsLabel = e.uacs_lines
+                    ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
+                    : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
                   return `
                   <tr>
                     <td class="text-xs text-gray-400">${i + 1}</td>
@@ -502,6 +503,136 @@ const CDRView = {
     const { data: existing } = await DB.getCDREntries(cdr_id);
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
+    await this.showDetail(cdr_id);
+  },
+
+  // ---- Multi-UACS entry form ----
+  openCreateMulti(cdr_id) {
+    const uacsOpts = UACS_CODES.map(u =>
+      `<option value="${u.code}">${u.code} — ${u.desc}</option>`
+    ).join('');
+    const lineHtml = `
+      <div class="uacs-line flex gap-2 mb-2 items-center">
+        <select class="form-select flex-1 uacs-line-code" style="min-width:0">
+          <option value="">— Select UACS —</option>${uacsOpts}
+        </select>
+        <input type="number" step="0.01" min="0" class="form-input uacs-line-amount"
+               style="width:110px;flex-shrink:0" placeholder="0.00"
+               oninput="CDRView.updateMultiTotal()" />
+        <button type="button" class="btn btn-danger btn-sm"
+                onclick="this.closest('.uacs-line').remove(); CDRView.updateMultiTotal()">×</button>
+      </div>`;
+    const html = `
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label">Date *</label>
+          <input id="mi-date" type="date" class="form-input" required
+                 value="${new Date().toISOString().slice(0,10)}" />
+        </div>
+        <div>
+          <label class="form-label">DV / Check No.</label>
+          <input id="mi-ref" type="text" class="form-input"
+                 placeholder="e.g. 2026-01-001 1496368" />
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">Particulars *</label>
+          <input id="mi-particulars" type="text" class="form-input" required
+                 placeholder="Description of transaction" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center justify-between mb-2">
+          <label class="form-label mb-0 font-semibold">UACS Breakdown</label>
+          <button type="button" class="btn btn-secondary btn-sm"
+                  onclick="CDRView.addUACSLine()">+ Add UACS</button>
+        </div>
+        <div id="mi-uacs-lines">${lineHtml}${lineHtml}</div>
+      </div>
+      <div class="flex items-center justify-between pt-2 border-t border-gray-200">
+        <div class="text-sm font-semibold text-gray-700">Total: ₱<span id="mi-total">0.00</span></div>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+          <button type="button" class="btn btn-primary"
+                  onclick="CDRView.saveMultiUACS('${cdr_id}')">Save Entry</button>
+        </div>
+      </div>`;
+    App.openModal('Multi-UACS Entry', html);
+  },
+
+  addUACSLine() {
+    const container = document.getElementById('mi-uacs-lines');
+    if (!container) return;
+    const uacsOpts = UACS_CODES.map(u =>
+      `<option value="${u.code}">${u.code} — ${u.desc}</option>`
+    ).join('');
+    const div = document.createElement('div');
+    div.className = 'uacs-line flex gap-2 mb-2 items-center';
+    div.innerHTML = `
+      <select class="form-select flex-1 uacs-line-code" style="min-width:0">
+        <option value="">— Select UACS —</option>${uacsOpts}
+      </select>
+      <input type="number" step="0.01" min="0" class="form-input uacs-line-amount"
+             style="width:110px;flex-shrink:0" placeholder="0.00"
+             oninput="CDRView.updateMultiTotal()" />
+      <button type="button" class="btn btn-danger btn-sm"
+              onclick="this.closest('.uacs-line').remove(); CDRView.updateMultiTotal()">×</button>`;
+    container.appendChild(div);
+  },
+
+  updateMultiTotal() {
+    const total = Array.from(document.querySelectorAll('.uacs-line-amount'))
+      .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
+    const el = document.getElementById('mi-total');
+    if (el) el.textContent = total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+
+  async saveMultiUACS(cdr_id) {
+    const date        = document.getElementById('mi-date').value;
+    const ref_no      = document.getElementById('mi-ref').value.trim();
+    const particulars = document.getElementById('mi-particulars').value.trim();
+
+    if (!date || !particulars) {
+      App.toast('Date and Particulars are required.', 'error'); return;
+    }
+
+    const uacs_lines = [];
+    let total = 0;
+    for (const line of document.querySelectorAll('#mi-uacs-lines .uacs-line')) {
+      const code   = line.querySelector('.uacs-line-code').value;
+      const amount = parseFloat(line.querySelector('.uacs-line-amount').value) || 0;
+      if (!code)       { App.toast('Select a UACS code for every line.', 'error'); return; }
+      if (amount <= 0) { App.toast('Each UACS amount must be greater than 0.', 'error'); return; }
+      const desc = UACS_CODES.find(u => u.code === code)?.desc || '';
+      uacs_lines.push({ code, desc, amount });
+      total += amount;
+    }
+
+    if (uacs_lines.length === 0) {
+      App.toast('Add at least one UACS line.', 'error'); return;
+    }
+
+    const row = {
+      id:         DB.newId(),
+      cdr_id,
+      entry_date: date,
+      ref_no,
+      particulars,
+      uacs_code:  null,
+      uacs_desc:  null,
+      advances:   0,
+      payment:    total,
+      uacs_lines: JSON.stringify(uacs_lines),
+      sort_order: Date.now(),
+    };
+
+    const { error } = await DB.upsertCDREntry(row);
+    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
+
+    const { data: existing } = await DB.getCDREntries(cdr_id);
+    await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
+
+    App.closeModal();
+    App.toast('Multi-UACS entry saved!');
     await this.showDetail(cdr_id);
   },
 
@@ -1046,33 +1177,81 @@ const CDRView = {
     const COL_GENSVC = '5021299000';
     const COL_JANIT  = '5021202000';
 
-    const totOffice = entries.filter(e => e.uacs_code === COL_OFFICE).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
-    const totGenSvc = entries.filter(e => e.uacs_code === COL_GENSVC).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
-    const totJanit  = entries.filter(e => e.uacs_code === COL_JANIT ).reduce((s,e) => s+(parseFloat(e.payment)||0), 0);
+    // Flatten all UACS amounts (handles both single and multi-UACS entries)
+    const allUACSAmts = [];
+    entries.forEach(e => {
+      if (e.uacs_lines) {
+        try { JSON.parse(e.uacs_lines).forEach(l => allUACSAmts.push(l)); } catch {}
+      } else {
+        const pay = parseFloat(e.payment) || 0;
+        if (e.uacs_code && pay > 0) allUACSAmts.push({ code: e.uacs_code, desc: e.uacs_desc, amount: pay });
+      }
+    });
+    const totOffice = allUACSAmts.filter(l => l.code === COL_OFFICE).reduce((s,l) => s+(parseFloat(l.amount)||0), 0);
+    const totGenSvc = allUACSAmts.filter(l => l.code === COL_GENSVC).reduce((s,l) => s+(parseFloat(l.amount)||0), 0);
+    const totJanit  = allUACSAmts.filter(l => l.code === COL_JANIT ).reduce((s,l) => s+(parseFloat(l.amount)||0), 0);
 
-    const tableRows = rows.map(e => {
+    const tableRowParts = [];
+    rows.forEach(e => {
       const adv = parseFloat(e.advances) || 0;
       const pay = parseFloat(e.payment)  || 0;
-      const isOffice = e.uacs_code === COL_OFFICE;
-      const isGenSvc = e.uacs_code === COL_GENSVC;
-      const isJanit  = e.uacs_code === COL_JANIT;
-      const isOthers = !isOffice && !isGenSvc && !isJanit && pay > 0;
-      const othDesc  = isOthers ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || '') : '';
-      return `<tr>
-        <td style="text-align:center;white-space:nowrap;font-size:7pt">${_fd(e.entry_date)}</td>
-        <td style="font-size:6pt;word-break:break-all">${e.ref_no || ''}</td>
-        <td style="font-size:6.5pt">${e.particulars || ''}</td>
-        <td style="text-align:right">${adv > 0 ? _fp(adv) : ''}</td>
-        <td style="text-align:right">${pay > 0 ? _fp(pay) : ''}</td>
-        <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
-        <td style="text-align:right">${isOffice ? _fp(pay) : ''}</td>
-        <td style="text-align:right">${isGenSvc ? _fp(pay) : ''}</td>
-        <td style="text-align:right">${isJanit  ? _fp(pay) : ''}</td>
-        <td style="font-size:6pt">${othDesc}</td>
-        <td style="text-align:center;font-size:6pt">${isOthers ? (e.uacs_code||'') : ''}</td>
-        <td style="text-align:right">${isOthers ? _fp(pay) : ''}</td>
-      </tr>`;
-    }).join('');
+
+      if (e.uacs_lines) {
+        let lines; try { lines = JSON.parse(e.uacs_lines); } catch { lines = []; }
+        const fixedAmts = { [COL_OFFICE]: 0, [COL_GENSVC]: 0, [COL_JANIT]: 0 };
+        const otherLines = [];
+        lines.forEach(l => {
+          const a = parseFloat(l.amount) || 0;
+          if (l.code in fixedAmts) fixedAmts[l.code] += a;
+          else otherLines.push(l);
+        });
+        const fo = otherLines[0];
+        tableRowParts.push(`<tr>
+          <td style="text-align:center;white-space:nowrap;font-size:7pt">${_fd(e.entry_date)}</td>
+          <td style="font-size:6pt;word-break:break-all">${e.ref_no || ''}</td>
+          <td style="font-size:6.5pt">${e.particulars || ''}</td>
+          <td style="text-align:right"></td>
+          <td style="text-align:right">${_fp(pay)}</td>
+          <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
+          <td style="text-align:right">${fixedAmts[COL_OFFICE] > 0 ? _fp(fixedAmts[COL_OFFICE]) : ''}</td>
+          <td style="text-align:right">${fixedAmts[COL_GENSVC] > 0 ? _fp(fixedAmts[COL_GENSVC]) : ''}</td>
+          <td style="text-align:right">${fixedAmts[COL_JANIT]  > 0 ? _fp(fixedAmts[COL_JANIT])  : ''}</td>
+          <td style="font-size:6pt">${fo ? (fo.desc||'') : ''}</td>
+          <td style="text-align:center;font-size:6pt">${fo ? (fo.code||'') : ''}</td>
+          <td style="text-align:right">${fo ? _fp(parseFloat(fo.amount)||0) : ''}</td>
+        </tr>`);
+        for (let k = 1; k < otherLines.length; k++) {
+          const xl = otherLines[k];
+          tableRowParts.push(`<tr>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+            <td style="font-size:6pt">${xl.desc||''}</td>
+            <td style="text-align:center;font-size:6pt">${xl.code||''}</td>
+            <td style="text-align:right">${_fp(parseFloat(xl.amount)||0)}</td>
+          </tr>`);
+        }
+      } else {
+        const isOffice = e.uacs_code === COL_OFFICE;
+        const isGenSvc = e.uacs_code === COL_GENSVC;
+        const isJanit  = e.uacs_code === COL_JANIT;
+        const isOthers = !isOffice && !isGenSvc && !isJanit && pay > 0;
+        const othDesc  = isOthers ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || '') : '';
+        tableRowParts.push(`<tr>
+          <td style="text-align:center;white-space:nowrap;font-size:7pt">${_fd(e.entry_date)}</td>
+          <td style="font-size:6pt;word-break:break-all">${e.ref_no || ''}</td>
+          <td style="font-size:6.5pt">${e.particulars || ''}</td>
+          <td style="text-align:right">${adv > 0 ? _fp(adv) : ''}</td>
+          <td style="text-align:right">${pay > 0 ? _fp(pay) : ''}</td>
+          <td style="text-align:right;font-weight:bold">${_fp(e.running_balance)}</td>
+          <td style="text-align:right">${isOffice ? _fp(pay) : ''}</td>
+          <td style="text-align:right">${isGenSvc ? _fp(pay) : ''}</td>
+          <td style="text-align:right">${isJanit  ? _fp(pay) : ''}</td>
+          <td style="font-size:6pt">${othDesc}</td>
+          <td style="text-align:center;font-size:6pt">${isOthers ? (e.uacs_code||'') : ''}</td>
+          <td style="text-align:right">${isOthers ? _fp(pay) : ''}</td>
+        </tr>`);
+      }
+    });
+    const tableRows = tableRowParts.join('');
 
     w.document.open();
     w.document.write(`<!DOCTYPE html>
