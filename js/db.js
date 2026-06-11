@@ -264,8 +264,38 @@ const DB = (() => {
   // ============================================================
   // FUND TYPES (localStorage only)
   // ============================================================
+  const DEFAULT_FUND_TYPES = [
+    { id: 'ft_mooe_q1',    name: '1st Quarter MOOE',                                    category: 'mooe'    },
+    { id: 'ft_mooe_q2',    name: '2nd Quarter MOOE',                                    category: 'mooe'    },
+    { id: 'ft_mooe_q3',    name: '3rd Quarter MOOE',                                    category: 'mooe'    },
+    { id: 'ft_mooe_q4',    name: '4th Quarter MOOE',                                    category: 'mooe'    },
+    { id: 'ft_mooe_add',   name: 'Additional MOOE',                                     category: 'mooe'    },
+    { id: 'ft_sf_water',   name: 'LBP Water Testing',                                   category: 'special' },
+    { id: 'ft_sf_dbpnut',  name: 'DBP-Nutribun',                                        category: 'special' },
+    { id: 'ft_sf_lbpnut',  name: 'LBP-Nutribun',                                        category: 'special' },
+    { id: 'ft_sf_dbpmilk', name: 'DBP-SBFP Milk',                                       category: 'special' },
+    { id: 'ft_sf_dbpnlc',  name: 'DBP-SBFP NLC',                                        category: 'special' },
+    { id: 'ft_sf_lbpnlc',  name: 'LBP-SBFP NLC',                                        category: 'special' },
+    { id: 'ft_sf_lbpmilk', name: 'LBP-SBFP Milk',                                       category: 'special' },
+    { id: 'ft_sf_dbparal', name: 'DBP-ARAL Program',                                    category: 'special' },
+    { id: 'ft_sf_lbppsf',  name: 'LBP-Special Needs Support PSF',                       category: 'special' },
+    { id: 'ft_sf_lbparal', name: 'LBP ARAL Program',                                    category: 'special' },
+    { id: 'ft_sf_dbphaul', name: 'DBP-Hauling of Textbooks',                            category: 'special' },
+    { id: 'ft_sf_lbphaul', name: 'LBP-Hauling of Text',                                 category: 'special' },
+    { id: 'ft_sf_lbpell',  name: 'LBP-ELLNA',                                           category: 'special' },
+    { id: 'ft_sf_dbpell',  name: 'DBP-ELLNA',                                           category: 'special' },
+    { id: 'ft_sf_lbplr',   name: 'LBP-Delivery Support Fund for LRs',                   category: 'special' },
+    { id: 'ft_sf_lbplvl',  name: 'LBP-Delivery Support Fund (Leveled Reader Mini Book)', category: 'special' },
+    { id: 'ft_sf_lbpemg',  name: 'LBP-Delivery Support Fund (Emergency Situation)',      category: 'special' },
+    { id: 'ft_sf_milkop',  name: 'LBP-SBFP Milk Operational Expenses',                  category: 'special' },
+  ];
+
   async function getFundTypes(category = '') {
     let rows = lsGet('fund_types');
+    if (!rows.length) {
+      lsSet('fund_types', DEFAULT_FUND_TYPES);
+      rows = DEFAULT_FUND_TYPES;
+    }
     if (category) rows = rows.filter(r => r.category === category);
     rows.sort((a, b) => a.name.localeCompare(b.name));
     return { data: rows, error: null };
