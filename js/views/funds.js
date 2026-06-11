@@ -123,8 +123,8 @@ const FundsView = {
         <th>Fund Type</th>
         ${!this._schoolId ? '<th>School</th>' : ''}
         ${this._category === 'special' ? '<th>Bank</th>' : ''}
-        <th class="text-right">Amount</th>
-        <th>Status</th>
+        <th class="text-center">Amount</th>
+        <th class="text-center">Status</th>
         <th>Deadline</th>
         ${isAdmin ? '<th>Actions</th>' : ''}
       </tr></thead>
@@ -141,8 +141,8 @@ const FundsView = {
             <td class="text-xs">${r.fund_type || '—'}</td>
             ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
-            <td class="text-right font-semibold">${fmt(r.amount)}</td>
-            <td>${badge}</td>
+            <td class="text-center font-semibold">${fmt(r.amount)}</td>
+            <td class="text-center">${badge}</td>
             <td class="text-xs text-gray-500">${r.deadline ? formatDate(r.deadline) : (r.remarks || '—')}</td>
             ${isAdmin ? `
             <td>
