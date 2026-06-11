@@ -29,7 +29,7 @@ const CancelCheckView = {
           <thead><tr>
             <th>#</th>
             <th>Date</th>
-            <th>Check / DV No.</th>
+            <th>Check No.</th>
             <th>Payee</th>
             ${isAdmin ? '<th>School</th>' : ''}
             <th class="col-amount">Amount</th>
@@ -108,14 +108,11 @@ const CancelCheckView = {
     }
 
     tbody.innerHTML = rows.map((r, i) => {
-      const dvCheck = r.dv_no || r.check_no
-        ? [r.dv_no, r.check_no].filter(Boolean).join('/')
-        : '—';
       const school = schoolMap.get(r.school_id);
       return `<tr>
         <td class="text-xs text-gray-400">${i + 1}</td>
         <td class="text-xs whitespace-nowrap">${formatDate(r.date)}</td>
-        <td class="text-xs font-mono">${dvCheck}</td>
+        <td class="text-xs font-mono">${r.check_no || '—'}</td>
         <td class="text-xs">${r.payee || '—'}</td>
         ${isAdmin ? `<td class="text-xs">${school?.short_name || school?.name || '—'}</td>` : ''}
         <td class="col-amount text-xs font-semibold">${r.amount != null ? fmt(r.amount) : '—'}</td>
@@ -153,20 +150,16 @@ const CancelCheckView = {
           <input id="cc-date" type="date" class="form-input" required value="${rec?.date || ''}" />
         </div>
         <div>
-          <label class="form-label">Amount (₱)</label>
-          <input id="cc-amount" type="number" step="0.01" min="0" class="form-input" value="${rec?.amount ?? ''}" placeholder="0.00" />
-        </div>
-        <div>
-          <label class="form-label">DV No.</label>
-          <input id="cc-dv-no" type="text" class="form-input" value="${rec?.dv_no || ''}" placeholder="e.g. 2026-01-001" />
-        </div>
-        <div>
           <label class="form-label">Check No. *</label>
           <input id="cc-check-no" type="text" class="form-input" required value="${rec?.check_no || ''}" placeholder="e.g. 12345678" />
         </div>
+        <div>
+          <label class="form-label">Amount (₱)</label>
+          <input id="cc-amount" type="number" step="0.01" min="0" class="form-input" value="${rec?.amount ?? ''}" placeholder="0.00" />
+        </div>
         <div class="col-span-2">
-          <label class="form-label">Payee *</label>
-          <input id="cc-payee" type="text" class="form-input" required value="${rec?.payee || ''}" placeholder="Name of payee" />
+          <label class="form-label">Payee</label>
+          <input id="cc-payee" type="text" class="form-input" value="${rec?.payee || ''}" placeholder="Name of payee (optional)" />
         </div>
         ${schoolField}
         <div class="col-span-2">
@@ -188,7 +181,6 @@ const CancelCheckView = {
     const row = {
       id:        id || DB.newId(),
       date:      document.getElementById('cc-date').value,
-      dv_no:     document.getElementById('cc-dv-no').value.trim(),
       check_no:  document.getElementById('cc-check-no').value.trim(),
       payee:     document.getElementById('cc-payee').value.trim(),
       amount:    parseFloat(document.getElementById('cc-amount').value) || null,
