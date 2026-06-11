@@ -9,6 +9,7 @@ const DB = (() => {
   let _schoolsCache = null;
 
   async function init() {
+    if (!useLocal) return true; // already initialized
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
     if (typeof supabase === 'undefined') {
       try {
@@ -272,6 +273,52 @@ const DB = (() => {
   // ============================================================
   // FUND TYPES (localStorage only)
   // ============================================================
+  // APP USERS — school accounts stored in Supabase (auto-synced)
+  // ============================================================
+  function _userToRow(u) {
+    return { id: u.id, username: u.username, password_hash: u.passwordHash, role: u.role || 'school', school_id: u.school_id, school_name: u.school_name };
+  }
+  function _rowToUser(r) {
+    return { id: r.id, username: r.username, passwordHash: r.password_hash, role: r.role, school_id: r.school_id, school_name: r.school_name };
+  }
+  async function getAppUsers() {
+    if (useLocal) {
+      try {
+        const stored = localStorage.getItem('dwd_users');
+        if (stored) return { data: JSON.parse(stored).filter(u => u.role === 'school'), error: null };
+      } catch {}
+      return { data: [], error: null };
+    }
+    const { data, error } = await sb.from('app_users').select('*');
+    return { data: (data || []).map(_rowToUser), error };
+  }
+  async function upsertAppUser(user) {
+    if (useLocal) {
+      const stored = localStorage.getItem('dwd_users');
+      let users = [];
+      try { users = stored ? JSON.parse(stored) : []; } catch {}
+      const idx = users.findIndex(u => u.id === user.id);
+      if (idx > -1) users[idx] = { ...users[idx], ...user };
+      else users.push(user);
+      localStorage.setItem('dwd_users', JSON.stringify(users));
+      return { data: user, error: null };
+    }
+    const { data, error } = await sb.from('app_users').upsert(_userToRow(user)).select().single();
+    return { data: data ? _rowToUser(data) : null, error };
+  }
+  async function deleteAppUser(id) {
+    if (useLocal) {
+      const stored = localStorage.getItem('dwd_users');
+      let users = [];
+      try { users = stored ? JSON.parse(stored) : []; } catch {}
+      localStorage.setItem('dwd_users', JSON.stringify(users.filter(u => u.id !== id)));
+      return { error: null };
+    }
+    const { error } = await sb.from('app_users').delete().eq('id', id);
+    return { error };
+  }
+
+  // ============================================================
   const DEFAULT_FUND_TYPES = [
     { id: 'ft_mooe_q1',    name: '1st Quarter MOOE',                                    category: 'mooe'    },
     { id: 'ft_mooe_q2',    name: '2nd Quarter MOOE',                                    category: 'mooe'    },
@@ -410,6 +457,8 @@ const DB = (() => {
     getUACS, upsertUACS,
     // downloaded funds
     getFunds, upsertFund, deleteFund,
+    // app users
+    getAppUsers, upsertAppUser, deleteAppUser,
     // files
     uploadFile,
     // helpers

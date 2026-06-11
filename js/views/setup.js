@@ -69,8 +69,7 @@ const SetupView = {
         <div class="flex justify-center py-6"><div class="spinner"></div></div>
       </div>
       <div class="px-5 pb-4 border-t pt-3 bg-gray-50">
-        <p class="text-xs text-gray-500 mb-2">After adding/removing accounts, export and send the file to your developer to publish the changes for all devices.</p>
-        <button class="btn btn-secondary btn-sm" onclick="SetupView.exportUsers()">Export Users File</button>
+        <p class="text-xs text-gray-500">Accounts are saved to Supabase and go live immediately on all devices.</p>
       </div>
     </div>
 
@@ -193,15 +192,17 @@ const SetupView = {
   },
 
   async afterRender() {
-    this.loadUsers();
-    await this.loadFundTypes();
+    await Promise.all([this.loadUsers(), this.loadFundTypes()]);
   },
 
-  loadUsers() {
-    const users = Auth.getUsers();
+  async loadUsers() {
     const el = document.getElementById('users-list');
     if (!el) return;
-    const schoolUsers = users.filter(u => u.role === 'school');
+    // Merge Supabase users with USERS_DATA school users
+    const { data: supaUsers } = await DB.getAppUsers();
+    const localUsers  = Auth.getUsers().filter(u => u.role === 'school');
+    const supaIds     = new Set((supaUsers || []).map(u => u.id));
+    const schoolUsers = [...(supaUsers || []), ...localUsers.filter(u => !supaIds.has(u.id))];
     if (!schoolUsers.length) {
       el.innerHTML = `<div class="px-6 py-6 text-sm text-gray-400 text-center">No school accounts yet. Click "+ Add School Account" to create one.</div>`;
       return;
@@ -300,18 +301,21 @@ const SetupView = {
     App.openModal('Add School Account', html);
   },
 
-  saveUser(e) {
+  async saveUser(e) {
     e.preventDefault();
-    const schoolEl = document.getElementById('u-school');
-    const school_id = schoolEl.value;
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    const schoolEl    = document.getElementById('u-school');
+    const school_id   = schoolEl.value;
     const school_name = schoolEl.options[schoolEl.selectedIndex]?.dataset?.name || '';
-    const username = document.getElementById('u-username').value.trim();
-    const password = document.getElementById('u-password').value;
-    const { error } = Auth.addSchoolUser(username, password, school_id, school_name);
+    const username    = document.getElementById('u-username').value.trim();
+    const password    = document.getElementById('u-password').value;
+    const { error }   = await Auth.addSchoolUser(username, password, school_id, school_name);
+    if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
     if (error) { App.toast(error, 'error'); return; }
     App.closeModal();
     App.toast('School account created!');
-    this.loadUsers();
+    await this.loadUsers();
   },
 
   openResetPassword(id, username) {
@@ -330,11 +334,13 @@ const SetupView = {
     App.openModal('Reset Password', html);
   },
 
-  resetPassword(e, id) {
+  async resetPassword(e, id) {
     e.preventDefault();
-    Auth.updateUserPassword(id, document.getElementById('reset-pw').value);
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    await Auth.updateUserPassword(id, document.getElementById('reset-pw').value);
     App.closeModal();
-    App.toast('Password reset!');
+    App.toast('Password updated! Changes are live immediately.');
   },
 
   exportUsers() {
@@ -351,11 +357,11 @@ const SetupView = {
     App.toast('users-data.js downloaded! Send this file to your developer.');
   },
 
-  deleteUser(id) {
+  async deleteUser(id) {
     if (!confirm('Delete this school account?')) return;
-    Auth.deleteUser(id);
+    await Auth.deleteUser(id);
     App.toast('Account deleted.');
-    this.loadUsers();
+    await this.loadUsers();
   },
 
   saveCredentials(e) {
