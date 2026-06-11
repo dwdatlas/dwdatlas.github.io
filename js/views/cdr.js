@@ -343,7 +343,6 @@ const CDRView = {
     <div class="section-card mb-4">
       <div class="section-card-header">
         <h3>Add Transaction</h3>
-        <button class="btn btn-secondary btn-sm" onclick="CDRView.openCreateMulti('${id}')">+ Multi-UACS Entry</button>
       </div>
       <div class="section-card-body">
         <form id="cdr-entry-form" onsubmit="CDRView.saveInlineEntry(event,'${id}')">
@@ -374,7 +373,10 @@ const CDRView = {
               </select>
             </div>
           </div>
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-secondary" onclick="CDRView.openCreateMulti('${id}')">
+              + Multi-UACS Entry
+            </button>
             <button type="submit" class="btn btn-primary">
               + Add Transaction
             </button>
