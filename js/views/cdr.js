@@ -4,21 +4,16 @@
 const CDRView = {
   _category: '',
 
-  async render(category = '') {
+  render(category = '') {
     this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
-    const [schoolsRes, ftRes] = await Promise.all([DB.getSchools(), DB.getFundTypes(category)]);
-    const schools   = schoolsRes.data || [];
-    const fundTypes = (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
-
-    const schoolOpts = schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
     const schoolDropdown = this._schoolId
       ? `<select id="cdr-filter-school" class="form-select" disabled>
-           <option value="${this._schoolId}">${schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
+           <option value="${this._schoolId}">My School</option>
          </select>`
       : `<select id="cdr-filter-school" class="form-select" onchange="CDRView.load()">
-           <option value="">All Schools</option>${schoolOpts}
+           <option value="">All Schools</option>
          </select>`;
 
     const yearOpts = this._category === 'mooe'
@@ -71,9 +66,33 @@ const CDRView = {
     `;
   },
 
-  async afterRender() {
-    this._schools = (await DB.getSchools()).data || [];
-    await this.load();
+  afterRender() { this._initView(); },
+
+  async _initView() {
+    const [schoolsRes, ftRes] = await Promise.all([
+      DB.getSchools(),
+      DB.getFundTypes(this._category),
+    ]);
+    this._schools = schoolsRes.data || [];
+
+    // Populate school dropdown
+    const schoolSel = document.getElementById('cdr-filter-school');
+    if (schoolSel) {
+      if (this._schoolId) {
+        const s = this._schools.find(s => s.id === this._schoolId);
+        if (s) schoolSel.innerHTML = `<option value="${this._schoolId}">${s.name}</option>`;
+      } else {
+        schoolSel.innerHTML = `<option value="">All Schools</option>` +
+          this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      }
+    }
+
+    // Populate fund type dropdown
+    const ftSel = document.getElementById('cdr-filter-fundtype');
+    if (ftSel) ftSel.innerHTML = `<option value="">All Fund Types</option>` +
+      (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+
+    this.load();
   },
 
   async load() {

@@ -8,26 +8,21 @@ const FundsView = {
   _category: '',
   _batchFunds: [],
 
-  async render(category = '') {
+  render(category = '') {
     this._category = category;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
-    const [schoolsRes, ftRes] = await Promise.all([DB.getSchools(), DB.getFundTypes(category)]);
-    this._schools = schoolsRes.data || [];
-    const fundTypeOpts = (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
 
     const yr = new Date().getFullYear();
     const years = this._category === 'special' ? [yr, yr - 1] : [yr];
 
-    const schoolOpts = this._schools.map(s =>
-      `<option value="${s.id}">${s.name}</option>`
-    ).join('');
-
     const schoolFilter = this._schoolId
       ? `<input type="hidden" id="f-school" value="${this._schoolId}" /><div class="text-sm font-semibold text-gray-700">${this._schools.find(s=>s.id===this._schoolId)?.name||'My School'}</div>`
       : `<select id="f-school" class="form-select" onchange="FundsView.load()">
-           <option value="">All Schools</option>${schoolOpts}
+           <option value="">All Schools</option>
          </select>`;
+
+    const fundTypeOpts = '';
 
     return `
     <div class="section-card mb-4">
@@ -79,8 +74,28 @@ const FundsView = {
     </div>`;
   },
 
-  async afterRender() {
-    await this.load();
+  afterRender() { this._initView(); },
+
+  async _initView() {
+    const [schoolsRes, ftRes] = await Promise.all([
+      DB.getSchools(),
+      DB.getFundTypes(this._category),
+    ]);
+    this._schools = schoolsRes.data || [];
+
+    // Populate school dropdown for admin
+    const schoolSel = document.getElementById('f-school');
+    if (schoolSel && !this._schoolId) {
+      schoolSel.innerHTML = `<option value="">All Schools</option>` +
+        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    // Populate fund type dropdown
+    const ftSel = document.getElementById('f-fund');
+    if (ftSel) ftSel.innerHTML = `<option value="">All</option>` +
+      (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+
+    this.load();
   },
 
   async load() {

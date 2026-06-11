@@ -45,24 +45,27 @@ const DashboardView = {
     return funds;
   },
 
-  // ---- render() — loads data, returns single container ----
-  async render(mode = 'all') {
+  // ---- render() — instant shell, no network ----
+  render(mode = 'all') {
     this._mode     = mode;
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     this._isAdmin  = typeof Auth !== 'undefined' ? Auth.isAdmin()    : false;
+    return `<div id="dash-root"><div class="flex justify-center py-20"><div class="spinner"></div></div></div>`;
+  },
 
+  afterRender() { this._fetchAndPaint(); },
+
+  async _fetchAndPaint() {
+    // Paint cached data immediately on return visits
+    if (this._schools.length || this._allFunds.length) this._paintAll();
     const [schoolsRes, fundsRes] = await Promise.all([DB.getSchools(), DB.getFunds()]);
     this._schools  = (schoolsRes.data || []).sort((a, b) => a.name.localeCompare(b.name));
     this._allFunds = (fundsRes.data   || []).map(f => ({
       ...f,
       fund_type: (f.fund_type || '').trim().toUpperCase() === 'NUTRIBAN' ? 'SBFP-Food' : f.fund_type,
     }));
-
-    return `<div id="dash-root"></div>`;
+    this._paintAll();
   },
-
-  // Single DOM write on load — avoids multiple Tailwind CDN rescans
-  async afterRender() { this._paintAll(); },
 
   _paintAll() {
     const root = document.getElementById('dash-root');
@@ -456,7 +459,14 @@ const AllFundsDashboardView = {
   _funds:   [],
   _schools: [],
 
-  async render() {
+  render() {
+    return `<div id="afd-root" class="space-y-6"><div class="flex justify-center py-20"><div class="spinner"></div></div></div>`;
+  },
+
+  afterRender() { this._loadAFD(); },
+
+  async _loadAFD() {
+    if (this._funds.length || this._schools.length) this._paint(); // cache hit
     const schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     const [fundsRes, schoolsRes] = await Promise.all([DB.getFunds(), DB.getSchools()]);
     let funds   = (fundsRes.data || []).map(f => ({
@@ -470,10 +480,8 @@ const AllFundsDashboardView = {
     }
     this._funds   = funds;
     this._schools = schools;
-    return `<div id="afd-root" class="space-y-6"></div>`;
+    this._paint();
   },
-
-  async afterRender() { this._paint(); },
 
   _paint() {
     const root = document.getElementById('afd-root');

@@ -5,19 +5,16 @@ const MOOEView = {
   filters: { school_id: '', year: new Date().getFullYear().toString(), status: '', fund_type: '' },
   schools: [],
 
-  async render() {
-    const { data: schools } = await DB.getSchools();
-    this.schools = schools || [];
+  render() {
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
     if (this._schoolId) this.filters.school_id = this._schoolId;
 
     const schoolDropdown = this._schoolId
       ? `<select class="form-select" id="f-school" disabled>
-           <option value="${this._schoolId}">${this.schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
+           <option value="${this._schoolId}">My School</option>
          </select>`
       : `<select class="form-select" id="f-school" onchange="MOOEView.applyFilter()">
            <option value="">All Schools</option>
-           ${this.schools.map(s => `<option value="${s.id}" ${this.filters.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
          </select>`;
 
     return `
@@ -67,8 +64,22 @@ const MOOEView = {
     `;
   },
 
-  async afterRender() {
-    await this.loadTable();
+  afterRender() { this._initView(); },
+
+  async _initView() {
+    const { data: schools } = await DB.getSchools();
+    this.schools = schools || [];
+    const sel = document.getElementById('f-school');
+    if (sel) {
+      if (this._schoolId) {
+        const s = this.schools.find(s => s.id === this._schoolId);
+        if (s) sel.innerHTML = `<option value="${this._schoolId}">${s.name}</option>`;
+      } else {
+        sel.innerHTML = `<option value="">All Schools</option>` +
+          this.schools.map(s => `<option value="${s.id}" ${this.filters.school_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+      }
+    }
+    this.loadTable();
   },
 
   applyFilter() {
