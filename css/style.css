@@ -1,16 +1,8 @@
 /* Nav active state */
-.nav-link {
-  border-left: 4px solid transparent;
-}
 .nav-link.active {
-  border-left: 4px solid #1E5FA8;
-  background-color: rgba(30,95,168,0.10);
-  color: #fff;
+  background-color: rgba(252,209,22,0.18);
   font-weight: 600;
-}
-
-@media (min-width: 768px) {
-  #main-area { margin-left: 220px; }
+  color: #FCD116;
 }
 
 /* Table styles */
