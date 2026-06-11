@@ -46,7 +46,7 @@ const CancelCheckView = {
     </div>`;
   },
 
-  async afterRender() {
+  afterRender() {
     const isAdmin      = typeof Auth !== 'undefined' && Auth.isAdmin();
     const userSchoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
 
@@ -62,6 +62,29 @@ const CancelCheckView = {
       this._yearFilter = e.target.value; this._paint();
     });
 
+    // If cached from a previous visit, render instantly then refresh in background
+    if (this._schools.length || this._records.length) {
+      this._rebuildFilters(isAdmin);
+      this._paint();
+    }
+
+    // Load / refresh data — truly background, does not block navigate()
+    this._loadData(isAdmin, userSchoolId);
+  },
+
+  _rebuildFilters(isAdmin) {
+    if (isAdmin) {
+      const sel = document.getElementById('cc-school');
+      if (sel) sel.innerHTML = `<option value="">All Schools</option>` +
+        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+    const years = [...new Set(this._records.map(r => (r.date || '').slice(0, 4)).filter(Boolean))].sort((a, b) => b - a);
+    const yrSel = document.getElementById('cc-year');
+    if (yrSel) yrSel.innerHTML = `<option value="">All Years</option>` +
+      years.map(y => `<option value="${y}">${y}</option>`).join('');
+  },
+
+  async _loadData(isAdmin, userSchoolId) {
     const filters = isAdmin ? {} : { school_id: userSchoolId };
     const [schoolsRes, recordsRes] = await Promise.all([
       DB.getSchools(),
@@ -69,18 +92,7 @@ const CancelCheckView = {
     ]);
     this._schools = schoolsRes.data || [];
     this._records = recordsRes.data || [];
-
-    if (isAdmin) {
-      const sel = document.getElementById('cc-school');
-      if (sel) sel.innerHTML = `<option value="">All Schools</option>` +
-        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    }
-
-    const years = [...new Set(this._records.map(r => (r.date || '').slice(0, 4)).filter(Boolean))].sort((a, b) => b - a);
-    const yrSel = document.getElementById('cc-year');
-    if (yrSel) yrSel.innerHTML = `<option value="">All Years</option>` +
-      years.map(y => `<option value="${y}">${y}</option>`).join('');
-
+    this._rebuildFilters(isAdmin);
     this._paint();
   },
 
@@ -210,10 +222,17 @@ const CancelCheckView = {
 
   async deleteRecord(id) {
     if (!confirm('Delete this cancelled check record?')) return;
-    const { error } = await DB.deleteCancelledCheck(id);
-    if (error) { App.toast('Error deleting.', 'error'); return; }
+    // Optimistic: remove row immediately
+    const removed = this._records.find(r => r.id === id);
     this._records = this._records.filter(r => r.id !== id);
-    App.toast('Record deleted.');
     this._paint();
+    App.toast('Record deleted.');
+
+    const { error } = await DB.deleteCancelledCheck(id);
+    if (error) {
+      if (removed) this._records.push(removed);
+      this._paint();
+      App.toast('Error deleting: ' + (error?.message || error), 'error');
+    }
   },
 };
