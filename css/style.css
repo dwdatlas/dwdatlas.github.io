@@ -6,7 +6,7 @@
 }
 
 /* Fund table column alignment */
-.col-amount { text-align: right; }
+.col-amount { text-align: right; white-space: nowrap; }
 .col-center { text-align: center; }
 
 /* Table styles */

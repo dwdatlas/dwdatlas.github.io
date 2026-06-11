@@ -38,7 +38,7 @@ const CheckIssuedView = {
             <th>Payee</th>
             <th>Fund Type</th>
             <th>School</th>
-            <th class="text-right">Amount</th>
+            <th class="col-amount">Amount</th>
           </tr></thead>
           <tbody id="ci-tbody">
             <tr><td colspan="7" class="text-center text-gray-400 py-8 text-sm">
@@ -142,7 +142,7 @@ const CheckIssuedView = {
         <td class="text-xs">${e.payee || '—'}</td>
         <td class="text-xs">${e.fund_type}</td>
         <td class="text-xs">${school?.short_name || school?.name || '—'}</td>
-        <td class="text-right text-xs font-semibold">${fmt(e.payment)}</td>
+        <td class="col-amount text-xs font-semibold">${fmt(e.payment)}</td>
       </tr>`;
     }).join('');
   },

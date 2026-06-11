@@ -223,7 +223,7 @@ const DashboardView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>ADA No.</th><th>Date</th><th>Bank</th>
-        <th class="text-right">Amount</th><th>Status</th>
+        <th class="col-amount">Amount</th><th>Status</th>
         ${this._isAdmin ? '<th></th>' : ''}
       </tr></thead>
       <tbody>
@@ -234,7 +234,7 @@ const DashboardView = {
               <td class="text-gray-300">—</td>
               <td class="text-gray-300">—</td>
               <td class="text-gray-300">—</td>
-              <td class="text-right text-gray-300">—</td>
+              <td class="col-amount text-gray-300">—</td>
               <td><span class="badge" style="background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0">Not received</span></td>
               ${this._isAdmin ? '<td></td>' : ''}
             </tr>`;
@@ -244,7 +244,7 @@ const DashboardView = {
             <td class="font-mono text-xs">${fund.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${compactDate(fund.ada_date)}</td>
             <td>${bankBadge(fund.fund_type)}</td>
-            <td class="text-right font-semibold">${fmt(fund.amount)}</td>
+            <td class="col-amount font-semibold">${fmt(fund.amount)}</td>
             <td>${liquidBadge(fund.status)}</td>
             ${this._isAdmin ? `<td><button class="btn btn-sm btn-secondary"
               onclick="DashboardView.toggleStatus('${fund.id}','${fund.status}')">
@@ -352,7 +352,7 @@ const DashboardView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>Fund</th><th>ADA No.</th><th>Date</th>
-        <th>Bank</th><th class="text-right">Amount</th><th>Status</th>
+        <th>Bank</th><th class="col-amount">Amount</th><th>Status</th>
         ${this._isAdmin ? '<th></th>' : ''}
       </tr></thead>
       <tbody>
@@ -364,7 +364,7 @@ const DashboardView = {
             <td class="font-mono text-xs">${f.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
             <td>${bankBadge(f.fund_type)}</td>
-            <td class="text-right font-semibold">${fmt(f.amount)}</td>
+            <td class="col-amount font-semibold">${fmt(f.amount)}</td>
             <td>${liquidBadge(f.status)}</td>
             ${this._isAdmin ? `<td><button class="btn btn-sm btn-secondary"
               onclick="DashboardView.toggleStatus('${f.id}','${f.status}')">
@@ -532,14 +532,14 @@ const AllFundsDashboardView = {
       const col = green ? '#166534' : '#92400e';
       return `<span class="badge" style="background:${bg};color:${col}">${n}%</span>`;
     };
-    const NUM = 'text-align:right;font-variant-numeric:tabular-nums';
+    const NUM = 'font-variant-numeric:tabular-nums';
     const splitRow = (label, r) =>
       `<tr>
         <td class="font-semibold text-sm">${label}</td>
-        <td style="${NUM}">${fmt(r.dl)}</td>
-        <td style="${NUM};font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
-        <td style="${NUM};font-weight:600;color:#b45309">${fmt(r.ul)}</td>
-        <td style="text-align:right">${pctBadge(r.pct, r.pct >= 50)}</td>
+        <td class="col-amount" style="${NUM}">${fmt(r.dl)}</td>
+        <td class="col-amount" style="${NUM};font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
+        <td class="col-amount" style="${NUM};font-weight:600;color:#b45309">${fmt(r.ul)}</td>
+        <td class="col-amount">${pctBadge(r.pct, r.pct >= 50)}</td>
       </tr>`;
 
     const splitHtml = `
@@ -556,20 +556,20 @@ const AllFundsDashboardView = {
             </colgroup>
             <thead><tr>
               <th>Category</th>
-              <th class="text-right">Downloaded</th>
-              <th class="text-right">Liquidated</th>
-              <th class="text-right">Unliquidated</th>
-              <th class="text-right">Liq %</th>
+              <th class="col-amount">Downloaded</th>
+              <th class="col-amount">Liquidated</th>
+              <th class="col-amount">Unliquidated</th>
+              <th class="col-amount">Liq %</th>
             </tr></thead>
             <tbody>
               ${splitRow('MOOE', mRow)}
               ${splitRow('Special Funds', sRow)}
               <tr style="border-top:2px solid #e2e8f0">
                 <td class="font-bold text-sm">Total</td>
-                <td style="${NUM};font-weight:700">${fmt(tRow.dl)}</td>
-                <td style="${NUM};font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
-                <td style="${NUM};font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
-                <td style="text-align:right">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
+                <td class="col-amount" style="${NUM};font-weight:700">${fmt(tRow.dl)}</td>
+                <td class="col-amount" style="${NUM};font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
+                <td class="col-amount" style="${NUM};font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
+                <td class="col-amount">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
               </tr>
             </tbody>
           </table>
@@ -591,20 +591,20 @@ const AllFundsDashboardView = {
             <table class="data-table">
               <thead><tr>
                 <th>School</th><th>Fund Type</th>
-                <th class="text-right">Amount</th>
+                <th class="col-amount">Amount</th>
                 <th>ADA Date</th>
                 <th>Deadline</th>
-                <th class="text-right">Days Overdue</th>
+                <th class="col-amount">Days Overdue</th>
               </tr></thead>
               <tbody>
                 ${attention.map(({ f, school, daysOverdue }) => `
                 <tr>
                   <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
                   <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
-                  <td class="text-right font-semibold">${fmt(f.amount)}</td>
+                  <td class="col-amount font-semibold">${fmt(f.amount)}</td>
                   <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
                   <td class="text-xs whitespace-nowrap font-semibold text-red-600">${compactDate(f.deadline)}</td>
-                  <td class="text-right">
+                  <td class="col-amount">
                     <span class="badge" style="background:#fee2e2;color:#991b1b">${daysOverdue}d</span>
                   </td>
                 </tr>`).join('')}

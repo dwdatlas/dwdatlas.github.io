@@ -129,7 +129,7 @@ const CDRView = {
       <thead><tr>
         <th>School</th><th>Year</th>
         <th>Fund Type</th>
-        <th class="text-center">Fund Amount</th>
+        <th class="col-amount">Fund Amount</th>
         <th class="text-center">Entries</th>
         <th>Actions</th>
       </tr></thead>
@@ -139,7 +139,7 @@ const CDRView = {
           <td class="font-medium" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._schoolName(r.school_id)}</td>
           <td>${r.year}</td>
           <td class="text-xs text-gray-600" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.fund_type || '—'}</td>
-          <td class="text-center font-semibold">${fmt(fundAmt(r))}</td>
+          <td class="col-amount font-semibold">${fmt(fundAmt(r))}</td>
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
           <td>
             <div class="flex gap-1">
@@ -372,9 +372,9 @@ const CDRView = {
             <th>Payee</th>
             <th>Particulars</th>
             <th>UACS Name</th>
-            <th class="text-right">Cash Advance</th>
-            <th class="text-right">Payment</th>
-            <th class="text-right">Balance</th>
+            <th class="col-amount">Cash Advance</th>
+            <th class="col-amount">Payment</th>
+            <th class="col-amount">Balance</th>
             <th></th>
           </tr></thead>
           <tbody>
@@ -395,9 +395,9 @@ const CDRView = {
                     <td class="text-xs">${e.payee || '—'}</td>
                     <td class="text-xs">${e.particulars || '—'}</td>
                     <td class="text-xs">${uacsLabel}</td>
-                    <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
-                    <td class="text-right text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
-                    <td class="text-right text-xs font-bold">${fmt(e.running_balance)}</td>
+                    <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
+                    <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
+                    <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
                     <td>
                       <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
                     </td>
@@ -407,9 +407,9 @@ const CDRView = {
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
               <td colspan="6" class="text-right pr-2">TOTAL</td>
-              <td class="text-right">${fmt(totalAdv)}</td>
-              <td class="text-right text-blue-700">${fmt(totalPay)}</td>
-              <td class="text-right">${fmt(finalBal)}</td>
+              <td class="col-amount">${fmt(totalAdv)}</td>
+              <td class="col-amount text-blue-700">${fmt(totalPay)}</td>
+              <td class="col-amount">${fmt(finalBal)}</td>
               <td></td>
             </tr>` : ''}
           </tbody>
@@ -656,9 +656,9 @@ const CDRView = {
           <thead><tr>
             <th>#</th><th>Date</th><th>DV / Check No.</th><th>Payee</th><th>Particulars</th>
             <th>UACS Name</th>
-            <th class="text-right">Cash Advance</th>
-            <th class="text-right">Payment</th>
-            <th class="text-right">Balance</th>
+            <th class="col-amount">Cash Advance</th>
+            <th class="col-amount">Payment</th>
+            <th class="col-amount">Balance</th>
             <th></th>
           </tr></thead>
           <tbody>
@@ -678,9 +678,9 @@ const CDRView = {
                     <td class="text-xs">${e.payee || '—'}</td>
                     <td class="text-xs">${e.particulars || '—'}</td>
                     <td class="text-xs">${uacsLabel}</td>
-                    <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
-                    <td class="text-right text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
-                    <td class="text-right text-xs font-bold">${fmt(e.running_balance)}</td>
+                    <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
+                    <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
+                    <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
                     <td><button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></td>
                   </tr>`;
                 }).join('')
@@ -688,9 +688,9 @@ const CDRView = {
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
               <td colspan="6" class="text-right pr-2">TOTAL</td>
-              <td class="text-right">${fmt(totalAdv)}</td>
-              <td class="text-right text-blue-700">${fmt(totalPay)}</td>
-              <td class="text-right">${fmt(finalBal)}</td>
+              <td class="col-amount">${fmt(totalAdv)}</td>
+              <td class="col-amount text-blue-700">${fmt(totalPay)}</td>
+              <td class="col-amount">${fmt(finalBal)}</td>
               <td></td>
             </tr>` : ''}
           </tbody>

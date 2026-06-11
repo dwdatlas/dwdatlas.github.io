@@ -102,7 +102,7 @@ const MOOEView = {
         <table class="data-table">
           <thead><tr>
             <th>ADA No.</th><th>ADA Date</th><th>Fund Type</th><th>Bank</th>
-            <th>School</th><th class="text-right">Amount</th>
+            <th>School</th><th class="col-amount">Amount</th>
             <th>Status</th><th>Remarks</th><th class="text-center">Action</th>
           </tr></thead>
           <tbody>
@@ -113,7 +113,7 @@ const MOOEView = {
               <td>${r.fund_type || '—'}</td>
               <td><span class="badge ${r.bank === 'LBP' ? 'badge-submitted' : 'badge-pending'}">${r.bank || '—'}</span></td>
               <td>${schoolNameById(r.school_id, this.schools)}</td>
-              <td class="text-right font-semibold tabular-nums">${fmt(r.amount)}</td>
+              <td class="col-amount font-semibold tabular-nums">${fmt(r.amount)}</td>
               <td>${statusBadge(r.status)}</td>
               <td class="text-xs text-gray-500 max-w-xs truncate">${r.remarks || ''}</td>
               <td class="text-center whitespace-nowrap">
