@@ -117,25 +117,34 @@ const CDRView = {
     const isSpecial = this._category === 'special';
 
     el.innerHTML = `
-    <table class="data-table">
+    <table class="data-table" style="table-layout:fixed;width:100%">
+      <colgroup>
+        <col style="width:220px"/>
+        <col style="width:60px"/>
+        <col/>
+        <col style="width:120px"/>
+        <col style="width:70px"/>
+        <col style="width:200px"/>
+      </colgroup>
       <thead><tr>
         <th>School</th><th>Year</th>
         <th>Fund Type</th>
         <th class="text-right">Fund Amount</th>
-        <th>Entries</th><th>Actions</th>
+        <th class="text-center">Entries</th>
+        <th>Actions</th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `
         <tr>
-          <td class="font-medium">${this._schoolName(r.school_id)}</td>
+          <td class="font-medium" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._schoolName(r.school_id)}</td>
           <td>${r.year}</td>
-          <td class="text-xs text-gray-600">${r.fund_type || '—'}</td>
+          <td class="text-xs text-gray-600" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.fund_type || '—'}</td>
           <td class="text-right font-semibold">${fmt(fundAmt(r))}</td>
           <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
           <td>
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              <button class="btn btn-secondary btn-sm" onclick="CDRXlsx.download('${r.id}')">Download Excel</button>
+              <button class="btn btn-secondary btn-sm" onclick="CDRXlsx.download('${r.id}')">Excel</button>
               <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
             </div>
           </td>
