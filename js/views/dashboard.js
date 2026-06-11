@@ -414,10 +414,15 @@ const DashboardView = {
     const newStatus = currentStatus === 'liquidated' ? 'unliquidated' : 'liquidated';
     const fund = this._allFunds.find(f => f.id === id);
     if (!fund) return;
-    await DB.upsertFund({ ...fund, status: newStatus });
     fund.status = newStatus;
-    App.toast(`Marked as ${newStatus === 'liquidated' ? 'Liquidated ✓' : 'Unliquidated ⚠'}`);
     this._paintAll();
+    App.toast(`Marked as ${newStatus === 'liquidated' ? 'Liquidated' : 'Unliquidated'}`);
+    const { error } = await DB.upsertFund({ ...fund });
+    if (error) {
+      fund.status = currentStatus;
+      this._paintAll();
+      App.toast('Failed to save. Please try again.', 'error');
+    }
   },
 
   // ---- Tab helpers ----
