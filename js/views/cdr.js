@@ -298,6 +298,8 @@ const CDRView = {
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
     const entries = entriesRes.data || [];
+    this._detailEntries = entries;
+    this._detailHeader  = header;
     if (!header) { App.toast('CDR not found', 'error'); return; }
 
     const school = this._getSchool(header.school_id);
@@ -356,7 +358,7 @@ const CDRView = {
     </div>
 
     <!-- Transactions Table -->
-    <div class="section-card">
+    <div id="cdr-txn-wrap" class="section-card">
       <div class="section-card-header">
         <h3>Transactions</h3>
         <span class="text-xs text-gray-500">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</span>
@@ -559,21 +561,16 @@ const CDRView = {
       sort_order: Date.now(),
     };
 
-    const { error } = await DB.upsertCDREntry(row);
-    if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
-
-    const { data: existing } = await DB.getCDREntries(cdr_id);
-    await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
-
+    // Optimistic update — show immediately, save in background
+    if (!this._detailEntries) this._detailEntries = [];
+    this._detailEntries.push(row);
+    this._refreshDetailTable();
     App.toast('Transaction added!');
 
-    // Refresh the transactions table without closing the modal
-    await this.showDetail(cdr_id);
-
-    // Reset form fields for the next entry
-    const miDate = document.getElementById('mi-date');
-    const miRef  = document.getElementById('mi-ref');
-    const miPart = document.getElementById('mi-particulars');
+    // Reset form immediately
+    const miDate  = document.getElementById('mi-date');
+    const miRef   = document.getElementById('mi-ref');
+    const miPart  = document.getElementById('mi-particulars');
     const miLines = document.getElementById('mi-uacs-lines');
     const miTotal = document.getElementById('mi-total');
     if (miDate)  miDate.value = new Date().toISOString().slice(0, 10);
@@ -594,6 +591,79 @@ const CDRView = {
       </div>`;
       miLines.innerHTML = line + line;
     }
+
+    // Background save — revert on error
+    const { error } = await DB.upsertCDREntry(row);
+    if (error) {
+      this._detailEntries = this._detailEntries.filter(e => e.id !== row.id);
+      this._refreshDetailTable();
+      App.toast('Error saving: ' + (error?.message || error), 'error');
+      return;
+    }
+    DB.upsertCDRHeader({ id: cdr_id, entry_count: this._detailEntries.length });
+  },
+
+  _refreshDetailTable() {
+    const wrap = document.getElementById('cdr-txn-wrap');
+    if (!wrap) return;
+    const entries = this._detailEntries || [];
+    const id = this._detailId;
+    let balance = 0;
+    const rows = entries.map(e => {
+      const adv = parseFloat(e.advances) || 0;
+      const pay = parseFloat(e.payment)  || 0;
+      balance = balance + adv - pay;
+      return { ...e, running_balance: balance };
+    });
+    const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
+    const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
+    const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : 0;
+    wrap.innerHTML = `
+      <div class="section-card-header">
+        <h3>Transactions</h3>
+        <span class="text-xs text-gray-500">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr>
+            <th>#</th><th>Date</th><th>DV / Check No.</th><th>Particulars</th>
+            <th>UACS Name</th>
+            <th class="text-right">Cash Advance</th>
+            <th class="text-right">Payment</th>
+            <th class="text-right">Balance</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.length === 0
+              ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
+              : rows.map((e, i) => {
+                  const uacsLabel = e.uacs_lines
+                    ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
+                    : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
+                  return `<tr>
+                    <td class="text-xs text-gray-400">${i + 1}</td>
+                    <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
+                    <td class="text-xs text-gray-600">${e.ref_no || '—'}</td>
+                    <td class="text-xs">${e.particulars || '—'}</td>
+                    <td class="text-xs">${uacsLabel}</td>
+                    <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
+                    <td class="text-right text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
+                    <td class="text-right text-xs font-bold">${fmt(e.running_balance)}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></td>
+                  </tr>`;
+                }).join('')
+            }
+            ${entries.length > 0 ? `
+            <tr class="bg-gray-50 font-bold text-xs">
+              <td colspan="5" class="text-right pr-2">TOTAL</td>
+              <td class="text-right">${fmt(totalAdv)}</td>
+              <td class="text-right text-blue-700">${fmt(totalPay)}</td>
+              <td class="text-right">${fmt(finalBal)}</td>
+              <td></td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+      </div>`;
   },
 
   // ---- Download as PDF (F4 landscape, 8.5 × 13 in) using jsPDF ----
