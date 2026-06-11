@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A static web app (GitHub Pages) for **Dulag West District, Division of Leyte** — a MOOE monitoring dashboard used by the district bookkeeper (admin) and 14 school principals. No build step. No framework. Deployed by pushing to `main`; GitHub Pages serves `index.html` directly.
 
-Live URL: `https://joannmarie.github.io/joannmarie/`
+Live URL: `https://dwdatlas.github.io`
 
 ## How to develop and deploy
 
