@@ -186,6 +186,14 @@ const DB = (() => {
     const { data, error } = await sb.from('cdr_entries').select('*').eq('cdr_id', cdr_id).order('sort_order').order('entry_date');
     return { data, error };
   }
+  async function getAllCDREntries() {
+    if (useLocal) {
+      const rows = lsGet('cdr_entries').sort((a, b) => (a.entry_date || '').localeCompare(b.entry_date || ''));
+      return { data: rows, error: null };
+    }
+    const { data, error } = await sb.from('cdr_entries').select('*').order('entry_date');
+    return { data, error };
+  }
   async function upsertCDREntry(row) {
     if (useLocal) {
       const rows = lsGet('cdr_entries');
@@ -391,7 +399,7 @@ const DB = (() => {
     getDisbursements, upsertDisbursement, deleteDisbursement,
     // cdr
     getCDRHeaders, getCDRHeader, upsertCDRHeader, deleteCDRHeader,
-    getCDREntries, upsertCDREntry, deleteCDREntry,
+    getCDREntries, getAllCDREntries, upsertCDREntry, deleteCDREntry,
     // bank recon
     getBankRecon, upsertBankRecon,
     // resources

@@ -369,6 +369,7 @@ const CDRView = {
             <th>#</th>
             <th>Date</th>
             <th>DV / Check No.</th>
+            <th>Payee</th>
             <th>Particulars</th>
             <th>UACS Name</th>
             <th class="text-right">Cash Advance</th>
@@ -378,16 +379,20 @@ const CDRView = {
           </tr></thead>
           <tbody>
             ${rows.length === 0
-              ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
+              ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
               : rows.map((e, i) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
+                  const dvCheck = e.dv_no || e.check_no
+                    ? [e.dv_no ? `DV: ${e.dv_no}` : '', e.check_no ? `Check: ${e.check_no}` : ''].filter(Boolean).join(' / ')
+                    : (e.ref_no || '—');
                   return `
                   <tr>
                     <td class="text-xs text-gray-400">${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
-                    <td class="text-xs text-gray-600">${e.ref_no || '—'}</td>
+                    <td class="text-xs text-gray-600">${dvCheck}</td>
+                    <td class="text-xs">${e.payee || '—'}</td>
                     <td class="text-xs">${e.particulars || '—'}</td>
                     <td class="text-xs">${uacsLabel}</td>
                     <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
@@ -401,7 +406,7 @@ const CDRView = {
             }
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
-              <td colspan="5" class="text-right pr-2">TOTAL</td>
+              <td colspan="6" class="text-right pr-2">TOTAL</td>
               <td class="text-right">${fmt(totalAdv)}</td>
               <td class="text-right text-blue-700">${fmt(totalPay)}</td>
               <td class="text-right">${fmt(finalBal)}</td>
@@ -466,9 +471,19 @@ const CDRView = {
                  value="${new Date().toISOString().slice(0,10)}" />
         </div>
         <div>
-          <label class="form-label">DV / Check No.</label>
-          <input id="mi-ref" type="text" class="form-input"
-                 placeholder="e.g. 2026-01-001 1496368" />
+          <label class="form-label">DV No.</label>
+          <input id="mi-dv" type="text" class="form-input"
+                 placeholder="e.g. 2026-01-001" />
+        </div>
+        <div>
+          <label class="form-label">Check No. *</label>
+          <input id="mi-check" type="text" class="form-input" required
+                 placeholder="e.g. 1496368" />
+        </div>
+        <div>
+          <label class="form-label">Payee *</label>
+          <input id="mi-payee" type="text" class="form-input" required
+                 placeholder="e.g. Juan dela Cruz" />
         </div>
         <div class="col-span-2">
           <label class="form-label">Particulars *</label>
@@ -524,12 +539,18 @@ const CDRView = {
 
   async saveMultiUACS(cdr_id) {
     const date        = document.getElementById('mi-date').value;
-    const ref_no      = document.getElementById('mi-ref').value.trim();
+    const dv_no       = document.getElementById('mi-dv').value.trim();
+    const check_no    = document.getElementById('mi-check').value.trim();
+    const payee       = document.getElementById('mi-payee').value.trim();
     const particulars = document.getElementById('mi-particulars').value.trim();
 
     if (!date || !particulars) {
       App.toast('Date and Particulars are required.', 'error'); return;
     }
+    if (!check_no) { App.toast('Check No. is required.', 'error'); return; }
+    if (!payee)    { App.toast('Payee is required.', 'error'); return; }
+
+    const ref_no = [dv_no ? `DV: ${dv_no}` : '', `Check: ${check_no}`].filter(Boolean).join(' / ');
 
     const uacs_lines = [];
     let total = 0;
@@ -552,6 +573,9 @@ const CDRView = {
       cdr_id,
       entry_date: date,
       ref_no,
+      dv_no,
+      check_no,
+      payee,
       particulars,
       uacs_code:  null,
       uacs_desc:  null,
@@ -569,13 +593,17 @@ const CDRView = {
 
     // Reset form immediately
     const miDate  = document.getElementById('mi-date');
-    const miRef   = document.getElementById('mi-ref');
+    const miDV    = document.getElementById('mi-dv');
+    const miChk   = document.getElementById('mi-check');
+    const miPayee = document.getElementById('mi-payee');
     const miPart  = document.getElementById('mi-particulars');
     const miLines = document.getElementById('mi-uacs-lines');
     const miTotal = document.getElementById('mi-total');
-    if (miDate)  miDate.value = new Date().toISOString().slice(0, 10);
-    if (miRef)   miRef.value  = '';
-    if (miPart)  miPart.value = '';
+    if (miDate)  miDate.value  = new Date().toISOString().slice(0, 10);
+    if (miDV)    miDV.value    = '';
+    if (miChk)   miChk.value   = '';
+    if (miPayee) miPayee.value = '';
+    if (miPart)  miPart.value  = '';
     if (miTotal) miTotal.textContent = '0.00';
     if (miLines) {
       const opts = UACS_CODES.map(u => `<option value="${u.code}">${u.code} — ${u.desc}</option>`).join('');
@@ -626,7 +654,7 @@ const CDRView = {
       <div class="table-scroll">
         <table class="data-table">
           <thead><tr>
-            <th>#</th><th>Date</th><th>DV / Check No.</th><th>Particulars</th>
+            <th>#</th><th>Date</th><th>DV / Check No.</th><th>Payee</th><th>Particulars</th>
             <th>UACS Name</th>
             <th class="text-right">Cash Advance</th>
             <th class="text-right">Payment</th>
@@ -635,15 +663,19 @@ const CDRView = {
           </tr></thead>
           <tbody>
             ${rows.length === 0
-              ? `<tr><td colspan="9" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
+              ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
               : rows.map((e, i) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
+                  const dvCheck = e.dv_no || e.check_no
+                    ? [e.dv_no ? `DV: ${e.dv_no}` : '', e.check_no ? `Check: ${e.check_no}` : ''].filter(Boolean).join(' / ')
+                    : (e.ref_no || '—');
                   return `<tr>
                     <td class="text-xs text-gray-400">${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
-                    <td class="text-xs text-gray-600">${e.ref_no || '—'}</td>
+                    <td class="text-xs text-gray-600">${dvCheck}</td>
+                    <td class="text-xs">${e.payee || '—'}</td>
                     <td class="text-xs">${e.particulars || '—'}</td>
                     <td class="text-xs">${uacsLabel}</td>
                     <td class="text-right text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
@@ -655,7 +687,7 @@ const CDRView = {
             }
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
-              <td colspan="5" class="text-right pr-2">TOTAL</td>
+              <td colspan="6" class="text-right pr-2">TOTAL</td>
               <td class="text-right">${fmt(totalAdv)}</td>
               <td class="text-right text-blue-700">${fmt(totalPay)}</td>
               <td class="text-right">${fmt(finalBal)}</td>

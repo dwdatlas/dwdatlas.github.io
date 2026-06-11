@@ -10,6 +10,7 @@ const App = {
     funds_special:{ title: 'Special Funds', subtitle: 'Fund Releases',                      obj: () => FundsSpecialView },
     cdr_mooe:     { title: 'MOOE',          subtitle: 'Cash Disbursement Register',          obj: () => CDRMOOEView },
     cdr_special:  { title: 'Special Funds', subtitle: 'Cash Disbursement Register',          obj: () => CDRSpecialView },
+    check_issued: { title: 'Check Issued',  subtitle: 'Payment Records',                     obj: () => CheckIssuedView },
     resources:    { title: 'Resources',     subtitle: 'Documents & Links',                  obj: () => ResourcesView },
     schools:      { title: 'Schools',       subtitle: 'Accountable Officers',               obj: () => SchoolsView },
     setup:        { title: 'Setup / Config',subtitle: 'Supabase & Settings',                obj: () => SetupView },
