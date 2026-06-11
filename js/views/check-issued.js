@@ -111,7 +111,7 @@ const CheckIssuedView = {
 
     tbody.innerHTML = rows.map((e, i) => {
       const dvCheck = e.dv_no || e.check_no
-        ? [e.dv_no ? `DV: ${e.dv_no}` : '', e.check_no ? `Check: ${e.check_no}` : ''].filter(Boolean).join(' / ')
+        ? [e.dv_no, e.check_no].filter(Boolean).join('/')
         : (e.ref_no || '—');
       const school = schoolMap.get(e.school_id);
       return `<tr>
@@ -139,14 +139,16 @@ const CheckIssuedView = {
     }
     const schoolMap = new Map(this._schools.map(s => [s.id, s]));
     const data = [
-      ['#', 'Date', 'DV No.', 'Check No.', 'Payee', 'Fund Type', 'School', 'Amount'],
+      ['#', 'Date', 'DV/Check No.', 'Payee', 'Fund Type', 'School', 'Amount'],
       ...this._currentRows.map((e, i) => {
-        const school = schoolMap.get(e.school_id);
+        const school  = schoolMap.get(e.school_id);
+        const dvCheck = e.dv_no || e.check_no
+          ? [e.dv_no, e.check_no].filter(Boolean).join('/')
+          : (e.ref_no || '');
         return [
           i + 1,
           e.entry_date || '',
-          e.dv_no || '',
-          e.check_no || (e.ref_no || ''),
+          dvCheck,
           e.payee || '',
           e.fund_type || '',
           school?.name || '',
@@ -156,7 +158,7 @@ const CheckIssuedView = {
     ];
     const ws = XLSX.utils.aoa_to_sheet(data);
     ws['!cols'] = [
-      { wch: 5 }, { wch: 12 }, { wch: 18 }, { wch: 16 },
+      { wch: 5 }, { wch: 12 }, { wch: 24 },
       { wch: 24 }, { wch: 28 }, { wch: 28 }, { wch: 14 },
     ];
     const wb = XLSX.utils.book_new();

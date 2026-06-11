@@ -385,7 +385,7 @@ const CDRView = {
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
                   const dvCheck = e.dv_no || e.check_no
-                    ? [e.dv_no ? `DV: ${e.dv_no}` : '', e.check_no ? `Check: ${e.check_no}` : ''].filter(Boolean).join(' / ')
+                    ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
                   return `
                   <tr>
@@ -550,7 +550,7 @@ const CDRView = {
     if (!check_no) { App.toast('Check No. is required.', 'error'); return; }
     if (!payee)    { App.toast('Payee is required.', 'error'); return; }
 
-    const ref_no = [dv_no ? `DV: ${dv_no}` : '', `Check: ${check_no}`].filter(Boolean).join(' / ');
+    const ref_no = [dv_no, check_no].filter(Boolean).join('/');
 
     const uacs_lines = [];
     let total = 0;
@@ -669,7 +669,7 @@ const CDRView = {
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
                   const dvCheck = e.dv_no || e.check_no
-                    ? [e.dv_no ? `DV: ${e.dv_no}` : '', e.check_no ? `Check: ${e.check_no}` : ''].filter(Boolean).join(' / ')
+                    ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
                   return `<tr>
                     <td class="text-xs text-gray-400">${i + 1}</td>
