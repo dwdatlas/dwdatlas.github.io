@@ -71,6 +71,9 @@ const CheckIssuedView = {
       this._fundTypeFilter = e.target.value; this._paint();
     });
 
+    // Paint cached data immediately on return visits
+    if (this._entries.length) this._paint();
+
     // Load all data in parallel
     const [schoolsRes, headersRes, entriesRes, ftRes] = await Promise.all([
       DB.getSchools(),
