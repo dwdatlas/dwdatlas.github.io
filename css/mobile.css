@@ -1,4 +1,7 @@
 /* Default: hide mobile-only elements on all screen sizes */
+#mobile-appbar,
+#mobile-tab-bar,
+#mob-more-sheet,
 #afd-mob-block,
 #funds-chip-row,
 #funds-mob-list,
