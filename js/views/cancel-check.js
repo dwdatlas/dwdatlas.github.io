@@ -17,7 +17,7 @@ const CancelCheckView = {
         ${isAdmin ? `<select id="cc-school" class="form-select" style="min-width:180px"><option value="">All Schools</option></select>` : ''}
         <select id="cc-year" class="form-select" style="min-width:120px"><option value="">All Years</option></select>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="CancelCheckView.downloadExcel()">Download Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="CancelCheckView.downloadExcel()">Download Excel</button>
       <button class="btn btn-primary btn-sm" onclick="CancelCheckView.openForm()">+ Add</button>
     </div>
     <div class="section-card">
