@@ -17,6 +17,7 @@ const CancelCheckView = {
         ${isAdmin ? `<select id="cc-school" class="form-select" style="min-width:180px"><option value="">All Schools</option></select>` : ''}
         <select id="cc-year" class="form-select" style="min-width:120px"><option value="">All Years</option></select>
       </div>
+      <button class="btn btn-secondary btn-sm" onclick="CancelCheckView.downloadExcel()">Download Excel</button>
       <button class="btn btn-primary btn-sm" onclick="CancelCheckView.openForm()">+ Add</button>
     </div>
     <div class="section-card">
@@ -218,6 +219,47 @@ const CancelCheckView = {
       this._paint();
       App.toast('Error saving: ' + (error?.message || error), 'error');
     }
+  },
+
+  async downloadExcel() {
+    if (!this._currentRows.length) { App.toast('No data to export.', 'error'); return; }
+    App.toast('Building Excel...');
+    if (typeof XLSX === 'undefined') {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const isAdmin  = typeof Auth !== 'undefined' && Auth.isAdmin();
+    const schoolMap = new Map(this._schools.map(s => [s.id, s]));
+
+    const header = ['#', 'Date', 'Check No.', 'Payee'];
+    if (isAdmin) header.push('School');
+    header.push('Amount (₱)', 'Reason');
+
+    const rows = this._currentRows.map((r, i) => {
+      const school = schoolMap.get(r.school_id);
+      const row = [
+        i + 1,
+        r.date || '',
+        r.check_no || '',
+        r.payee || '',
+      ];
+      if (isAdmin) row.push(school?.name || '');
+      row.push(parseFloat(r.amount) || 0, r.reason || '');
+      return row;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+    ws['!cols'] = isAdmin
+      ? [{ wch: 5 }, { wch: 12 }, { wch: 14 }, { wch: 28 }, { wch: 28 }, { wch: 14 }, { wch: 36 }]
+      : [{ wch: 5 }, { wch: 12 }, { wch: 14 }, { wch: 28 }, { wch: 14 }, { wch: 36 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cancelled Checks');
+    XLSX.writeFile(wb, 'Cancelled_Checks.xlsx');
+    App.toast('Excel downloaded!');
   },
 
   async deleteRecord(id) {
