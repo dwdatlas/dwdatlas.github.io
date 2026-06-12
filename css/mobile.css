@@ -1,3 +1,10 @@
+/* Default: hide mobile-only elements on all screen sizes */
+#afd-mob-block,
+#funds-chip-row,
+#funds-mob-list,
+#cdr-chip-row,
+#cdr-mob-list { display: none; }
+
 @media (max-width: 768px) {
 
   /* ── Top app bar ─────────────────────────────────────────── */
@@ -107,8 +114,8 @@
   }
 
   /* ── Dashboard mobile ───────────────────────────────────── */
-  #afd-mob-block { display: block !important; }
-  .afd-desktop   { display: none !important; }
+  #afd-mob-block { display: block; }
+  .afd-desktop   { display: none; }
 
   .afd-mob-header {
     padding: 0 16px 8px;
@@ -188,11 +195,11 @@
   }
 
   /* ── Fund releases (MOOE / Special) ─────────────────────── */
-  .edit-action        { display: none !important; }
-  #funds-filter-panel { display: none !important; }
-  #funds-chip-row     { display: block !important; }
-  .funds-table-wrap   { display: none !important; }
-  #funds-mob-list     { display: block !important; }
+  .edit-action        { display: none; }
+  #funds-filter-panel { display: none; }
+  #funds-chip-row     { display: block; }
+  .funds-table-wrap   { display: none; }
+  #funds-mob-list     { display: block; }
 
   .funds-chip-scroll {
     display: flex;
@@ -273,10 +280,10 @@
   .funds-mob-bd-v { font-size: 12px; font-weight: 600; white-space: nowrap; }
 
   /* ── CDR list ────────────────────────────────────────────── */
-  #cdr-filter-panel { display: none !important; }
-  #cdr-chip-row     { display: block !important; }
-  .cdr-table-wrap   { display: none !important; }
-  #cdr-mob-list     { display: block !important; }
+  #cdr-filter-panel { display: none; }
+  #cdr-chip-row     { display: block; }
+  .cdr-table-wrap   { display: none; }
+  #cdr-mob-list     { display: block; }
 
   .cdr-mob-card {
     margin: 0 16px 8px;

@@ -63,7 +63,7 @@ const FundsView = {
       </div>
     </div>
 
-    <div id="funds-chip-row" style="display:none">
+    <div id="funds-chip-row">
       <div class="funds-chip-scroll">
         ${this._schoolId ? `<span class="funds-chip funds-chip-active funds-chip-locked">${this._schools.find(s=>s.id===this._schoolId)?.name||'My School'}</span>` : ''}
         <span class="funds-chip funds-chip-active" id="chip-year-all" onclick="FundsView._setChip('year','')">All Years</span>
@@ -85,7 +85,7 @@ const FundsView = {
           <div class="flex justify-center py-10"><div class="spinner"></div></div>
         </div>
       </div>
-      <div id="funds-mob-list" style="display:none"></div>
+      <div id="funds-mob-list"></div>
     </div>`;
   },
 

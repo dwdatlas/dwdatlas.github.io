@@ -57,7 +57,7 @@ const CDRView = {
       </div>
     </div>
 
-    <div id="cdr-chip-row" style="display:none">
+    <div id="cdr-chip-row">
       <div class="funds-chip-scroll">
         ${this._schoolId ? `<span class="funds-chip funds-chip-active funds-chip-locked">My School</span>` : ''}
         <span class="funds-chip funds-chip-active" id="cdr-chip-year-all" onclick="CDRView._setChip('year','')">All Years</span>
@@ -75,7 +75,7 @@ const CDRView = {
           <div class="flex justify-center py-10"><div class="spinner"></div></div>
         </div>
       </div>
-      <div id="cdr-mob-list" style="display:none"></div>
+      <div id="cdr-mob-list"></div>
     </div>
     `;
   },

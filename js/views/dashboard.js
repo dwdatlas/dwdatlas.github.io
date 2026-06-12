@@ -673,7 +673,7 @@ const AllFundsDashboardView = {
         </div>`;
 
     root.innerHTML =
-      `<div id="afd-mob-block" style="display:none">${this._buildMobBlock(funds, schools, totalAmt, liqAmt, unliqAmt, liqPct, attention, today)}</div>` +
+      `<div id="afd-mob-block">${this._buildMobBlock(funds, schools, totalAmt, liqAmt, unliqAmt, liqPct, attention, today)}</div>` +
       `<div class="afd-desktop"><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${sumHtml}</div>${splitHtml}${queueHtml}</div>`;
   },
 };
