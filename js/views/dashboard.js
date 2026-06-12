@@ -483,6 +483,57 @@ const AllFundsDashboardView = {
     this._paint();
   },
 
+  _buildMobBlock(funds, schools, totalAmt, liqAmt, unliqAmt, liqPct, attention, today) {
+    const overduePct = totalAmt > 0 ? Math.round(unliqAmt / totalAmt * 100) : 0;
+    const barColor   = liqPct >= 80 ? '#16a34a' : liqPct >= 50 ? '#1E5FA8' : '#b45309';
+
+    const metricsHtml =
+      `<div class="afd-mob-metric">
+        <div class="afd-mob-label">Total Downloaded</div>
+        <div class="afd-mob-value" style="color:#1d6fb0">${fmt(totalAmt)}</div>
+      </div>
+      <div class="afd-mob-metric">
+        <div class="afd-mob-label">Liquidated</div>
+        <div class="afd-mob-value" style="color:#16a34a">${fmt(liqAmt)}</div>
+      </div>
+      <div class="afd-mob-metric">
+        <div class="afd-mob-label">Unliquidated</div>
+        <div class="afd-mob-value" style="color:#b45309">${fmt(unliqAmt)}</div>
+      </div>
+      <div class="afd-mob-metric">
+        <div class="afd-mob-label">Overdue</div>
+        <div class="afd-mob-value" style="color:#dc2626">${attention.length}</div>
+      </div>`;
+
+    const progHtml =
+      `<div class="afd-mob-card">
+        <div class="afd-mob-prog-row">
+          <span class="afd-mob-prog-label">Liquidation progress</span>
+          <span class="afd-mob-prog-pct" style="color:${barColor}">${liqPct}%</span>
+        </div>
+        <div class="afd-mob-bar"><div class="afd-mob-bar-fill" style="width:${liqPct}%;background:${barColor}"></div></div>
+      </div>`;
+
+    const overdueHtml = attention.length
+      ? `<div class="afd-mob-card">
+          <div class="afd-mob-header" style="padding:0 0 8px">Needs Attention</div>
+          ${attention.slice(0, 5).map(({ f, school, daysOverdue }) =>
+            `<div class="afd-mob-overdue-row">
+              <span class="afd-mob-overdue-name">${school ? school.name : (f.school_id || 'Unknown')}</span>
+              <span class="afd-mob-overdue-days">${daysOverdue}d overdue</span>
+            </div>`
+          ).join('')}
+        </div>`
+      : `<div class="afd-mob-card" style="color:#6b7280;font-size:13px;text-align:center">All releases on track.</div>`;
+
+    return `
+      <div class="afd-mob-header">Overview</div>
+      <div class="afd-mob-grid">${metricsHtml}</div>
+      ${progHtml}
+      ${overdueHtml}
+    `;
+  },
+
   _paint() {
     const root = document.getElementById('afd-root');
     if (!root) return;
@@ -621,11 +672,9 @@ const AllFundsDashboardView = {
           </div>
         </div>`;
 
-    // Single DOM write — eliminates multiple Tailwind CDN rescans
     root.innerHTML =
-      `<div class="grid grid-cols-2 md:grid-cols-4 gap-4">${sumHtml}</div>` +
-      splitHtml +
-      queueHtml;
+      `<div id="afd-mob-block" style="display:none">${this._buildMobBlock(funds, schools, totalAmt, liqAmt, unliqAmt, liqPct, attention, today)}</div>` +
+      `<div class="afd-desktop"><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${sumHtml}</div>${splitHtml}${queueHtml}</div>`;
   },
 };
 

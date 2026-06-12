@@ -33,6 +33,19 @@ const App = {
     if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
     if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III (Sr. Bookkeeper)' : 'School Account';
 
+    const mobName   = document.getElementById('mob-user-name');
+    const mobRole   = document.getElementById('mob-user-role-label');
+    const mobAvatar = document.getElementById('mob-user-avatar');
+    const mobAdmin  = document.getElementById('mob-admin-items');
+    if (user) {
+      const displayName = user.role === 'admin' ? 'Jo Ann Marie Cagara' : (user.school_name || user.username);
+      const displayRole = user.role === 'admin' ? 'Bookkeeper' : 'School Account';
+      if (mobName)   mobName.textContent   = displayName;
+      if (mobRole)   mobRole.textContent   = displayRole;
+      if (mobAvatar) mobAvatar.textContent = displayName.charAt(0).toUpperCase();
+    }
+    if (mobAdmin) mobAdmin.style.display = isAdmin ? '' : 'none';
+
     document.querySelectorAll('.nav-link').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -95,6 +108,10 @@ const App = {
     document.getElementById('page-title').textContent = v.title;
     document.getElementById('page-subtitle').textContent = v.subtitle;
 
+    const mobTitle = document.getElementById('mob-title');
+    if (mobTitle) mobTitle.textContent = v.title;
+    this._syncTabBar(viewName);
+
     // Render view
     const container = document.getElementById('view-container');
     container.innerHTML = '<div class="flex justify-center py-20"><div class="spinner"></div></div>';
@@ -148,8 +165,14 @@ const App = {
   toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
+    if (sidebar.classList.contains('-translate-x-full')) {
+      sidebar.style.display = 'flex';
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+    } else {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+    }
   },
 
   closeSidebar() {
@@ -157,6 +180,36 @@ const App = {
     const overlay = document.getElementById('sidebar-overlay');
     sidebar.classList.add('-translate-x-full');
     overlay.classList.add('hidden');
+    setTimeout(() => {
+      if (sidebar.classList.contains('-translate-x-full')) sidebar.style.display = '';
+    }, 200);
+  },
+
+  _syncTabBar(viewName) {
+    const tabMap = {
+      dashboard: 'dashboard', funds_mooe: 'funds_mooe', funds_special: 'funds_special',
+      cdr_mooe: 'cdr_mooe', cdr_special: 'cdr_mooe', check_issued: 'cdr_mooe', cancel_check: 'cdr_mooe',
+    };
+    const active = tabMap[viewName] || '';
+    document.querySelectorAll('.mob-tab[data-view]').forEach(btn =>
+      btn.classList.toggle('mob-tab-active', btn.dataset.view === active));
+    const moreBtn = document.getElementById('mob-more-btn');
+    if (moreBtn) moreBtn.classList.toggle('mob-tab-active', !active);
+  },
+
+  mobNav(view) { this.closeMobMore(); this.navigate(view); },
+
+  openMobMore() {
+    const sheet = document.getElementById('mob-more-sheet');
+    const conn  = document.getElementById('conn-status');
+    const dest  = document.getElementById('mob-user-conn');
+    if (sheet) sheet.classList.remove('hidden');
+    if (conn && dest) dest.textContent = conn.textContent;
+  },
+
+  closeMobMore() {
+    const sheet = document.getElementById('mob-more-sheet');
+    if (sheet) sheet.classList.add('hidden');
   },
 
 };

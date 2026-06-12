@@ -25,7 +25,7 @@ const FundsView = {
     const fundTypeOpts = '';
 
     return `
-    <div class="section-card mb-4">
+    <div id="funds-filter-panel" class="section-card mb-4">
       <div class="section-card-header"><h3>Filters</h3></div>
       <div class="section-card-body">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -63,14 +63,29 @@ const FundsView = {
       </div>
     </div>
 
+    <div id="funds-chip-row" style="display:none">
+      <div class="funds-chip-scroll">
+        ${this._schoolId ? `<span class="funds-chip funds-chip-active funds-chip-locked">${this._schools.find(s=>s.id===this._schoolId)?.name||'My School'}</span>` : ''}
+        <span class="funds-chip funds-chip-active" id="chip-year-all" onclick="FundsView._setChip('year','')">All Years</span>
+        ${years.map(y=>`<span class="funds-chip" id="chip-year-${y}" onclick="FundsView._setChip('year','${y}')">${y}</span>`).join('')}
+        <span class="funds-chip funds-chip-active" id="chip-status-all" onclick="FundsView._setChip('status','')">All</span>
+        <span class="funds-chip" id="chip-status-unliquidated" onclick="FundsView._setChip('status','unliquidated')">Unliquidated</span>
+        <span class="funds-chip" id="chip-status-liquidated" onclick="FundsView._setChip('status','liquidated')">Liquidated</span>
+        ${isAdmin ? `<button class="funds-chip" style="background:#0F2A4A;color:#fff;border-color:#0F2A4A" onclick="FundsView.openBatch()">+ Add</button>` : ''}
+      </div>
+    </div>
+
     <div class="section-card">
       <div class="section-card-header">
         <h3>Fund Records</h3>
         <div id="funds-summary" class="text-xs text-gray-500"></div>
       </div>
-      <div id="funds-body" class="table-scroll">
-        <div class="flex justify-center py-10"><div class="spinner"></div></div>
+      <div class="funds-table-wrap">
+        <div id="funds-body" class="table-scroll">
+          <div class="flex justify-center py-10"><div class="spinner"></div></div>
+        </div>
       </div>
+      <div id="funds-mob-list" style="display:none"></div>
     </div>`;
   },
 
@@ -125,8 +140,10 @@ const FundsView = {
     const totalAmt = rows.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
     if (sumEl) sumEl.textContent = `${total} records | Total: ${fmt(totalAmt)} | Liquidated: ${liquid} | Unliquidated: ${total - liquid}`;
 
+    const mobEl = document.getElementById('funds-mob-list');
     if (!rows.length) {
       el.innerHTML = emptyState('No fund records found. Click "+ Add" to add records.');
+      if (mobEl) mobEl.innerHTML = emptyState('No fund records found.');
       return;
     }
 
@@ -141,7 +158,7 @@ const FundsView = {
         <th class="col-amount">Amount</th>
         <th class="col-center">Status</th>
         <th class="col-center">Deadline</th>
-        ${isAdmin ? '<th class="col-center">Actions</th>' : ''}
+        ${isAdmin ? '<th class="col-center edit-action">Actions</th>' : ''}
       </tr></thead>
       <tbody>
         ${rows.map(r => {
@@ -160,7 +177,7 @@ const FundsView = {
             <td class="col-center">${badge}</td>
             <td class="col-center text-xs text-gray-500">${r.deadline ? formatDate(r.deadline) : (r.remarks || '—')}</td>
             ${isAdmin ? `
-            <td class="col-center">
+            <td class="col-center edit-action">
               <div class="flex gap-1 justify-center">
                 <button class="btn btn-secondary btn-sm" onclick="FundsView.openForm('${r.id}')">Edit</button>
                 <button class="btn btn-danger btn-sm" onclick="FundsView.deleteFund('${r.id}')">Del</button>
@@ -170,6 +187,62 @@ const FundsView = {
         }).join('')}
       </tbody>
     </table>`;
+
+    if (mobEl) mobEl.innerHTML = this._buildMobCards(rows, isAdmin);
+  },
+
+  _setChip(type, val) {
+    if (type === 'year') {
+      const sel = document.getElementById('f-year');
+      if (sel) sel.value = val;
+      document.querySelectorAll('[id^="chip-year-"]').forEach(c => c.classList.remove('funds-chip-active'));
+      const chip = document.getElementById(val ? `chip-year-${val}` : 'chip-year-all');
+      if (chip) chip.classList.add('funds-chip-active');
+    } else if (type === 'status') {
+      const sel = document.getElementById('f-status');
+      if (sel) sel.value = val;
+      document.querySelectorAll('[id^="chip-status-"]').forEach(c => c.classList.remove('funds-chip-active'));
+      const chip = document.getElementById(val ? `chip-status-${val}` : 'chip-status-all');
+      if (chip) chip.classList.add('funds-chip-active');
+    }
+    this.load();
+  },
+
+  _buildMobCards(rows, isAdmin) {
+    return rows.map(r => {
+      const school  = this._schools.find(s => s.id === r.school_id);
+      const isLiq   = r.status === 'liquidated';
+      const pctColor = isLiq ? '#16a34a' : '#b45309';
+      const pctBg    = isLiq ? '#dcfce7' : '#fef3c7';
+      return `<div class="funds-mob-card">
+        <div class="funds-mob-hdr">
+          <span class="funds-mob-name">${r.fund_type || 'Unknown Type'}</span>
+          <span class="funds-mob-pct" style="color:${pctColor};background:${pctBg}">${isLiq ? 'Liquidated' : 'Unliquidated'}</span>
+        </div>
+        ${!this._schoolId ? `<div style="font-size:12px;color:#6b7280;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school?.name || r.school_id || '—'}</div>` : ''}
+        <div class="funds-mob-stats">
+          <div>
+            <div class="funds-mob-slabel">Amount</div>
+            <div class="funds-mob-sval">${fmt(r.amount)}</div>
+          </div>
+          <div>
+            <div class="funds-mob-slabel">ADA Date</div>
+            <div class="funds-mob-sval">${formatDate(r.ada_date)}</div>
+          </div>
+        </div>
+        <div class="funds-mob-breakdown">
+          <div class="funds-mob-bd">
+            <span class="funds-mob-bd-k">ADA No.</span>
+            <span class="funds-mob-bd-v">${r.ada_no || '—'}</span>
+          </div>
+          <div class="funds-mob-bd">
+            <span class="funds-mob-bd-k">Deadline</span>
+            <span class="funds-mob-bd-v">${r.deadline ? formatDate(r.deadline) : '—'}</span>
+          </div>
+          ${this._category === 'special' ? `<div class="funds-mob-bd"><span class="funds-mob-bd-k">Bank</span><span class="funds-mob-bd-v">${r.bank || '—'}</span></div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
   },
 
   // ---- Batch Add ----

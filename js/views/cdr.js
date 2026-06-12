@@ -20,8 +20,11 @@ const CDRView = {
       ? `<option value="">All Years</option><option value="2026">2026</option>`
       : `<option value="">All Years</option><option value="2026">2026</option><option value="2025">2025</option>`;
 
+    const curYear = new Date().getFullYear();
+    const years = this._category === 'mooe' ? [curYear] : [curYear, curYear - 1];
+
     return `
-    <div class="section-card mb-4">
+    <div id="cdr-filter-panel" class="section-card mb-4">
       <div class="section-card-header">
         <h3>Filters</h3>
       </div>
@@ -54,13 +57,25 @@ const CDRView = {
       </div>
     </div>
 
+    <div id="cdr-chip-row" style="display:none">
+      <div class="funds-chip-scroll">
+        ${this._schoolId ? `<span class="funds-chip funds-chip-active funds-chip-locked">My School</span>` : ''}
+        <span class="funds-chip funds-chip-active" id="cdr-chip-year-all" onclick="CDRView._setChip('year','')">All Years</span>
+        ${years.map(y => `<span class="funds-chip" id="cdr-chip-year-${y}" onclick="CDRView._setChip('year','${y}')">${y}</span>`).join('')}
+        <button class="funds-chip" style="background:#0F2A4A;color:#fff;border-color:#0F2A4A" onclick="CDRView.openCreate()">+ New CDR</button>
+      </div>
+    </div>
+
     <div class="section-card">
       <div class="section-card-header">
         <h3>CDR List</h3>
       </div>
-      <div id="cdr-list-body" class="table-scroll">
-        <div class="flex justify-center py-10"><div class="spinner"></div></div>
+      <div class="cdr-table-wrap">
+        <div id="cdr-list-body" class="table-scroll">
+          <div class="flex justify-center py-10"><div class="spinner"></div></div>
+        </div>
       </div>
+      <div id="cdr-mob-list" style="display:none"></div>
     </div>
     `;
   },
@@ -119,10 +134,12 @@ const CDRView = {
     }
 
     const el = document.getElementById('cdr-list-body');
+    const mobEl = document.getElementById('cdr-mob-list');
     if (!el) return;
 
     if (!rows.length) {
       el.innerHTML = emptyState('No CDR records found. Create one using the "New CDR" button.');
+      if (mobEl) mobEl.innerHTML = emptyState('No CDR records found.');
       return;
     }
 
@@ -169,6 +186,36 @@ const CDRView = {
         </tr>`).join('')}
       </tbody>
     </table>`;
+
+    if (mobEl) mobEl.innerHTML = this._buildMobCards(rows, fundAmt);
+  },
+
+  _setChip(type, val) {
+    if (type === 'year') {
+      const sel = document.getElementById('cdr-filter-year');
+      if (sel) sel.value = val;
+      document.querySelectorAll('[id^="cdr-chip-year-"]').forEach(c => c.classList.remove('funds-chip-active'));
+      const chip = document.getElementById(val ? `cdr-chip-year-${val}` : 'cdr-chip-year-all');
+      if (chip) chip.classList.add('funds-chip-active');
+    }
+    this.load();
+  },
+
+  _buildMobCards(rows, fundAmt) {
+    return rows.map(r => {
+      const amt = fundAmt(r);
+      return `<div class="cdr-mob-card" onclick="CDRView.showDetail('${r.id}')">
+        <div class="cdr-mob-hdr">
+          <span class="cdr-mob-school">${this._schoolName(r.school_id)}</span>
+          <span class="cdr-mob-year">${r.year}</span>
+        </div>
+        <div class="cdr-mob-type">${r.fund_type || '—'}</div>
+        <div class="cdr-mob-foot">
+          <span class="cdr-mob-amt">${fmt(amt)}</span>
+          <span class="cdr-mob-entries">${r.entry_count || 0} entries</span>
+        </div>
+      </div>`;
+    }).join('');
   },
 
   _schoolName(id) {

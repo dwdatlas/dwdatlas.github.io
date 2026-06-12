@@ -67,6 +67,13 @@ const DB = (() => {
   }
   function lsAll(table) { return { data: lsGet(table), error: null }; }
 
+  function _scope() {
+    if (typeof Auth === 'undefined') return null;
+    const u = Auth.currentUser;
+    if (!u) return null;
+    return u.role === 'school' ? { school_id: u.school_id } : null;
+  }
+
   // ============================================================
   // SCHOOLS
   // ============================================================
@@ -110,8 +117,10 @@ const DB = (() => {
       if (filters.status) rows = rows.filter(r => r.status === filters.status);
       return { data: rows, error: null };
     }
+    const scope = _scope();
+    const sid = scope ? scope.school_id : filters.school_id;
     let q = sb.from('disbursements').select('*, schools(name, short_name)').order('ada_date', { ascending: false });
-    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    if (sid) q = q.eq('school_id', sid);
     if (filters.year) q = q.gte('ada_date', filters.year + '-01-01').lte('ada_date', filters.year + '-12-31');
     if (filters.status) q = q.eq('status', filters.status);
     const { data, error } = await q;
@@ -143,8 +152,10 @@ const DB = (() => {
       if (filters.year) rows = rows.filter(r => r.year == filters.year);
       return { data: rows, error: null };
     }
+    const scope = _scope();
+    const sid = scope ? scope.school_id : filters.school_id;
     let q = sb.from('cdr_headers').select('*, schools(name, short_name, school_head, designation)').order('created_at', { ascending: false });
-    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    if (sid) q = q.eq('school_id', sid);
     if (filters.year) q = q.eq('year', filters.year);
     const { data, error } = await q;
     return { data, error };
@@ -155,6 +166,8 @@ const DB = (() => {
       return { data: row || null, error: row ? null : 'Not found' };
     }
     const { data, error } = await sb.from('cdr_headers').select('*, schools(*)').eq('id', id).single();
+    const scope = _scope();
+    if (scope && data && data.school_id !== scope.school_id) return { data: null, error: 'Not found' };
     return { data, error };
   }
   async function upsertCDRHeader(row) {
@@ -225,8 +238,10 @@ const DB = (() => {
       if (filters.bank) rows = rows.filter(r => r.bank === filters.bank);
       return { data: rows, error: null };
     }
+    const scope = _scope();
+    const sid = scope ? scope.school_id : filters.school_id;
     let q = sb.from('bank_reconciliation').select('*, schools(name, short_name)');
-    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    if (sid) q = q.eq('school_id', sid);
     if (filters.year) q = q.eq('year', filters.year);
     if (filters.bank) q = q.eq('bank', filters.bank);
     const { data, error } = await q;
@@ -285,8 +300,10 @@ const DB = (() => {
       rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       return { data: rows, error: null };
     }
+    const scope = _scope();
+    const sid = scope ? scope.school_id : filters.school_id;
     let q = sb.from('cancelled_checks').select('*').order('date', { ascending: false });
-    if (filters.school_id) q = q.eq('school_id', filters.school_id);
+    if (sid) q = q.eq('school_id', sid);
     const { data, error } = await q;
     return { data: data || [], error };
   }
@@ -449,13 +466,14 @@ const DB = (() => {
       rows.sort((a,b) => (a.ada_date||'').localeCompare(b.ada_date||''));
       return { data: rows, error: null };
     }
+    const scope = _scope();
+    const sid = scope ? scope.school_id : filters.school_id;
     let q = sb.from('downloaded_funds').select('*').order('ada_date');
-    if (filters.school_id) q = q.eq('school_id', filters.school_id);
-    if (filters.year)      q = q.eq('year', filters.year);
-    if (filters.status)    q = q.eq('status', filters.status);
+    if (sid) q = q.eq('school_id', sid);
+    if (filters.year)   q = q.eq('year', filters.year);
+    if (filters.status) q = q.eq('status', filters.status);
     const { data, error } = await q;
-    // Write-through: cache the full unfiltered result for instant startup reads
-    if (!error && data && !filters.school_id && !filters.year && !filters.status) {
+    if (!error && data && !sid && !filters.year && !filters.status) {
       lsSet('funds', data);
     }
     return { data: data || [], error };
