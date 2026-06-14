@@ -374,7 +374,7 @@ const CDRView = {
     const pt = document.getElementById('page-title');
     const ps = document.getElementById('page-subtitle');
     if (pt) pt.textContent = 'Cash Disbursement Register';
-    if (ps) ps.textContent = `${school.name || ''} — ${header.year} ${header.quarter}`;
+    if (ps) ps.textContent = `${school.name || ''} — ${this._category === 'special' ? 'Special Fund' : `${header.year} ${header.quarter}`}`;
 
     // Running balance — starts at 0; first entry is the cash advance receipt
     let balance = 0;
