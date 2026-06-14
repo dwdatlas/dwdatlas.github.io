@@ -90,7 +90,13 @@ const Auth = {
       this.currentUser = user;
       sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
       if (typeof DB !== 'undefined') {
-        DB.insertLoginLog({ username: user.username, role: user.role, school_id: user.school_id, school_name: user.school_name }).catch(() => {});
+        // Always init DB first so log goes to Supabase, not just localStorage
+        (async () => {
+          try {
+            await DB.init();
+            await DB.insertLoginLog({ username: user.username, role: user.role, school_id: user.school_id, school_name: user.school_name });
+          } catch {}
+        })();
       }
       document.getElementById('login-screen').style.display = 'none';
       errEl.classList.add('hidden');
