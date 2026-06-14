@@ -64,7 +64,16 @@ const ResourcesView = {
     </div>`;
   },
 
+  _requireAdmin() {
+    if (typeof Auth === 'undefined' || !Auth.isAdmin()) {
+      App.toast('Admin access required.', 'error');
+      return false;
+    }
+    return true;
+  },
+
   async openUACSForm(id = null) {
+    if (!this._requireAdmin()) return;
     const { data } = await DB.getUACS();
     const rec = id ? (data || []).find(u => u.id === id) : null;
     const readonly = rec ? 'readonly style="background:#f3f4f6"' : '';
@@ -88,6 +97,7 @@ const ResourcesView = {
   },
 
   async saveUACSCode(e, id) {
+    if (!this._requireAdmin()) return;
     e.preventDefault();
     const fd = new FormData(e.target);
     const code = fd.get('code').trim();
@@ -99,6 +109,7 @@ const ResourcesView = {
   },
 
   async deleteUACSCode(id) {
+    if (!this._requireAdmin()) return;
     if (!confirm('Delete this UACS code?')) return;
     await DB.deleteUACS(id);
     App.toast('UACS code deleted.');
@@ -170,6 +181,7 @@ const ResourcesView = {
   },
 
   async openForm(id = null) {
+    if (!this._requireAdmin()) return;
     let row = { title: '', category: 'deped_order', resource_type: 'link', url: '', description: '' };
     if (id) {
       const { data } = await DB.getResources();
@@ -264,6 +276,7 @@ const ResourcesView = {
   },
 
   async saveForm(e, id) {
+    if (!this._requireAdmin()) return;
     e.preventDefault();
     const fd  = new FormData(e.target);
     const type = fd.get('resource_type');
@@ -307,6 +320,7 @@ const ResourcesView = {
   },
 
   async deleteResource(id) {
+    if (!this._requireAdmin()) return;
     if (!confirm('Delete this resource?')) return;
     await DB.deleteResource(id);
     App.toast('Deleted.');
