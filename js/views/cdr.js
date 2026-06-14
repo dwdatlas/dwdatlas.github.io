@@ -1191,7 +1191,7 @@ const CDRView = {
       cl.value = v;
       cl.font = b ? bold(9) : normal(9);
       cl.border = bord;
-      cl.alignment = {horizontal:a.replace('AR','right').replace('AC','center'), vertical:'middle'};
+      cl.alignment = a;
       if (n && typeof v==='number') cl.numFmt = numFmt;
     });
     ws.getRow(dr).height = 18;

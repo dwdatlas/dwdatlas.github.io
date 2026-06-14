@@ -283,6 +283,16 @@ const FundsView = {
             <option value="2026">2026</option>
           </select>
         </div>
+        <div id="fb-quarter-wrap" class="${this._category === 'special' ? 'hidden' : ''}">
+          <label class="form-label">Quarter</label>
+          <select id="fb-quarter" class="form-select">
+            <option value="">—</option>
+            <option value="Q1">Q1</option>
+            <option value="Q2">Q2</option>
+            <option value="Q3">Q3</option>
+            <option value="Q4">Q4</option>
+          </select>
+        </div>
         <div>
           <label class="form-label">Status</label>
           <select id="fb-status" class="form-select">
@@ -478,6 +488,17 @@ const FundsView = {
             ${years.map(y=>`<option value="${y}" ${(rec.year||yr)==y?'selected':''}>${y}</option>`).join('')}
           </select>
         </div>
+        ${this._category === 'mooe' ? `
+        <div>
+          <label class="form-label">Quarter</label>
+          <select id="fd-quarter" class="form-select">
+            <option value="" ${!rec.quarter?'selected':''}>—</option>
+            <option value="Q1" ${rec.quarter==='Q1'?'selected':''}>Q1</option>
+            <option value="Q2" ${rec.quarter==='Q2'?'selected':''}>Q2</option>
+            <option value="Q3" ${rec.quarter==='Q3'?'selected':''}>Q3</option>
+            <option value="Q4" ${rec.quarter==='Q4'?'selected':''}>Q4</option>
+          </select>
+        </div>` : ''}
         <div>
           <label class="form-label">Status *</label>
           <select id="fd-status" class="form-select" required>

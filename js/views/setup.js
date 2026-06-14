@@ -418,7 +418,7 @@ const SetupView = {
     if (!username) { App.toast('Username cannot be empty.', 'error'); return; }
     if (password !== confirm) { App.toast('Passwords do not match.', 'error'); return; }
     if (password.length < 6) { App.toast('Password must be at least 6 characters.', 'error'); return; }
-    Auth.changeCredentials(username, password);
+    Auth.changeAdminCredentials(username, password);
     App.toast('Credentials updated! Use them on next login.');
     document.getElementById('change-creds-form').reset();
   },
