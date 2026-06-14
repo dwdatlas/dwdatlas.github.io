@@ -485,12 +485,13 @@ const CDRView = {
 
   async backToList() {
     this._detailId = null;
+    const cat = this._category;
     const el = document.getElementById('view-container');
     const pt = document.getElementById('page-title');
     const ps = document.getElementById('page-subtitle');
-    if (pt) pt.textContent = this._category === 'special' ? 'Special Funds' : 'MOOE';
+    if (pt) pt.textContent = cat === 'special' ? 'Special Funds' : 'MOOE';
     if (ps) ps.textContent = 'Cash Disbursement Register';
-    if (el) el.innerHTML = await this.render();
+    if (el) el.innerHTML = await this.render(cat);
     await this.afterRender();
   },
 
