@@ -97,6 +97,20 @@ const SetupView = {
       </div>
     </div>
 
+    <!-- Login History -->
+    <div class="section-card mb-4">
+      <div class="section-card-header">
+        <h3>Login History</h3>
+        <button class="btn btn-secondary btn-sm" onclick="SetupView.loadLoginHistory()">Refresh</button>
+      </div>
+      <div id="login-history-list">
+        <div class="flex justify-center py-6"><div class="spinner"></div></div>
+      </div>
+      <div class="px-5 pb-4 border-t pt-3 bg-gray-50">
+        <p class="text-xs text-gray-500">Shows the last 50 logins across all users and devices.</p>
+      </div>
+    </div>
+
     <!-- Change Password -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Change Login Credentials</h3></div>
@@ -192,7 +206,39 @@ const SetupView = {
   },
 
   async afterRender() {
-    await Promise.all([this.loadUsers(), this.loadFundTypes()]);
+    await Promise.all([this.loadUsers(), this.loadFundTypes(), this.loadLoginHistory()]);
+  },
+
+  async loadLoginHistory() {
+    const el = document.getElementById('login-history-list');
+    if (!el) return;
+    const { data } = await DB.getLoginLogs(50);
+    const logs = data || [];
+    if (!logs.length) {
+      el.innerHTML = `<div class="px-6 py-6 text-sm text-gray-400 text-center">No login history yet. History is recorded from this point forward.</div>`;
+      return;
+    }
+    const fmtTs = iso => {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+        + ', ' + d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+    };
+    el.innerHTML = `
+    <table class="data-table">
+      <thead><tr>
+        <th>Date &amp; Time</th><th>Username</th><th>Role</th><th>School</th>
+      </tr></thead>
+      <tbody>
+        ${logs.map(l => `
+        <tr>
+          <td class="text-sm text-gray-500">${fmtTs(l.logged_in_at)}</td>
+          <td class="font-mono text-sm font-medium">${l.username}</td>
+          <td><span class="badge ${l.role === 'admin' ? 'badge-liquidated' : 'badge-submitted'}">${l.role}</span></td>
+          <td class="text-sm">${l.school_name || '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
   },
 
   async loadUsers() {
@@ -568,10 +614,14 @@ create table if not exists resources (
   title text not null,
   category text,
   url text,
-  file_path text,
+  file_path text,         -- stores base64-encoded PDF data
+  resource_type text default 'link',
   description text,
   created_at timestamptz default now()
 );
+-- Migrations: safe to run on existing tables
+alter table resources add column if not exists resource_type text default 'link';
+alter table resources add column if not exists file_path text;
 
 -- Bank Reconciliation
 create table if not exists bank_reconciliation (
@@ -583,6 +633,18 @@ create table if not exists bank_reconciliation (
   month integer,
   balance numeric(14,2) default 0,
   remarks text,
+  created_at timestamptz default now()
+);
+
+-- Login History
+create table if not exists login_log (
+  id text primary key,
+  username text not null,
+  role text,
+  school_id text,
+  school_name text,
+  logged_in_at timestamptz default now(),
+  user_agent text,
   created_at timestamptz default now()
 );
 
@@ -609,6 +671,26 @@ create policy "Allow all" on disbursements for all using (true) with check (true
 create policy "Allow all" on cdr_headers for all using (true) with check (true);
 create policy "Allow all" on cdr_entries for all using (true) with check (true);
 create policy "Allow all" on resources for all using (true) with check (true);
-create policy "Allow all" on bank_reconciliation for all using (true) with check (true);`;
+create policy "Allow all" on bank_reconciliation for all using (true) with check (true);
+
+alter table login_log enable row level security;
+drop policy if exists "Allow all" on login_log;
+create policy "Allow all" on login_log for all using (true) with check (true);
+
+-- Storage bucket for PDF uploads (run once)
+insert into storage.buckets (id, name, public)
+values ('resources', 'resources', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Allow resource uploads" on storage.objects;
+drop policy if exists "Allow resource downloads" on storage.objects;
+drop policy if exists "Allow resource deletes" on storage.objects;
+
+create policy "Allow resource uploads" on storage.objects
+  for insert with check (bucket_id = 'resources');
+create policy "Allow resource downloads" on storage.objects
+  for select using (bucket_id = 'resources');
+create policy "Allow resource deletes" on storage.objects
+  for delete using (bucket_id = 'resources');`;
   },
 };

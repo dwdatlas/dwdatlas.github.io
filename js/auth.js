@@ -89,6 +89,9 @@ const Auth = {
     if (user) {
       this.currentUser = user;
       sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
+      if (typeof DB !== 'undefined') {
+        DB.insertLoginLog({ username: user.username, role: user.role, school_id: user.school_id, school_name: user.school_name }).catch(() => {});
+      }
       document.getElementById('login-screen').style.display = 'none';
       errEl.classList.add('hidden');
       if (typeof App !== 'undefined') App.init();

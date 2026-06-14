@@ -56,7 +56,7 @@ const ResourcesView = {
             <tr>
               <td class="font-mono">${u.code}</td>
               <td>${u.desc}</td>
-              ${isAdmin ? `<td><button class="btn btn-secondary btn-sm" onclick="ResourcesView.openUACSForm('${u.id}')">Edit</button></td>` : ''}
+              ${isAdmin ? `<td><div class="flex gap-1"><button class="btn btn-secondary btn-sm" onclick="ResourcesView.openUACSForm('${u.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="ResourcesView.deleteUACSCode('${u.id}')">Del</button></div></td>` : ''}
             </tr>`).join('')}
           </tbody>
         </table>
@@ -95,6 +95,13 @@ const ResourcesView = {
     await DB.upsertUACS(row);
     App.closeModal();
     App.toast(id ? 'UACS code updated!' : 'UACS code added!');
+    await this.loadUACSRef();
+  },
+
+  async deleteUACSCode(id) {
+    if (!confirm('Delete this UACS code?')) return;
+    await DB.deleteUACS(id);
+    App.toast('UACS code deleted.');
     await this.loadUACSRef();
   },
 
@@ -151,7 +158,8 @@ const ResourcesView = {
               <div class="text-xs text-gray-400 mt-0.5">${formatDate(r.created_at)}</div>
             </div>
             <div class="flex gap-2 shrink-0">
-              ${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-success btn-sm">Open ↗</a>` : ''}
+              ${(r.resource_type === 'pdf' || r.has_file) ? `<button class="btn btn-primary btn-sm" onclick="ResourcesView.openPDF('${r.id}')">View PDF</button>` : ''}
+              ${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-secondary btn-sm">Open ↗</a>` : ''}
               ${isAdmin ? `<button class="btn btn-secondary btn-sm" onclick="ResourcesView.openForm('${r.id}')">Edit</button>` : ''}
               ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="ResourcesView.deleteResource('${r.id}')">Del</button>` : ''}
             </div>
@@ -191,15 +199,15 @@ const ResourcesView = {
           </div>
         </div>
         <div id="url-input">
-          <label class="form-label">URL / Google Drive / Google Sheets Link</label>
+          <label class="form-label" id="url-label">URL / Google Drive / Google Sheets Link</label>
           <input class="form-input" name="url" value="${row.url || ''}" placeholder="https://docs.google.com/..." />
-          <p class="text-xs text-gray-400 mt-1">Paste any Google Docs, Sheets, Drive, or web link here.</p>
+          <p class="text-xs text-gray-400 mt-1" id="url-hint">Paste any Google Docs, Sheets, Drive, or web link here.</p>
         </div>
         <div id="file-input" class="hidden">
-          <label class="form-label">Upload PDF</label>
+          <label class="form-label">Upload PDF File</label>
           <input class="form-input" type="file" name="pdf_file" accept=".pdf" />
-          <p class="text-xs text-gray-400 mt-1">Requires Supabase to be connected (see Setup).</p>
-          ${row.url ? `<p class="text-xs text-blue-600 mt-1">Current file: <a href="${row.url}" target="_blank" class="underline">View</a></p>` : ''}
+          <p class="text-xs text-gray-400 mt-1">Max 3 MB. Stored directly in the app — no external service needed.</p>
+          ${row.has_file ? `<p class="text-xs text-blue-600 mt-1">A PDF file is already stored. Upload a new one to replace it, or leave blank to keep the existing file.</p>` : ''}
         </div>
         <div>
           <label class="form-label">Description (optional)</label>
@@ -216,29 +224,69 @@ const ResourcesView = {
   },
 
   toggleFileInput(type) {
-    const urlDiv = document.getElementById('url-input');
-    const fileDiv = document.getElementById('file-input');
+    const urlDiv   = document.getElementById('url-input');
+    const fileDiv  = document.getElementById('file-input');
+    const urlLabel = document.getElementById('url-label');
+    const urlHint  = document.getElementById('url-hint');
     if (!urlDiv || !fileDiv) return;
-    urlDiv.classList.toggle('hidden', type === 'pdf');
     fileDiv.classList.toggle('hidden', type !== 'pdf');
+    if (type === 'pdf') {
+      if (urlLabel) urlLabel.textContent = 'Or paste a PDF link (Google Drive, etc.)';
+      if (urlHint)  urlHint.textContent  = 'Optional — use this if you cannot upload a file directly.';
+    } else {
+      if (urlLabel) urlLabel.textContent = 'URL / Google Drive / Google Sheets Link';
+      if (urlHint)  urlHint.textContent  = 'Paste any Google Docs, Sheets, Drive, or web link here.';
+    }
+  },
+
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  },
+
+  async openPDF(id) {
+    App.toast('Loading PDF…');
+    const { data: base64, error } = await DB.getResourceFile(id);
+    if (error || !base64) { App.toast('No PDF file stored for this resource.', 'error'); return; }
+    try {
+      const [header, data] = base64.split(',');
+      const mime = header.split(':')[1].split(';')[0];
+      const binary = atob(data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: mime });
+      window.open(URL.createObjectURL(blob), '_blank');
+    } catch { App.toast('Could not open PDF.', 'error'); }
   },
 
   async saveForm(e, id) {
     e.preventDefault();
-    const fd = new FormData(e.target);
+    const fd  = new FormData(e.target);
     const type = fd.get('resource_type');
-    let url = fd.get('url') || '';
+    const url  = fd.get('url') || '';
+    const btn  = e.target.querySelector('button[type="submit"]');
+    let file_path; // undefined = keep existing; null = no file; string = new base64
 
-    // Handle PDF upload
     if (type === 'pdf') {
       const file = fd.get('pdf_file');
       if (file && file.size > 0) {
-        App.toast('Uploading PDF...');
-        const path = `resources/${Date.now()}_${file.name}`;
-        const { url: fileUrl, error } = await DB.uploadFile('resources', path, file);
-        if (error) { App.toast('Upload error: ' + (error?.message || error), 'error'); return; }
-        url = fileUrl;
+        if (file.size > 3 * 1024 * 1024) {
+          App.toast('File too large. Maximum PDF size is 3 MB.', 'error'); return;
+        }
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        try {
+          file_path = await this.fileToBase64(file);
+        } catch (err) {
+          App.toast('Error reading file: ' + err.message, 'error');
+          if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+          return;
+        }
       }
+      // If no new file selected, file_path stays undefined → existing file preserved
     }
 
     const row = {
@@ -246,10 +294,12 @@ const ResourcesView = {
       title: fd.get('title'),
       category: fd.get('category'),
       resource_type: type,
-      url: url,
+      url,
       description: fd.get('description'),
+      ...(file_path !== undefined && { file_path }),
     };
     const { error } = await DB.upsertResource(row);
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
     if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
     App.closeModal();
     App.toast('Resource saved!');

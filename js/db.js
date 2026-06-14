@@ -263,14 +263,26 @@ const DB = (() => {
   // ============================================================
   async function getResources(filters = {}) {
     if (useLocal) {
-      let rows = lsGet('resources');
+      // Strip file_path (base64) from list for performance; expose has_file flag instead
+      let rows = lsGet('resources').map(({ file_path, ...r }) => ({ ...r, has_file: !!file_path }));
       if (filters.category) rows = rows.filter(r => r.category === filters.category);
       return { data: rows, error: null };
     }
-    let q = sb.from('resources').select('*').order('created_at', { ascending: false });
+    // Exclude file_path from list query — fetch it only on demand via getResourceFile()
+    let q = sb.from('resources')
+      .select('id,title,category,url,resource_type,description,created_at')
+      .order('created_at', { ascending: false });
     if (filters.category) q = q.eq('category', filters.category);
     const { data, error } = await q;
     return { data, error };
+  }
+  async function getResourceFile(id) {
+    if (useLocal) {
+      const row = lsGet('resources').find(r => r.id === id);
+      return { data: row?.file_path || null, error: null };
+    }
+    const { data, error } = await sb.from('resources').select('file_path').eq('id', id).single();
+    return { data: data?.file_path || null, error };
   }
   async function upsertResource(row) {
     if (useLocal) {
@@ -279,7 +291,9 @@ const DB = (() => {
       if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('resources', rows); return { data: rows[idx], error: null }; }
       return lsInsert('resources', row);
     }
-    const { data, error } = await sb.from('resources').upsert(row).select().single();
+    // Return without file_path to avoid sending large base64 back over the wire
+    const { data, error } = await sb.from('resources').upsert(row)
+      .select('id,title,category,url,resource_type,description,created_at').single();
     return { data, error };
   }
   async function deleteResource(id) {
@@ -442,6 +456,41 @@ const DB = (() => {
     lsSet('uacs', rows);
     return { data: row, error: null };
   }
+  async function deleteUACS(id) {
+    let rows = lsGet('uacs');
+    if (!rows.length && typeof UACS_CODES !== 'undefined') {
+      rows = UACS_CODES.map(u => ({ id: u.code, code: u.code, desc: u.desc }));
+    }
+    lsSet('uacs', rows.filter(r => r.id !== id));
+    return { error: null };
+  }
+
+  // ============================================================
+  // LOGIN LOG
+  // ============================================================
+  async function insertLoginLog(entry) {
+    const row = {
+      id: newId(),
+      username: entry.username,
+      role: entry.role,
+      school_id: entry.school_id || null,
+      school_name: entry.school_name || null,
+      logged_in_at: now(),
+      user_agent: (navigator.userAgent || '').slice(0, 250),
+    };
+    if (useLocal) return lsInsert('login_log', row);
+    const { data, error } = await sb.from('login_log').insert(row).select().single();
+    return { data, error };
+  }
+  async function getLoginLogs(limit = 100) {
+    if (useLocal) {
+      const rows = lsGet('login_log');
+      rows.sort((a, b) => (b.logged_in_at || '').localeCompare(a.logged_in_at || ''));
+      return { data: rows.slice(0, limit), error: null };
+    }
+    const { data, error } = await sb.from('login_log').select('*').order('logged_in_at', { ascending: false }).limit(limit);
+    return { data: data || [], error };
+  }
 
   // ============================================================
   // SUPABASE FILE UPLOAD (for PDFs)
@@ -533,17 +582,19 @@ const DB = (() => {
     // bank recon
     getBankRecon, upsertBankRecon,
     // resources
-    getResources, upsertResource, deleteResource,
+    getResources, getResourceFile, upsertResource, deleteResource,
     // fund types
     getFundTypes, upsertFundType, deleteFundType,
     // uacs codes
-    getUACS, upsertUACS,
+    getUACS, upsertUACS, deleteUACS,
     // downloaded funds
     getFunds, upsertFund, deleteFund,
     // cancelled checks
     getCancelledChecks, upsertCancelledCheck, deleteCancelledCheck,
     // app users
     getAppUsers, upsertAppUser, deleteAppUser,
+    // login log
+    insertLoginLog, getLoginLogs,
     // files
     uploadFile,
     // helpers
