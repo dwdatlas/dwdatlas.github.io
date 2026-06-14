@@ -409,7 +409,7 @@ const CDRView = {
       <div class="section-card-body py-3">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div><span class="text-gray-500 text-xs block">School</span><strong>${school.name || '—'}</strong></div>
-          <div><span class="text-gray-500 text-xs block">Year / Quarter</span><strong>${header.year} ${header.quarter}</strong></div>
+          <div><span class="text-gray-500 text-xs block">${this._category === 'special' ? 'Year' : 'Year / Quarter'}</span><strong>${header.year}${this._category === 'special' ? '' : ' ' + header.quarter}</strong></div>
           <div><span class="text-gray-500 text-xs block">Fund Type</span><strong>${header.fund_type || '—'}</strong></div>
         </div>
       </div>
