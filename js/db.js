@@ -555,16 +555,14 @@ const DB = (() => {
       if (!schoolsRes.error && schoolsRes.data) { _schoolsCache = schoolsRes.data; lsSet('schools', schoolsRes.data); }
       if (!fundsRes.error && fundsRes.data) lsSet('funds', fundsRes.data);
 
-      const [disbRes, cdrRes, cancelRes, entriesRes] = await Promise.all([
+      const [disbRes, cdrRes, cancelRes] = await Promise.all([
         sb.from('disbursements').select('*').order('ada_date', { ascending: false }),
         sb.from('cdr_headers').select('*, schools(name,short_name,school_head,designation)').order('created_at', { ascending: false }),
         sb.from('cancelled_checks').select('*').order('date', { ascending: false }),
-        sb.from('cdr_entries').select('*').order('entry_date'),
       ]);
       if (!disbRes.error && disbRes.data) lsSet('disbursements', disbRes.data);
       if (!cdrRes.error && cdrRes.data) lsSet('cdr_headers', cdrRes.data);
       if (!cancelRes.error && cancelRes.data) lsSet('cancelled_checks', cancelRes.data);
-      if (!entriesRes.error && entriesRes.data) lsSet('cdr_entries', entriesRes.data);
     } catch (e) {
       console.warn('DB.preload:', e);
     }

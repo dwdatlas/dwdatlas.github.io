@@ -80,14 +80,6 @@ const App = {
     if (connected) {
       // Populate localStorage with fresh Supabase data for the next page load
       DB.preload();
-
-      // Refresh current view with live Supabase data
-      const v = this.views[this.currentView];
-      if (v) {
-        const obj = v.obj();
-        const reload = obj._fetchAndPaint || obj._loadAFD || obj._initView || obj.load;
-        if (typeof reload === 'function') reload.call(obj);
-      }
     }
   },
 
