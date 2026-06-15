@@ -464,7 +464,10 @@ const CDRView = {
                     <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
                     <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
                     <td>
-                      <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
+                      <div class="flex gap-1">
+                        ${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}
+                        <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
+                      </div>
                     </td>
                   </tr>`;
                 }).join('')
@@ -511,6 +514,130 @@ const CDRView = {
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
     await this.showDetail(cdr_id);
+  },
+
+  // ---- Edit existing entry ----
+  openEditEntry(entry_id, cdr_id) {
+    const entry = (this._detailEntries || []).find(e => e.id === entry_id);
+    if (!entry) { App.toast('Entry not found', 'error'); return; }
+
+    let existingLines = [];
+    if (entry.uacs_lines) {
+      try { existingLines = JSON.parse(entry.uacs_lines); } catch {}
+    } else if (entry.uacs_code) {
+      existingLines = [{ code: entry.uacs_code, desc: entry.uacs_desc || '', amount: parseFloat(entry.payment) || 0 }];
+    }
+    if (existingLines.length === 0) existingLines = [{ code: '', amount: 0 }];
+
+    const uacsLinesHtml = existingLines.map(l => `
+      <div class="uacs-line flex gap-2 mb-2 items-center">
+        <select class="form-select flex-1 uacs-line-code" style="min-width:0">
+          <option value="">— Select UACS —</option>
+          ${UACS_CODES.map(u => `<option value="${u.code}" ${u.code === l.code ? 'selected' : ''}>${u.code} — ${u.desc}</option>`).join('')}
+        </select>
+        <input type="number" step="0.01" min="0" class="form-input uacs-line-amount"
+               style="width:110px;flex-shrink:0" placeholder="0.00" value="${l.amount || ''}"
+               oninput="CDRView.updateMultiTotal()" />
+        <button type="button" class="btn btn-danger btn-sm"
+                onclick="this.closest('.uacs-line').remove(); CDRView.updateMultiTotal()">×</button>
+      </div>`).join('');
+
+    const currentTotal = existingLines.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
+    const checkVal = entry.check_no || (entry.dv_no ? '' : entry.ref_no) || '';
+
+    const html = `
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label">Date *</label>
+          <input id="ei-date" type="date" class="form-input" required value="${entry.entry_date || ''}" />
+        </div>
+        <div>
+          <label class="form-label">DV No.</label>
+          <input id="ei-dv" type="text" class="form-input" placeholder="e.g. 2026-01-001" value="${entry.dv_no || ''}" />
+        </div>
+        <div>
+          <label class="form-label">Check No. *</label>
+          <input id="ei-check" type="text" class="form-input" required placeholder="e.g. 1496368" value="${checkVal}" />
+        </div>
+        <div>
+          <label class="form-label">Payee *</label>
+          <input id="ei-payee" type="text" class="form-input" required placeholder="e.g. Juan dela Cruz" value="${entry.payee || ''}" />
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">Particulars *</label>
+          <input id="ei-particulars" type="text" class="form-input" required placeholder="Description of transaction" value="${entry.particulars || ''}" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex items-center justify-between mb-2">
+          <label class="form-label mb-0 font-semibold">UACS Breakdown</label>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="CDRView.addUACSLine()">+ Add UACS</button>
+        </div>
+        <div id="mi-uacs-lines">${uacsLinesHtml}</div>
+      </div>
+      <div class="flex items-center justify-between pt-2 border-t border-gray-200">
+        <div class="text-sm font-semibold text-gray-700">Total: ₱<span id="mi-total">${currentTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="CDRView.saveEditEntry('${entry_id}','${cdr_id}')">Save Changes</button>
+        </div>
+      </div>`;
+    App.openModal('Edit Transaction', html);
+  },
+
+  async saveEditEntry(entry_id, cdr_id) {
+    const date        = document.getElementById('ei-date').value;
+    const dv_no       = document.getElementById('ei-dv').value.trim();
+    const check_no    = document.getElementById('ei-check').value.trim();
+    const payee       = document.getElementById('ei-payee').value.trim();
+    const particulars = document.getElementById('ei-particulars').value.trim();
+
+    if (!date || !particulars) { App.toast('Date and Particulars are required.', 'error'); return; }
+    if (!check_no) { App.toast('Check No. is required.', 'error'); return; }
+    if (!payee)    { App.toast('Payee is required.', 'error'); return; }
+
+    const ref_no = [dv_no, check_no].filter(Boolean).join('/');
+
+    const uacs_lines = [];
+    let total = 0;
+    for (const line of document.querySelectorAll('#mi-uacs-lines .uacs-line')) {
+      const code   = line.querySelector('.uacs-line-code').value;
+      const amount = parseFloat(line.querySelector('.uacs-line-amount').value) || 0;
+      if (!code)       { App.toast('Select a UACS code for every line.', 'error'); return; }
+      if (amount <= 0) { App.toast('Each UACS amount must be greater than 0.', 'error'); return; }
+      const desc = UACS_CODES.find(u => u.code === code)?.desc || '';
+      uacs_lines.push({ code, desc, amount });
+      total += amount;
+    }
+    if (uacs_lines.length === 0) { App.toast('Add at least one UACS line.', 'error'); return; }
+
+    const existing = (this._detailEntries || []).find(e => e.id === entry_id);
+    const updated = {
+      ...existing,
+      entry_date: date,
+      ref_no,
+      dv_no,
+      check_no,
+      payee,
+      particulars,
+      uacs_code:  null,
+      uacs_desc:  null,
+      payment:    total,
+      uacs_lines: JSON.stringify(uacs_lines),
+    };
+
+    const idx = (this._detailEntries || []).findIndex(e => e.id === entry_id);
+    if (idx !== -1) this._detailEntries[idx] = updated;
+    this._refreshDetailTable();
+    App.closeModal();
+    App.toast('Transaction updated!');
+
+    const { error } = await DB.upsertCDREntry(updated);
+    if (error) {
+      if (idx !== -1) this._detailEntries[idx] = existing;
+      this._refreshDetailTable();
+      App.toast('Error saving: ' + (error?.message || error), 'error');
+    }
   },
 
   // ---- Multi-UACS entry form ----
@@ -747,7 +874,7 @@ const CDRView = {
                     <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
                     <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
                     <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></td>
+                    <td><div class="flex gap-1">${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></div></td>
                   </tr>`;
                 }).join('')
             }
