@@ -293,6 +293,7 @@ const SetupView = {
         <span class="text-sm">${t.name}</span>
         <div class="flex items-center gap-2">
           <span class="badge ${badgeCss} text-xs">${label}</span>
+          <button class="btn btn-secondary btn-sm" onclick="SetupView.editFundType('${t.id}')">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="SetupView.deleteFundType('${t.id}')">Del</button>
         </div>
       </div>`).join('')}`;
@@ -314,6 +315,44 @@ const SetupView = {
     if (!confirm('Delete this fund type?')) return;
     await DB.deleteFundType(id);
     App.toast('Fund type deleted.');
+    await this.loadFundTypes();
+  },
+
+  async editFundType(id) {
+    const { data: types } = await DB.getFundTypes();
+    const t = (types || []).find(x => x.id === id);
+    if (!t) return;
+    const html = `
+    <form id="edit-ft-form" onsubmit="SetupView.saveEditFundType(event, '${id}')">
+      <div class="grid grid-cols-1 gap-3 mb-3">
+        <div>
+          <label class="form-label">Fund Type Name *</label>
+          <input id="edit-ft-name" type="text" class="form-input" value="${t.name.replace(/"/g,'&quot;')}" required />
+        </div>
+        <div>
+          <label class="form-label">Category *</label>
+          <select id="edit-ft-category" class="form-select" required>
+            <option value="mooe"    ${t.category==='mooe'    ? 'selected' : ''}>MOOE</option>
+            <option value="special" ${t.category==='special' ? 'selected' : ''}>Special Fund</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>`;
+    App.openModal('Edit Fund Type', html);
+  },
+
+  async saveEditFundType(e, id) {
+    e.preventDefault();
+    const name     = document.getElementById('edit-ft-name').value.trim();
+    const category = document.getElementById('edit-ft-category').value;
+    if (!name) return;
+    await DB.upsertFundType({ id, name, category });
+    App.closeModal();
+    App.toast('Fund type updated!');
     await this.loadFundTypes();
   },
 
