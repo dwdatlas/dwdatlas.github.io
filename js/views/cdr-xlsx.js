@@ -26,7 +26,7 @@ const CDRXlsx = {
         DB.getCDRHeader(headerId),
         DB.getCDREntries(headerId),
         DB.getSchools(),
-        fetch('assets/cdr_template.xlsx'),
+        fetch('assets/cdr_template.xlsx?v=3'),
       ]);
 
       const header = headerRes.data;
