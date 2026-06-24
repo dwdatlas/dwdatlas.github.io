@@ -180,7 +180,7 @@ const CDRView = {
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
               <button class="btn btn-secondary btn-sm" onclick="CDRXlsx.download('${r.id}')">Excel</button>
-              <button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>
+              ${!this._schoolId ? `<button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>` : ''}
             </div>
           </td>
         </tr>`).join('')}
@@ -466,7 +466,7 @@ const CDRView = {
                     <td>
                       <div class="flex gap-1">
                         ${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}
-                        <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
+                        ${!this._schoolId ? `<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>` : ''}
                       </div>
                     </td>
                   </tr>`;
@@ -874,7 +874,7 @@ const CDRView = {
                     <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
                     <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
                     <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
-                    <td><div class="flex gap-1">${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></div></td>
+                    <td><div class="flex gap-1">${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}${!this._schoolId ? `<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>` : ''}</div></td>
                   </tr>`;
                 }).join('')
             }
