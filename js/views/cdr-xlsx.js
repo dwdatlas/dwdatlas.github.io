@@ -97,7 +97,7 @@ const CDRXlsx = {
 
         if (e.entry_date)  ws.cell(rn, 1).value(new Date(e.entry_date + 'T00:00:00')).style('numberFormat', 'MM/DD/YYYY');
         if (e.ref_no)      ws.cell(rn, 2).value(String(e.ref_no));
-        if (e.particulars) ws.cell(rn, 3).value(String(e.particulars));
+        if (e.particulars) ws.cell(rn, 3).value(String(e.particulars)).style('wrapText', true);
 
         if (adv > 0) {
           ws.cell(rn, 4).value(adv).style('numberFormat', NUM);
@@ -125,7 +125,7 @@ const CDRXlsx = {
             if (otherLines.length > 0) {
               const fo = otherLines[0];
               const foAmt = parseFloat(fo.amount) || 0;
-              if (fo.desc) ws.cell(rn, 10).value(fo.desc);
+              if (fo.desc) ws.cell(rn, 10).value(fo.desc).style('wrapText', true);
               if (fo.code) ws.cell(rn, 11).value(fo.code);
               ws.cell(rn, 12).value(foAmt).style('numberFormat', NUM);
             }
@@ -133,7 +133,7 @@ const CDRXlsx = {
               dr++;
               const xo = otherLines[k];
               const xAmt = parseFloat(xo.amount) || 0;
-              if (xo.desc) ws.cell(dr, 10).value(xo.desc);
+              if (xo.desc) ws.cell(dr, 10).value(xo.desc).style('wrapText', true);
               if (xo.code) ws.cell(dr, 11).value(xo.code);
               ws.cell(dr, 12).value(xAmt).style('numberFormat', NUM);
             }
@@ -144,7 +144,7 @@ const CDRXlsx = {
             else if (code === '5021202000') { ws.cell(rn, 9).value(pay).style('numberFormat', NUM); sumI += pay; }
             else {
               const desc = e.uacs_desc || '';
-              if (desc) ws.cell(rn, 10).value(desc);
+              if (desc) ws.cell(rn, 10).value(desc).style('wrapText', true);
               if (code) ws.cell(rn, 11).value(code);
               ws.cell(rn, 12).value(pay).style('numberFormat', NUM);
               sumL += pay;
@@ -194,7 +194,7 @@ const CDRXlsx = {
       }
       recapGrouped.slice(0, recapSlots).forEach((item, i) => {
         const r = recapHeaderRow + 1 + i;
-        if (item.desc) ws.cell(r, 10).value(item.desc);
+        if (item.desc) ws.cell(r, 10).value(item.desc).style('wrapText', true);
         if (item.code) ws.cell(r, 11).value(item.code);
         ws.cell(r, 12).value(item.amt).style('numberFormat', NUM);
       });
