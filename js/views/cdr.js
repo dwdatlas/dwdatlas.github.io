@@ -1130,7 +1130,16 @@ const CDRView = {
 
   // ---- Download as Excel (matches CDR 2026 template exactly) ----
   async downloadExcel(id) {
-    if (typeof ExcelJS === 'undefined') { App.toast('Excel library not loaded. Please refresh the page.', 'error'); return; }
+    if (typeof ExcelJS === 'undefined') {
+      App.toast('Loading Excel library…');
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+        s.onload = res;
+        s.onerror = () => rej(new Error('Failed to load ExcelJS'));
+        document.head.appendChild(s);
+      });
+    }
 
     const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
     const header = headerRes.data;
