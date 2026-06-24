@@ -181,19 +181,24 @@ const CDRXlsx = {
         else recapMap.set(key, { desc, code, amt });
       });
       const recapGrouped = [...recapMap.values()];
+      const recapSlots   = recapTotalRow - recapHeaderRow - 1;
+
+      if (recapGrouped.length > recapSlots) {
+        App.toast(`Warning: ${recapGrouped.length} UACS codes but template only fits ${recapSlots}. Last ${recapGrouped.length - recapSlots} item(s) not shown in recap.`, 'error');
+      }
 
       for (let r = recapHeaderRow + 1; r < recapTotalRow; r++) {
         ws.cell(r, 10).value(null);
         ws.cell(r, 11).value(null);
         ws.cell(r, 12).value(null);
       }
-      recapGrouped.forEach((item, i) => {
+      recapGrouped.slice(0, recapSlots).forEach((item, i) => {
         const r = recapHeaderRow + 1 + i;
         if (item.desc) ws.cell(r, 10).value(item.desc);
         if (item.code) ws.cell(r, 11).value(item.code);
         ws.cell(r, 12).value(item.amt).style('numberFormat', NUM);
       });
-      for (let r = recapHeaderRow + 1 + recapGrouped.length; r < recapTotalRow; r++)
+      for (let r = recapHeaderRow + 1 + Math.min(recapGrouped.length, recapSlots); r < recapTotalRow; r++)
         ws.row(r).hidden(true);
       ws.cell(recapTotalRow, 12).value(sumL).style('numberFormat', NUM);
 
