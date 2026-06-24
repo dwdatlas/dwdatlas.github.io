@@ -226,7 +226,7 @@ const DashboardView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>ADA No.</th><th>Date</th><th>Bank</th>
-        <th class="col-amount">Amount</th><th>Status</th>
+        <th class="col-amount">Amount</th><th>Status</th><th>Deadline</th>
         ${this._isAdmin ? '<th></th>' : ''}
       </tr></thead>
       <tbody>
@@ -239,6 +239,7 @@ const DashboardView = {
               <td class="text-gray-300">—</td>
               <td class="col-amount text-gray-300">—</td>
               <td><span class="badge" style="background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0">Not received</span></td>
+              <td class="text-gray-300">—</td>
               ${this._isAdmin ? '<td></td>' : ''}
             </tr>`;
           }
@@ -249,6 +250,7 @@ const DashboardView = {
             <td>${bankBadge(fund.fund_type)}</td>
             <td class="col-amount font-semibold">${fmt(fund.amount)}</td>
             <td>${liquidBadge(fund.status)}</td>
+            <td>${deadlineBadge(fund.status, fund.deadline)}</td>
             ${this._isAdmin ? `<td><button class="btn btn-sm btn-secondary"
               onclick="DashboardView.toggleStatus('${fund.id}','${fund.status}')">
               ${fund.status === 'liquidated' ? 'Mark Unliquidated' : 'Mark Liquidated'}
@@ -355,7 +357,7 @@ const DashboardView = {
     <table class="data-table">
       <thead><tr>
         <th>School</th><th>Fund</th><th>ADA No.</th><th>Date</th>
-        <th>Bank</th><th class="col-amount">Amount</th><th>Status</th>
+        <th>Bank</th><th class="col-amount">Amount</th><th>Status</th><th>Deadline</th>
         ${this._isAdmin ? '<th></th>' : ''}
       </tr></thead>
       <tbody>
@@ -369,6 +371,7 @@ const DashboardView = {
             <td>${bankBadge(f.fund_type)}</td>
             <td class="col-amount font-semibold">${fmt(f.amount)}</td>
             <td>${liquidBadge(f.status)}</td>
+            <td>${deadlineBadge(f.status, f.deadline)}</td>
             ${this._isAdmin ? `<td><button class="btn btn-sm btn-secondary"
               onclick="DashboardView.toggleStatus('${f.id}','${f.status}')">
               ${f.status === 'liquidated' ? 'Mark Unliquidated' : 'Mark Liquidated'}
@@ -710,6 +713,17 @@ function liquidBadge(status) {
   return status === 'liquidated'
     ? `<span class="badge" style="background:#dcfce7;color:#166534">✓ Liquidated</span>`
     : `<span class="badge" style="background:#fef3c7;color:#92400e">⚠ Unliquidated</span>`;
+}
+function deadlineBadge(status, deadline) {
+  if (status === 'liquidated') {
+    return `<span class="badge" style="background:#dcfce7;color:#166534">✓ Okay</span>`;
+  }
+  if (!deadline) return `<span class="text-xs text-gray-300">—</span>`;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dl = new Date(deadline + 'T00:00:00');
+  return dl < today
+    ? `<span class="badge" style="background:#fee2e2;color:#991b1b">${compactDate(deadline)}</span>`
+    : `<span class="text-xs text-gray-600 whitespace-nowrap">${compactDate(deadline)}</span>`;
 }
 function statusBadge(s) { return liquidBadge(s); }
 function schoolName(row, schools) {
