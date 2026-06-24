@@ -1352,6 +1352,7 @@ const CDRView = {
     sc(dr,11,'',      bold(9), AC, null, bord);
     const tc=ws.getCell(dr,12); tc.value=totalPay; tc.font=bold(9);
     tc.border=bord; tc.alignment=AR; tc.numFmt=numFmt;
+    ws.getRow(dr).height = 16;
     dr += 2;
 
     // ── Note ──
