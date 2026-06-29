@@ -453,8 +453,13 @@ const CDRView = {
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
                   return `
-                  <tr>
-                    <td class="text-xs text-gray-400">${i + 1}</td>
+                  <tr draggable="true" style="cursor:grab"
+                      ondragstart="CDRView.dragStart(event,'${e.id}')"
+                      ondragend="CDRView.dragEnd(event)"
+                      ondragover="CDRView.dragOver(event)"
+                      ondragleave="CDRView.dragLeave(event)"
+                      ondrop="CDRView.drop(event,'${e.id}')">
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
@@ -514,6 +519,51 @@ const CDRView = {
     await DB.upsertCDRHeader({ id: cdr_id, entry_count: (existing || []).length });
     App.toast('Entry deleted.');
     await this.showDetail(cdr_id);
+  },
+
+  // ---- Drag-and-drop reordering ----
+  dragStart(event, entryId) {
+    this._dragId = entryId;
+    event.dataTransfer.effectAllowed = 'move';
+    event.currentTarget.style.opacity = '0.4';
+  },
+
+  dragEnd(event) {
+    event.currentTarget.style.opacity = '';
+    document.querySelectorAll('#cdr-txn-wrap tbody tr').forEach(r => r.style.background = '');
+  },
+
+  dragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    event.currentTarget.style.background = '#e0f2fe';
+  },
+
+  dragLeave(event) {
+    event.currentTarget.style.background = '';
+  },
+
+  async drop(event, targetId) {
+    event.preventDefault();
+    event.currentTarget.style.background = '';
+    const fromId = this._dragId;
+    this._dragId = null;
+    if (!fromId || fromId === targetId) return;
+
+    const entries = this._detailEntries || [];
+    const fromIdx = entries.findIndex(e => e.id === fromId);
+    const toIdx   = entries.findIndex(e => e.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    const [moved] = entries.splice(fromIdx, 1);
+    entries.splice(toIdx, 0, moved);
+
+    const base = Date.now();
+    entries.forEach((entry, i) => { entry.sort_order = base + i; });
+
+    this._refreshDetailTable();
+    await Promise.all(entries.map(e => DB.upsertCDREntry(e)));
+    App.toast('Order saved.');
   },
 
   // ---- Edit existing entry ----
@@ -864,8 +914,13 @@ const CDRView = {
                   const dvCheck = e.dv_no || e.check_no
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
-                  return `<tr>
-                    <td class="text-xs text-gray-400">${i + 1}</td>
+                  return `<tr draggable="true" style="cursor:grab"
+                      ondragstart="CDRView.dragStart(event,'${e.id}')"
+                      ondragend="CDRView.dragEnd(event)"
+                      ondragover="CDRView.dragOver(event)"
+                      ondragleave="CDRView.dragLeave(event)"
+                      ondrop="CDRView.drop(event,'${e.id}')">
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
