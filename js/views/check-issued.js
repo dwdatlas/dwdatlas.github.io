@@ -138,8 +138,72 @@ const CheckIssuedView = {
         ? [e.dv_no, e.check_no].filter(Boolean).join('/')
         : (e.ref_no || '—');
       const school = schoolMap.get(e.school_id);
-      return `<tr>
-        <td class="text-xs text-gray-400">${i + 1}</td>
+      return `<tr draggable="true" style="cursor:grab"
+          ondragstart="CheckIssuedView.dragStart(event,${i})"
+          ondragend="CheckIssuedView.dragEnd(event)"
+          ondragover="CheckIssuedView.dragOver(event)"
+          ondragleave="CheckIssuedView.dragLeave(event)"
+          ondrop="CheckIssuedView.drop(event,${i})">
+        <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
+        <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
+        <td class="text-xs">${dvCheck}</td>
+        <td class="text-xs">${e.payee || '—'}</td>
+        <td class="text-xs">${e.fund_type}</td>
+        <td class="text-xs">${school?.short_name || school?.name || '—'}</td>
+        <td class="col-amount text-xs font-semibold">${fmt(e.payment)}</td>
+      </tr>`;
+    }).join('');
+  },
+
+  // ---- Drag-and-drop reordering (in-session, affects Excel export order) ----
+  dragStart(event, fromIdx) {
+    this._dragIdx = fromIdx;
+    event.dataTransfer.effectAllowed = 'move';
+    event.currentTarget.style.opacity = '0.4';
+  },
+
+  dragEnd(event) {
+    event.currentTarget.style.opacity = '';
+    document.querySelectorAll('#ci-tbody tr').forEach(r => r.style.background = '');
+  },
+
+  dragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    event.currentTarget.style.background = '#e0f2fe';
+  },
+
+  dragLeave(event) {
+    event.currentTarget.style.background = '';
+  },
+
+  drop(event, toIdx) {
+    event.preventDefault();
+    event.currentTarget.style.background = '';
+    const fromIdx = this._dragIdx;
+    this._dragIdx = null;
+    if (fromIdx == null || fromIdx === toIdx) return;
+
+    const [moved] = this._currentRows.splice(fromIdx, 1);
+    this._currentRows.splice(toIdx, 0, moved);
+
+    // Re-render the table using the new order (skip sort, use currentRows directly)
+    const tbody   = document.getElementById('ci-tbody');
+    const countEl = document.getElementById('ci-count');
+    const schoolMap = new Map(this._schools.map(s => [s.id, s]));
+    if (countEl) countEl.textContent = `${this._currentRows.length} record${this._currentRows.length !== 1 ? 's' : ''}`;
+    tbody.innerHTML = this._currentRows.map((e, i) => {
+      const dvCheck = e.dv_no || e.check_no
+        ? [e.dv_no, e.check_no].filter(Boolean).join('/')
+        : (e.ref_no || '—');
+      const school = schoolMap.get(e.school_id);
+      return `<tr draggable="true" style="cursor:grab"
+          ondragstart="CheckIssuedView.dragStart(event,${i})"
+          ondragend="CheckIssuedView.dragEnd(event)"
+          ondragover="CheckIssuedView.dragOver(event)"
+          ondragleave="CheckIssuedView.dragLeave(event)"
+          ondrop="CheckIssuedView.drop(event,${i})">
+        <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
         <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
         <td class="text-xs">${dvCheck}</td>
         <td class="text-xs">${e.payee || '—'}</td>
