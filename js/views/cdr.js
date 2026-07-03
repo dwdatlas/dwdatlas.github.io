@@ -452,14 +452,15 @@ const CDRView = {
                   const dvCheck = e.dv_no || e.check_no
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
+                  const isAdvance = (parseFloat(e.advances) || 0) > 0;
                   return `
-                  <tr draggable="true" style="cursor:grab"
+                  <tr ${!isAdvance ? `draggable="true" style="cursor:grab"
                       ondragstart="CDRView.dragStart(event,'${e.id}')"
                       ondragend="CDRView.dragEnd(event)"
                       ondragover="CDRView.dragOver(event)"
                       ondragleave="CDRView.dragLeave(event)"
-                      ondrop="CDRView.drop(event,'${e.id}')">
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
+                      ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">${!isAdvance ? '⠿ ' : ''}${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
@@ -554,6 +555,9 @@ const CDRView = {
     const fromIdx = entries.findIndex(e => e.id === fromId);
     const toIdx   = entries.findIndex(e => e.id === targetId);
     if (fromIdx === -1 || toIdx === -1) return;
+
+    // Do not allow dropping onto the advance (operating balance) row
+    if ((parseFloat(entries[toIdx].advances) || 0) > 0) return;
 
     const [moved] = entries.splice(fromIdx, 1);
     entries.splice(toIdx, 0, moved);
@@ -914,13 +918,14 @@ const CDRView = {
                   const dvCheck = e.dv_no || e.check_no
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
-                  return `<tr draggable="true" style="cursor:grab"
+                  const isAdvance = (parseFloat(e.advances) || 0) > 0;
+                  return `<tr ${!isAdvance ? `draggable="true" style="cursor:grab"
                       ondragstart="CDRView.dragStart(event,'${e.id}')"
                       ondragend="CDRView.dragEnd(event)"
                       ondragover="CDRView.dragOver(event)"
                       ondragleave="CDRView.dragLeave(event)"
-                      ondrop="CDRView.drop(event,'${e.id}')">
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">⠿ ${i + 1}</td>
+                      ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">${!isAdvance ? '⠿ ' : ''}${i + 1}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
