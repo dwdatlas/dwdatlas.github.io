@@ -377,12 +377,13 @@ const CDRView = {
     if (ps) ps.textContent = `${school.name || ''} — ${this._category === 'special' ? 'Special Fund' : `${header.year} ${header.quarter}`}`;
 
     // Running balance — starts at 0; first entry is the cash advance receipt
-    let balance = 0;
+    let balance = 0, _payNum = 0;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
       const pay = parseFloat(e.payment) || 0;
       balance = balance + adv - pay;
-      return { ...e, running_balance: balance };
+      const _displayNum = adv > 0 ? null : ++_payNum;
+      return { ...e, running_balance: balance, _displayNum };
     });
 
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
@@ -445,15 +446,14 @@ const CDRView = {
           <tbody>
             ${rows.length === 0
               ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : (_payNum => rows.map((e) => {
+              : rows.map((e) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
                   const dvCheck = e.dv_no || e.check_no
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
-                  const isAdvance = (parseFloat(e.advances) || 0) > 0;
-                  if (!isAdvance) _payNum.n++;
+                  const isAdvance = e._displayNum === null;
                   return `
                   <tr ${!isAdvance ? `draggable="true" style="cursor:grab"
                       ondragstart="CDRView.dragStart(event,'${e.id}')"
@@ -461,7 +461,7 @@ const CDRView = {
                       ondragover="CDRView.dragOver(event)"
                       ondragleave="CDRView.dragLeave(event)"
                       ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">${!isAdvance ? `⠿ ${_payNum.n}` : ''}</td>
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">${e._displayNum !== null ? `⠿ ${e._displayNum}` : ''}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
@@ -477,7 +477,7 @@ const CDRView = {
                       </div>
                     </td>
                   </tr>`;
-                }))({n:0}).join('')
+                }).join('')
             }
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
@@ -884,12 +884,13 @@ const CDRView = {
     if (!wrap) return;
     const entries = this._detailEntries || [];
     const id = this._detailId;
-    let balance = 0;
+    let balance = 0, _payNum = 0;
     const rows = entries.map(e => {
       const adv = parseFloat(e.advances) || 0;
       const pay = parseFloat(e.payment)  || 0;
       balance = balance + adv - pay;
-      return { ...e, running_balance: balance };
+      const _displayNum = adv > 0 ? null : ++_payNum;
+      return { ...e, running_balance: balance, _displayNum };
     });
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
     const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
@@ -912,22 +913,21 @@ const CDRView = {
           <tbody>
             ${rows.length === 0
               ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : (_payNum => rows.map((e) => {
+              : rows.map((e) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
                   const dvCheck = e.dv_no || e.check_no
                     ? [e.dv_no, e.check_no].filter(Boolean).join('/')
                     : (e.ref_no || '—');
-                  const isAdvance = (parseFloat(e.advances) || 0) > 0;
-                  if (!isAdvance) _payNum.n++;
+                  const isAdvance = e._displayNum === null;
                   return `<tr ${!isAdvance ? `draggable="true" style="cursor:grab"
                       ondragstart="CDRView.dragStart(event,'${e.id}')"
                       ondragend="CDRView.dragEnd(event)"
                       ondragover="CDRView.dragOver(event)"
                       ondragleave="CDRView.dragLeave(event)"
                       ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">${!isAdvance ? `⠿ ${_payNum.n}` : ''}</td>
+                    <td class="text-xs text-gray-400" style="white-space:nowrap">${e._displayNum !== null ? `⠿ ${e._displayNum}` : ''}</td>
                     <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
                     <td class="text-xs text-gray-600">${dvCheck}</td>
                     <td class="text-xs">${e.payee || '—'}</td>
@@ -938,7 +938,7 @@ const CDRView = {
                     <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
                     <td><div class="flex gap-1">${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></div></td>
                   </tr>`;
-                }))({n:0}).join('')
+                }).join('')
             }
             ${entries.length > 0 ? `
             <tr class="bg-gray-50 font-bold text-xs">
