@@ -445,7 +445,7 @@ const CDRView = {
           <tbody>
             ${rows.length === 0
               ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : ((_payNum => rows.map((e) => {
+              : (_payNum => rows.map((e) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
@@ -912,7 +912,7 @@ const CDRView = {
           <tbody>
             ${rows.length === 0
               ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : ((_payNum => rows.map((e) => {
+              : (_payNum => rows.map((e) => {
                   const uacsLabel = e.uacs_lines
                     ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
                     : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
