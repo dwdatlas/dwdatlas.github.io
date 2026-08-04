@@ -574,102 +574,150 @@ const AllFundsDashboardView = {
     const sRow = splitTotals(funds.filter(f => !DashboardView._isMOOE(f.fund_type)));
     const tRow = splitTotals(funds);
 
-    // Summary cards
-    const card = (title, value, color, sub) =>
-      `<div class="stat-card border-l-4" style="border-color:${color};background:#fff">
-        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">${title}</div>
-        <div class="text-2xl font-bold mb-1" style="color:${color}">${value}</div>
-        <div class="text-xs text-gray-400">${sub}</div>
+    // ---------- desktop redesign (option 2a) ----------
+    // "₱ 1,234.56" → pesos big, centavos small
+    const money = (n) => {
+      const s = fmt(n), i = s.lastIndexOf('.');
+      return i === -1 ? s : `${s.slice(0, i)}<span class="cents">${s.slice(i)}</span>`;
+    };
+
+    // KPI strip
+    const kpi = (label, value, sub, o = {}) =>
+      `<div class="atlas-kpi${o.attention ? ' is-attention' : ''}"${o.accent ? ` style="--atlas-accent:${o.accent}"` : ''}>
+        <div class="atlas-kpi-label">${label}</div>
+        <div class="atlas-kpi-value"${o.color ? ` style="color:${o.color}"` : ''}>${value}</div>
+        <div class="atlas-kpi-sub"${o.subColor ? ` style="color:${o.subColor};font-weight:600"` : ''}>${sub}</div>
       </div>`;
 
     const sumHtml =
-      card('Total Downloaded', fmt(totalAmt),            '#1d6fb0', funds.length + ' release' + (funds.length !== 1 ? 's' : '')) +
-      card('Liquidated',       fmt(liqAmt),              '#16a34a', liqPct  + '% of total') +
-      card('Unliquidated',     fmt(unliqAmt),            '#b45309', unliqPct + '% of total') +
-      card('Needs Attention',  String(attention.length), '#dc2626', 'past deadline');
+      kpi('Total Downloaded', money(totalAmt), `${funds.length} release${funds.length !== 1 ? 's' : ''}`) +
+      kpi('Liquidated',   money(liqAmt),   `${liqPct}% of total ▲`, { accent: '#16a34a', color: '#15803d', subColor: '#16a34a' }) +
+      kpi('Unliquidated', money(unliqAmt), `${unliqPct}% of total`, { accent: '#f59e0b', color: '#b45309', subColor: '#b45309' }) +
+      kpi('Needs Attention', String(attention.length),
+          `release${attention.length !== 1 ? 's' : ''} past deadline`,
+          { accent: '#ef4444', color: '#dc2626', subColor: '#dc2626', attention: true });
 
-    // Fund-split table
-    const pctBadge = (n, green) => {
-      const bg  = green ? '#dcfce7' : '#fef3c7';
-      const col = green ? '#166534' : '#92400e';
-      return `<span class="badge" style="background:${bg};color:${col}">${n}%</span>`;
+    // Fund Split — bar per row. Green at ≥50% liquidated, amber below.
+    const splitLine = (label, r, isTotal) => {
+      const green = r.pct >= 50;
+      return `
+        <div class="atlas-split-row${isTotal ? ' is-total' : ''}">
+          <div class="atlas-split-cat">${label}</div>
+          <div class="atlas-split-num">${fmt(r.dl)}</div>
+          <div class="atlas-split-num is-unliq">${fmt(r.ul)}</div>
+          <div class="atlas-bar-cell">
+            <div class="atlas-bar">
+              <div class="atlas-bar-fill ${green ? 'is-green' : 'is-amber'}" style="width:${r.pct}%"></div>
+            </div>
+            <span class="atlas-bar-pct" style="color:${green ? '#15803d' : '#b45309'}">${r.pct}%</span>
+          </div>
+        </div>`;
     };
-    const NUM = 'font-variant-numeric:tabular-nums';
-    const splitRow = (label, r) =>
-      `<tr>
-        <td class="font-semibold text-sm">${label}</td>
-        <td class="col-amount" style="${NUM}">${fmt(r.dl)}</td>
-        <td class="col-amount" style="${NUM};font-weight:600;color:#16a34a">${fmt(r.lq)}</td>
-        <td class="col-amount" style="${NUM};font-weight:600;color:#b45309">${fmt(r.ul)}</td>
-        <td class="col-amount">${pctBadge(r.pct, r.pct >= 50)}</td>
-      </tr>`;
 
-    const splitHtml = `
-      <div class="section-card">
-        <div class="section-card-header"><h3>Fund Split</h3></div>
-        <div class="table-scroll">
-          <table class="data-table" style="table-layout:fixed;width:100%">
-            <colgroup>
-              <col style="width:20%">
-              <col style="width:20%">
-              <col style="width:20%">
-              <col style="width:20%">
-              <col style="width:20%">
-            </colgroup>
-            <thead><tr>
-              <th>Category</th>
-              <th class="col-amount">Downloaded</th>
-              <th class="col-amount">Liquidated</th>
-              <th class="col-amount">Unliquidated</th>
-              <th class="col-amount">Liq %</th>
-            </tr></thead>
-            <tbody>
-              ${splitRow('MOOE', mRow)}
-              ${splitRow('Special Funds', sRow)}
-              <tr style="border-top:2px solid #e2e8f0">
-                <td class="font-bold text-sm">Total</td>
-                <td class="col-amount" style="${NUM};font-weight:700">${fmt(tRow.dl)}</td>
-                <td class="col-amount" style="${NUM};font-weight:700;color:#16a34a">${fmt(tRow.lq)}</td>
-                <td class="col-amount" style="${NUM};font-weight:700;color:#b45309">${fmt(tRow.ul)}</td>
-                <td class="col-amount">${pctBadge(tRow.pct, tRow.pct >= 50)}</td>
-              </tr>
-            </tbody>
-          </table>
+    const splitCard = `
+      <div class="atlas-card">
+        <div class="atlas-card-head">
+          <div class="atlas-card-title">Fund Split</div>
+          <div class="atlas-card-note">by liquidation %</div>
+        </div>
+        <div class="atlas-split-body">
+          <div class="atlas-split-row is-head">
+            <div>Category</div>
+            <div style="text-align:right">Downloaded</div>
+            <div style="text-align:right">Unliq.</div>
+            <div>Liquidation</div>
+          </div>
+          ${splitLine('MOOE', mRow)}
+          ${splitLine('Special Funds', sRow)}
+          ${splitLine('Total', tRow, true)}
         </div>
       </div>`;
 
-    // Needs Attention queue
-    const queueHtml = !attention.length
-      ? `<div class="section-card">
-          <div class="section-card-header"><h3>Needs Attention</h3></div>
-          <div class="section-card-body">${emptyState('All releases on track.')}</div>
-        </div>`
-      : `<div class="section-card">
-          <div class="section-card-header">
-            <h3>Needs Attention</h3>
-            <span class="text-xs text-gray-500">Past deadline — worst first</span>
+    // Overall Liquidation donut — arc length derived from liqPct
+    const CIRC = 2 * Math.PI * 60;            // r = 60
+    const arc  = (liqPct / 100) * CIRC;
+    const compact = totalAmt >= 1e6 ? `₱${(totalAmt / 1e6).toFixed(2)}M` : fmt(totalAmt);
+
+    const donutCard = `
+      <div class="atlas-card atlas-donut-card">
+        <div class="atlas-card-title">Overall Liquidation</div>
+        <div class="atlas-donut-sub">of ${compact} downloaded</div>
+        <div class="atlas-donut-wrap">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="60" fill="none" stroke="#eef1f4" stroke-width="16"/>
+            <circle class="atlas-donut-arc" cx="75" cy="75" r="60" fill="none" stroke="url(#atlasDonut)"
+                    stroke-width="16" stroke-linecap="round"
+                    stroke-dasharray="${arc.toFixed(1)} ${CIRC.toFixed(1)}"
+                    transform="rotate(-90 75 75)"/>
+            <defs>
+              <linearGradient id="atlasDonut" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#15803d"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="atlas-donut-center">
+            <div class="atlas-donut-pct">${liqPct}%</div>
+            <div class="atlas-donut-cap">LIQUIDATED</div>
           </div>
+        </div>
+        <div class="atlas-legend">
+          <div class="atlas-legend-row">
+            <span><span class="atlas-swatch" style="background:#16a34a"></span>Liquidated</span>
+            <span class="atlas-legend-val">${fmt(liqAmt)}</span>
+          </div>
+          <div class="atlas-legend-row">
+            <span><span class="atlas-swatch" style="background:#f59e0b"></span>Unliquidated</span>
+            <span class="atlas-legend-val">${fmt(unliqAmt)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    const splitHtml = `<div class="atlas-split-grid">${splitCard}${donutCard}</div>`;
+
+    // Needs Attention queue — past deadline only, worst first
+    const naHead = `
+      <div class="atlas-card-head atlas-na-head">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span class="atlas-na-dot"></span>
+          <span class="atlas-card-title">Needs Attention</span>
+        </div>
+        <span class="atlas-na-note">Past deadline — worst first</span>
+      </div>`;
+
+    const queueHtml = !attention.length
+      ? `<div class="atlas-card">
+          ${naHead}
+          <div style="padding:34px 20px;text-align:center">
+            <div style="font-size:14px;font-weight:700;color:#15803d">All caught up</div>
+            <div style="font-size:12.5px;color:#8a93a3;margin-top:4px">No releases are past their liquidation deadline.</div>
+          </div>
+        </div>`
+      : `<div class="atlas-card">
+          ${naHead}
           <div class="table-scroll">
-            <table class="data-table">
+            <table class="atlas-na-table">
               <thead><tr>
-                <th>School</th><th>Fund Type</th>
-                <th class="col-amount">Amount</th>
-                <th>ADA Date</th>
-                <th>Deadline</th>
-                <th class="col-amount">Days Overdue</th>
+                <th>School</th><th>Fund Type</th><th style="text-align:right">Amount</th>
+                <th>ADA Date</th><th>Deadline</th><th>Overdue</th>
               </tr></thead>
               <tbody>
-                ${attention.map(({ f, school, daysOverdue }) => `
+                ${attention.map(({ f, school, daysOverdue }) => {
+                  const name = school ? school.name : (f.school_id || '—');
+                  return `
                 <tr>
-                  <td class="font-medium text-sm">${school ? school.name : (f.school_id || '—')}</td>
-                  <td class="text-xs text-gray-600">${f.fund_type || '—'}</td>
-                  <td class="col-amount font-semibold">${fmt(f.amount)}</td>
-                  <td class="text-xs whitespace-nowrap">${compactDate(f.ada_date)}</td>
-                  <td class="text-xs whitespace-nowrap font-semibold text-red-600">${compactDate(f.deadline)}</td>
-                  <td class="col-amount">
-                    <span class="badge" style="background:#fee2e2;color:#991b1b">${daysOverdue}d</span>
+                  <td>
+                    <div class="atlas-na-school">
+                      <div class="atlas-na-chip">${App._initials(name)}</div>
+                      <div class="atlas-na-name">${name}</div>
+                    </div>
                   </td>
-                </tr>`).join('')}
+                  <td>${f.fund_type || '—'}</td>
+                  <td class="atlas-na-amt">${fmt(f.amount)}</td>
+                  <td style="white-space:nowrap">${compactDate(f.ada_date)}</td>
+                  <td class="atlas-na-due" style="white-space:nowrap">${compactDate(f.deadline)}</td>
+                  <td><span class="atlas-na-pill">${daysOverdue} day${daysOverdue !== 1 ? 's' : ''}</span></td>
+                </tr>`;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -677,7 +725,9 @@ const AllFundsDashboardView = {
 
     root.innerHTML =
       `<div id="afd-mob-block">${this._buildMobBlock(funds, schools, totalAmt, liqAmt, unliqAmt, liqPct, attention, today)}</div>` +
-      `<div class="afd-desktop"><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${sumHtml}</div>${splitHtml}${queueHtml}</div>`;
+      `<div class="afd-desktop atlas-ui atlas-stack">` +
+        `<div class="atlas-kpi-grid">${sumHtml}</div>${splitHtml}${queueHtml}` +
+      `</div>`;
   },
 };
 

@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Project A.T.L.A.S — Dulag West District</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Serif:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/cdr-pdf.css" />
   <link rel="stylesheet" href="css/mobile.css" />
@@ -12,56 +15,62 @@
 <body class="bg-gray-100 font-sans text-gray-800">
 
   <!-- LOGIN SCREEN -->
-  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center" style="background:#f0f4f8">
-    <div class="bg-white rounded-2xl shadow-lg w-full mx-4 relative" style="max-width:320px;padding:28px 24px 22px">
+  <div id="login-screen" class="atlas-login fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="atlas-login-card">
       <!-- Version -->
-      <div class="absolute top-3 right-4 text-xs text-gray-300">v2.2</div>
-      <!-- Logo -->
-      <div class="flex justify-center mb-3">
-        <div class="w-16 h-16 rounded-full overflow-hidden">
-          <img src="images/logo.png" alt="Dulag West District" class="w-full h-full object-contain" />
+      <div class="atlas-login-ver">v2.2</div>
+
+      <!-- District seal -->
+      <div class="flex justify-center" style="margin-bottom:16px">
+        <div class="atlas-login-seal">
+          <img src="images/logo.png" alt="Dulag West District" />
         </div>
       </div>
+
       <!-- Title -->
-      <div class="text-center mb-5">
-        <div class="font-bold text-lg" style="color:#0b2445">Project A.T.L.A.S</div>
-        <div class="text-xs font-semibold tracking-wide mt-0.5" style="color:#1d6fb0">Automated Tracking, Liquidation and Allocation System</div>
-        <div class="text-xs text-gray-500 mt-1">Dulag West District · Dulag, Leyte</div>
+      <div class="text-center" style="margin-bottom:22px">
+        <div class="atlas-login-title">Project A.T.L.A.S</div>
+        <div class="atlas-login-sys">Automated Tracking, Liquidation<br>and Allocation System</div>
+        <div class="atlas-login-org">Dulag West District · Dulag, Leyte</div>
       </div>
+
       <!-- Error -->
-      <div id="login-error" class="hidden mb-3 px-3 py-2 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg"></div>
+      <div id="login-error" class="hidden atlas-login-err"></div>
+
       <!-- Form -->
       <form id="login-form" onsubmit="Auth.login(event)">
-        <div class="mb-3">
-          <label class="form-label">Username</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            </span>
-            <input id="login-username" type="text" class="form-input" style="padding-left:2.25rem;background:#f8fafc" placeholder="jo.bookkeeper" autocomplete="username" required />
+        <div style="margin-bottom:14px">
+          <label class="atlas-login-label" for="login-username">Username</label>
+          <div class="atlas-field">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <input id="login-username" type="text" placeholder="jo.bookkeeper" autocomplete="username" required />
           </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Password</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            </span>
-            <input id="login-password" type="password" class="form-input" style="padding-left:2.25rem;background:#f8fafc" placeholder="••••••••" autocomplete="current-password" required />
+        <div style="margin-bottom:14px">
+          <label class="atlas-login-label" for="login-password">Password</label>
+          <div class="atlas-field">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="atlas-eye" aria-label="Show password" onclick="App.togglePassword(this)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
         </div>
-        <div class="flex items-center justify-between mb-4 text-xs">
-          <label class="flex items-center gap-1.5 text-gray-500 cursor-pointer select-none">
-            <input type="checkbox" class="rounded border-gray-300" />
+
+        <div class="flex items-center justify-between" style="margin:4px 0 18px">
+          <label class="flex items-center gap-2 cursor-pointer select-none" style="font-size:12px;color:#475569">
+            <input type="checkbox" class="rounded" style="border:1.5px solid #c3ccda" />
             Remember me
           </label>
-          <a href="#" onclick="return false" class="text-blue-500 hover:underline">Forgot password?</a>
+          <a href="#" onclick="return false" style="font-size:12px;font-weight:600;color:#2f6db3;text-decoration:none">Forgot password?</a>
         </div>
-        <button type="submit" class="w-full py-2.5 rounded-lg font-bold text-white text-sm tracking-wide" style="background:#0b2445">Sign In</button>
+
+        <button type="submit" class="atlas-login-btn">Sign In</button>
       </form>
-      <div class="mt-5 text-center">
-        <p class="text-xs text-gray-400">Division of Leyte, Region VIII</p>
-        <p class="text-xs text-gray-400 mt-0.5">Department of Education</p>
+
+      <div class="atlas-login-foot">
+        <div>Division of Leyte, Region VIII</div>
+        <div>Department of Education</div>
       </div>
     </div>
   </div>
@@ -70,23 +79,25 @@
   <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-20 hidden lg:hidden" onclick="App.closeSidebar()"></div>
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 z-30 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200"
-         style="background:#1a2035">
+  <aside id="sidebar" class="atlas-ui fixed top-0 left-0 h-full w-64 z-30 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200"
+         style="background:#0e1c33">
     <!-- Logo -->
-    <div class="px-5 py-3 border-b border-gray-700">
+    <div style="padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08)">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full overflow-hidden shrink-0">
-            <img src="images/logo.png" alt="Dulag West District" class="w-full h-full object-contain" />
-          </div>
+        <div class="atlas-side-seal">
+          <img src="images/logo.png" alt="Dulag West District" />
+        </div>
         <div>
-          <div class="text-white font-bold text-sm leading-tight">Dulag West District</div>
-          <div class="text-blue-200 text-xs">Division of Leyte</div>
+          <div class="atlas-side-brand">Dulag West District</div>
+          <div class="atlas-side-sub">Division of Leyte</div>
         </div>
       </div>
     </div>
 
     <!-- Nav links -->
     <nav class="flex-1 py-1 overflow-y-auto">
+
+      <div class="px-5 pt-2 pb-0"><div class="atlas-side-label">Overview</div></div>
 
       <!-- Dashboard -->
       <a href="#" class="nav-link flex items-center gap-3 px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" style="font-size:14px" data-view="dashboard">
@@ -96,7 +107,7 @@
 
       <!-- FUNDS section -->
       <div class="px-5 pt-2 pb-0">
-        <div class="text-xs font-semibold uppercase tracking-wider" style="color:#4b5563">Funds</div>
+        <div class="atlas-side-label">Funds</div>
       </div>
       <a href="#" class="nav-link flex items-center gap-3 px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" style="font-size:14px" data-view="funds_mooe">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -109,7 +120,7 @@
 
       <!-- REPORTS section -->
       <div class="px-5 pt-2 pb-0">
-        <div class="text-xs font-semibold uppercase tracking-wider" style="color:#4b5563">Reports</div>
+        <div class="atlas-side-label">Reports</div>
       </div>
       <a href="#" class="nav-link flex items-center gap-3 px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" style="font-size:14px" data-view="cdr_mooe">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -130,7 +141,7 @@
 
       <!-- REFERENCES section -->
       <div class="px-5 pt-2 pb-0">
-        <div class="text-xs font-semibold uppercase tracking-wider" style="color:#4b5563">References</div>
+        <div class="atlas-side-label">References</div>
       </div>
       <a href="#" class="nav-link flex items-center gap-3 px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" style="font-size:14px" data-view="resources">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
@@ -144,19 +155,24 @@
     </nav>
 
     <!-- Footer -->
-    <div class="border-t border-gray-700">
+    <div style="border-top:1px solid rgba(255,255,255,.08)">
       <a href="#" id="nav-setup" class="nav-link flex items-center gap-3 px-5 py-1.5 text-gray-300 hover:text-white hover:bg-white hover:bg-opacity-10 transition-colors" style="font-size:14px" data-view="setup">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-linecap="round"/></svg>
         Setup / Config
       </a>
     </div>
-    <div class="px-5 py-2 border-t border-gray-700">
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.08)">
       <div id="conn-status" class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium inline-block mb-2">⚡ Local only</div>
-      <div id="sidebar-user-name" class="text-blue-300 text-xs leading-tight font-semibold"></div>
-      <div id="sidebar-user-role" class="text-blue-400 text-xs"></div>
-      <button onclick="Auth.logout()" class="mt-3 w-full text-xs text-blue-300 hover:text-white flex items-center gap-1 hover:bg-white hover:bg-opacity-10 rounded px-2 py-1 transition-colors">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        Sign Out
+      <div class="flex items-center gap-3">
+        <div id="sidebar-user-avatar" class="atlas-side-avatar">—</div>
+        <div style="min-width:0;line-height:1.3">
+          <div id="sidebar-user-name" class="atlas-side-user"></div>
+          <div id="sidebar-user-role" class="atlas-side-role"></div>
+        </div>
+      </div>
+      <button onclick="Auth.logout()" class="atlas-logout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        Log Out
       </button>
     </div>
   </aside>
@@ -174,18 +190,17 @@
     </div>
 
     <!-- Top bar (desktop) -->
-    <header class="desktop-header sticky top-0 z-10 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between" style="box-shadow:0 1px 3px rgba(0,0,0,.07)">
+    <header class="desktop-header atlas-ui sticky top-0 z-10 bg-white flex items-center justify-between" style="border-bottom:1px solid #e6e8ec;padding:18px 26px">
       <div class="flex items-center gap-3">
         <!-- Hamburger (mobile) -->
         <button class="lg:hidden p-1 rounded text-gray-500 hover:text-gray-700" onclick="App.toggleSidebar()">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div>
-          <div id="page-title" class="font-bold text-gray-800 text-sm leading-tight">Dashboard</div>
-          <div id="page-subtitle" class="text-xs text-gray-500">Overview</div>
+          <div id="page-title" style="font-size:19px;font-weight:800;letter-spacing:-.01em;color:#0e1c33;line-height:1.2">Dashboard</div>
+          <div id="page-subtitle" style="font-size:12.5px;color:#8a93a3">Project A.T.L.A.S · Dulag West District</div>
         </div>
       </div>
-      <div class="text-xs text-gray-400 hidden sm:block">Project A.T.L.A.S · Dulag West District</div>
     </header>
 
     <!-- Content -->
