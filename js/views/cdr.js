@@ -401,7 +401,7 @@ const CDRView = {
         ← Back to CDR List
       </button>
       <button class="btn btn-primary btn-sm" onclick="CDRXlsx.download('${id}')">
-        Download Excel
+        Download CDR
       </button>
     </div>
 
