@@ -562,7 +562,13 @@ const AllFundsDashboardView = {
         return { f, school: schools.find(s => s.id === f.school_id), daysOverdue };
       })
       .filter(item => item.daysOverdue > 0)
-      .sort((a, b) => b.daysOverdue - a.daysOverdue);
+      // Listed A–Z by school name (not by how overdue) so it reads like a roll call
+      .sort((a, b) => {
+        const an = (a.school ? a.school.name : a.f.school_id) || '';
+        const bn = (b.school ? b.school.name : b.f.school_id) || '';
+        return an.localeCompare(bn, 'en', { sensitivity: 'base' }) ||
+               (a.f.deadline || '').localeCompare(b.f.deadline || '');
+      });
 
     // MOOE / Special split
     function splitTotals(arr) {
@@ -681,7 +687,7 @@ const AllFundsDashboardView = {
           <span class="atlas-na-dot"></span>
           <span class="atlas-card-title">Needs Attention</span>
         </div>
-        <span class="atlas-na-note">Past deadline — worst first</span>
+        <span class="atlas-na-note">Past deadline — A to Z by school</span>
       </div>`;
 
     const queueHtml = !attention.length

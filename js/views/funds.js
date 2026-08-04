@@ -102,7 +102,9 @@ const FundsView = {
     const schoolSel = document.getElementById('f-school');
     if (schoolSel && !this._schoolId) {
       schoolSel.innerHTML = `<option value="">All Schools</option>` +
-        this._schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        [...this._schools]
+          .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+          .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
     }
 
     // Populate fund type dropdown
@@ -129,6 +131,14 @@ const FundsView = {
     if (fundType) rows = rows.filter(r => (r.fund_type || '').toLowerCase().includes(fundType.toLowerCase()));
     if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
     if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
+
+    // List alphabetically by school, then oldest ADA first within each school.
+    // Sorting `rows` here covers both the desktop table and the mobile cards.
+    const schoolNameOf = (r) =>
+      (this._schools.find(s => s.id === r.school_id)?.name || r.school_id || '').toString();
+    rows = [...rows].sort((a, b) =>
+      schoolNameOf(a).localeCompare(schoolNameOf(b), 'en', { sensitivity: 'base' }) ||
+      (a.ada_date || '').localeCompare(b.ada_date || ''));
 
     const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const el = document.getElementById('funds-body');
