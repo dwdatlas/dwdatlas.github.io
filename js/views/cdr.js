@@ -179,7 +179,6 @@ const CDRView = {
           <td>
             <div class="flex gap-1">
               <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              <button class="btn btn-secondary btn-sm" onclick="CDRXlsx.download('${r.id}')">Excel</button>
               ${!this._schoolId ? `<button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>` : ''}
             </div>
           </td>
