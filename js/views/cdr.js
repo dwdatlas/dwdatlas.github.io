@@ -9,10 +9,10 @@ const CDRView = {
     this._schoolId = typeof Auth !== 'undefined' ? Auth.getSchoolId() : null;
 
     const schoolDropdown = this._schoolId
-      ? `<select id="cdr-filter-school" class="form-select" disabled>
+      ? `<select id="cdr-filter-school" class="atlas-select" disabled>
            <option value="${this._schoolId}">My School</option>
          </select>`
-      : `<select id="cdr-filter-school" class="form-select" onchange="CDRView.load()">
+      : `<select id="cdr-filter-school" class="atlas-select" onchange="CDRView.load()">
            <option value="">All Schools</option>
          </select>`;
 
@@ -24,36 +24,29 @@ const CDRView = {
     const years = this._category === 'mooe' ? [curYear] : [curYear, curYear - 1];
 
     return `
-    <div id="cdr-filter-panel" class="section-card mb-4">
-      <div class="section-card-header">
-        <h3>Filters</h3>
-      </div>
-      <div class="section-card-body">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div>
-            <label class="form-label">School</label>
-            ${schoolDropdown}
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Year</label>
-            <select id="cdr-filter-year" class="form-select" onchange="CDRView.load()">
-              ${yearOpts}
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Fund Type</label>
-            <select id="cdr-filter-fundtype" class="form-select" onchange="CDRView.load()">
-              <option value="">All Fund Types</option>
-            </select>
-          </div>
-          <div class="flex items-end gap-2">
-            <button class="btn btn-primary flex-1" onclick="CDRView.openCreate()">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              New CDR
-            </button>
-          </div>
+    <div id="cdr-filter-panel" class="atlas-ui atlas-card mb-4">
+      <div class="atlas-card-head"><div class="atlas-card-title">Filters</div></div>
+      <div class="atlas-filters-body is-3up">
+        <div>
+          <label class="atlas-flabel" for="cdr-filter-school">School</label>
+          ${schoolDropdown}
         </div>
+        <div>
+          <label class="atlas-flabel" for="cdr-filter-year">Year</label>
+          <select id="cdr-filter-year" class="atlas-select" onchange="CDRView.load()">
+            ${yearOpts}
+          </select>
+        </div>
+        <div>
+          <label class="atlas-flabel" for="cdr-filter-fundtype">Fund Type</label>
+          <select id="cdr-filter-fundtype" class="atlas-select" onchange="CDRView.load()">
+            <option value="">All Fund Types</option>
+          </select>
+        </div>
+        <button class="atlas-btn atlas-btn-primary" onclick="CDRView.openCreate()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New CDR
+        </button>
       </div>
     </div>
 
@@ -66,9 +59,10 @@ const CDRView = {
       </div>
     </div>
 
-    <div class="section-card">
-      <div class="section-card-header">
-        <h3>CDR List</h3>
+    <div class="atlas-ui atlas-card">
+      <div class="atlas-card-head">
+        <div class="atlas-card-title">CDR List</div>
+        <div id="cdr-list-summary" class="atlas-summary"></div>
       </div>
       <div class="cdr-table-wrap">
         <div id="cdr-list-body" class="table-scroll">
@@ -151,35 +145,43 @@ const CDRView = {
 
     const isSpecial = this._category === 'special';
 
+    const sumEl = document.getElementById('cdr-list-summary');
+    if (sumEl) {
+      const totalAmt = rows.reduce((s, r) => s + fundAmt(r), 0);
+      sumEl.innerHTML =
+        `<span class="n">${rows.length} register${rows.length !== 1 ? 's' : ''}</span> · Total ${fmt(totalAmt)}`;
+    }
+
     el.innerHTML = `
-    <table class="data-table" style="table-layout:fixed;width:100%">
+    <table class="atlas-table" style="table-layout:fixed;width:100%">
       <colgroup>
-        <col style="width:200px"/>
-        <col style="width:55px"/>
-        <col style="width:180px"/>
-        <col style="width:110px"/>
-        <col style="width:60px"/>
+        <col style="width:220px"/>
+        <col style="width:70px"/>
         <col style="width:190px"/>
+        <col style="width:130px"/>
+        <col style="width:80px"/>
+        <col style="width:170px"/>
       </colgroup>
       <thead><tr>
-        <th>School</th><th>Year</th>
+        <th>School</th>
+        <th>Year</th>
         <th>Fund Type</th>
-        <th class="col-amount">Fund Amount</th>
-        <th class="text-center">Entries</th>
-        <th>Actions</th>
+        <th class="num">Fund Amount</th>
+        <th style="text-align:center">Entries</th>
+        <th style="text-align:right">Actions</th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `
         <tr>
-          <td class="font-medium" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._schoolName(r.school_id)}</td>
+          <td class="strong" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${this._schoolName(r.school_id)}</td>
           <td>${r.year}</td>
-          <td class="text-xs text-gray-600" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.fund_type || '—'}</td>
-          <td class="col-amount font-semibold">${fmt(fundAmt(r))}</td>
-          <td class="text-center text-xs text-gray-500">${r.entry_count || 0}</td>
+          <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.fund_type || '—'}</td>
+          <td class="num strong">${fmt(fundAmt(r))}</td>
+          <td style="text-align:center;color:#8a93a3">${r.entry_count || 0}</td>
           <td>
-            <div class="flex gap-1">
-              <button class="btn btn-secondary btn-sm" onclick="CDRView.showDetail('${r.id}')">View</button>
-              ${!this._schoolId ? `<button class="btn btn-danger btn-sm" onclick="CDRView.deleteHeader('${r.id}')">Del</button>` : ''}
+            <div class="atlas-act-row">
+              <button class="atlas-act" onclick="CDRView.showDetail('${r.id}')">View</button>
+              ${!this._schoolId ? `<button class="atlas-act atlas-act-del" onclick="CDRView.deleteHeader('${r.id}')">Del</button>` : ''}
             </div>
           </td>
         </tr>`).join('')}
@@ -393,101 +395,51 @@ const CDRView = {
       `<option value="${u.code}" data-desc="${u.desc}">${u.code} — ${u.desc}</option>`
     ).join('');
 
-    el.innerHTML = `
-    <!-- Top bar -->
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <button class="btn btn-secondary btn-sm" onclick="CDRView.backToList()">
-        ← Back to CDR List
-      </button>
-      <button class="btn btn-primary btn-sm" onclick="CDRXlsx.download('${id}')">
-        Download CDR
-      </button>
-    </div>
+    const periodLabel = this._category === 'special' ? 'Year' : 'Year / Quarter';
+    const periodValue = `${header.year}${this._category === 'special' ? '' : ' ' + header.quarter}`;
 
-    <!-- CDR Info -->
-    <div class="section-card mb-4">
-      <div class="section-card-body py-3">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <div><span class="text-gray-500 text-xs block">School</span><strong>${school.name || '—'}</strong></div>
-          <div><span class="text-gray-500 text-xs block">${this._category === 'special' ? 'Year' : 'Year / Quarter'}</span><strong>${header.year}${this._category === 'special' ? '' : ' ' + header.quarter}</strong></div>
-          <div><span class="text-gray-500 text-xs block">Fund Type</span><strong>${header.fund_type || '—'}</strong></div>
+    el.innerHTML = `
+    <div class="atlas-ui atlas-stack">
+
+      <!-- back bar -->
+      <div>
+        <button class="atlas-btn atlas-btn-ghost" onclick="CDRView.backToList()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to CDR List
+        </button>
+      </div>
+
+      <!-- meta card -->
+      <div class="atlas-meta">
+        <div>
+          <div class="atlas-meta-label">School</div>
+          <div class="atlas-meta-value">${school.name || '—'}</div>
+        </div>
+        <div>
+          <div class="atlas-meta-label">${periodLabel}</div>
+          <div class="atlas-meta-value">${periodValue}</div>
+        </div>
+        <div>
+          <div class="atlas-meta-label">Fund Type</div>
+          <div class="atlas-meta-value">${header.fund_type || '—'}</div>
         </div>
       </div>
-    </div>
 
-    <!-- Add Transaction Button -->
-    <div class="flex justify-end mb-4">
-      <button class="btn btn-primary" onclick="CDRView.openCreateMulti('${id}')">
-        + Add Transaction
-      </button>
-    </div>
-
-    <!-- Transactions Table -->
-    <div id="cdr-txn-wrap" class="section-card">
-      <div class="section-card-header">
-        <h3>Transactions</h3>
-        <span class="text-xs text-gray-500">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</span>
+      <!-- actions -->
+      <div class="atlas-actions-row">
+        <button class="atlas-btn atlas-btn-gold" onclick="CDRXlsx.download('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+          Download CDR
+        </button>
+        <button class="atlas-btn atlas-btn-primary" onclick="CDRView.openCreateMulti('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add Transaction
+        </button>
       </div>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead><tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>DV / Check No.</th>
-            <th>Payee</th>
-            <th>Particulars</th>
-            <th>UACS Name</th>
-            <th class="col-amount">Cash Advance</th>
-            <th class="col-amount">Payment</th>
-            <th class="col-amount">Balance</th>
-            <th></th>
-          </tr></thead>
-          <tbody>
-            ${rows.length === 0
-              ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : rows.map((e) => {
-                  const uacsLabel = e.uacs_lines
-                    ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
-                    : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
-                  const dvCheck = e.dv_no || e.check_no
-                    ? [e.dv_no, e.check_no].filter(Boolean).join('/')
-                    : (e.ref_no || '—');
-                  const isAdvance = e._displayNum === null;
-                  return `
-                  <tr ${!isAdvance ? `draggable="true" style="cursor:grab"
-                      ondragstart="CDRView.dragStart(event,'${e.id}')"
-                      ondragend="CDRView.dragEnd(event)"
-                      ondragover="CDRView.dragOver(event)"
-                      ondragleave="CDRView.dragLeave(event)"
-                      ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">${e._displayNum !== null ? `⠿ ${e._displayNum}` : ''}</td>
-                    <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
-                    <td class="text-xs text-gray-600">${dvCheck}</td>
-                    <td class="text-xs">${e.payee || '—'}</td>
-                    <td class="text-xs">${e.particulars || '—'}</td>
-                    <td class="text-xs">${uacsLabel}</td>
-                    <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
-                    <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
-                    <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
-                    <td>
-                      <div class="flex gap-1">
-                        ${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}
-                        <button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
-                      </div>
-                    </td>
-                  </tr>`;
-                }).join('')
-            }
-            ${entries.length > 0 ? `
-            <tr class="bg-gray-50 font-bold text-xs">
-              <td colspan="6" class="text-right pr-2">TOTAL</td>
-              <td class="col-amount">${fmt(totalAdv)}</td>
-              <td class="col-amount text-blue-700">${fmt(totalPay)}</td>
-              <td class="col-amount">${fmt(finalBal)}</td>
-              <td></td>
-            </tr>` : ''}
-          </tbody>
-        </table>
+
+      <!-- transactions ledger -->
+      <div id="cdr-txn-wrap" class="atlas-card">
+        ${this._ledgerHtml(rows, entries, id, totalAdv, totalPay, finalBal)}
       </div>
     </div>`;
   },
@@ -537,7 +489,7 @@ const CDRView = {
   dragOver(event) {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
-    event.currentTarget.style.background = '#e0f2fe';
+    event.currentTarget.style.background = '#fdf6e3'; // gold tint — drop target
   },
 
   dragLeave(event) {
@@ -878,6 +830,83 @@ const CDRView = {
     DB.upsertCDRHeader({ id: cdr_id, entry_count: this._detailEntries.length });
   },
 
+  // Inner markup of #cdr-txn-wrap. Shared by showDetail() and
+  // _refreshDetailTable() so adding or reordering an entry can't leave the
+  // ledger looking different from how it first rendered.
+  _ledgerHtml(rows, entries, id, totalAdv, totalPay, finalBal) {
+    return `
+      <div class="atlas-card-head">
+        <div class="atlas-card-title">Transactions</div>
+        <div class="atlas-card-note">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</div>
+      </div>
+      <div class="atlas-ledger-scroll">
+        <table class="atlas-table">
+          <thead><tr>
+            <th style="width:64px">#</th>
+            <th>Date</th>
+            <th>DV / Check No.</th>
+            <th>Payee</th>
+            <th>Particulars</th>
+            <th>UACS Name</th>
+            <th class="num">Cash Advance</th>
+            <th class="num">Payment</th>
+            <th class="num">Balance</th>
+            <th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody>
+            ${rows.length === 0
+              ? `<tr><td colspan="10" style="text-align:center;color:#8a93a3;padding:34px 20px">
+                   <div style="font-size:14px;font-weight:700;color:#0e1c33">No transactions yet</div>
+                   <div style="font-size:12.5px;margin-top:4px">Use “Add Transaction” above to record the first entry.</div>
+                 </td></tr>`
+              : rows.map((e) => {
+                  const uacsLabel = e.uacs_lines
+                    ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
+                    : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
+                  const dvCheck = e.dv_no || e.check_no
+                    ? [e.dv_no, e.check_no].filter(Boolean).join('/')
+                    : (e.ref_no || '—');
+                  const isAdvance = e._displayNum === null;
+                  const adv = parseFloat(e.advances) || 0;
+                  const pay = parseFloat(e.payment)  || 0;
+                  return `
+                  <tr class="${isAdvance ? 'is-advance' : ''}" ${!isAdvance ? `draggable="true" style="cursor:grab"
+                      ondragstart="CDRView.dragStart(event,'${e.id}')"
+                      ondragend="CDRView.dragEnd(event)"
+                      ondragover="CDRView.dragOver(event)"
+                      ondragleave="CDRView.dragLeave(event)"
+                      ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
+                    <td class="atlas-ledger-num">${isAdvance ? '' : `<span class="atlas-drag" title="Drag to reorder">⠿</span>${e._displayNum}`}</td>
+                    <td style="white-space:nowrap;color:#475569">${formatDate(e.entry_date)}</td>
+                    <td>${dvCheck}</td>
+                    <td>${e.payee || '<span class="muted">—</span>'}</td>
+                    <td class="atlas-particulars">${e.particulars || '—'}</td>
+                    <td>${uacsLabel}</td>
+                    <td class="num ${adv > 0 ? 'atlas-advance' : 'muted'}">${adv > 0 ? fmt(adv) : '—'}</td>
+                    <td class="num ${pay > 0 ? 'atlas-payment' : 'muted'}">${pay > 0 ? fmt(pay) : '—'}</td>
+                    <td class="num atlas-balance">${fmt(e.running_balance)}</td>
+                    <td>
+                      <div class="atlas-act-row">
+                        ${pay > 0 ? `<button class="atlas-act" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}
+                        <button class="atlas-act atlas-act-del" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')
+            }
+          </tbody>
+          ${entries.length > 0 ? `
+          <tfoot><tr>
+            <td colspan="6">Totals</td>
+            <td class="num t-adv">${fmt(totalAdv)}</td>
+            <td class="num t-pay">${fmt(totalPay)}</td>
+            <td class="num">${fmt(finalBal)}</td>
+            <td></td>
+          </tr></tfoot>` : ''}
+        </table>
+      </div>`;
+  },
+
   _refreshDetailTable() {
     const wrap = document.getElementById('cdr-txn-wrap');
     if (!wrap) return;
@@ -894,62 +923,7 @@ const CDRView = {
     const totalAdv = entries.reduce((s, e) => s + (parseFloat(e.advances) || 0), 0);
     const totalPay = entries.reduce((s, e) => s + (parseFloat(e.payment)  || 0), 0);
     const finalBal = rows.length > 0 ? rows[rows.length - 1].running_balance : 0;
-    wrap.innerHTML = `
-      <div class="section-card-header">
-        <h3>Transactions</h3>
-        <span class="text-xs text-gray-500">${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'}</span>
-      </div>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead><tr>
-            <th>#</th><th>Date</th><th>DV / Check No.</th><th>Payee</th><th>Particulars</th>
-            <th>UACS Name</th>
-            <th class="col-amount">Cash Advance</th>
-            <th class="col-amount">Payment</th>
-            <th class="col-amount">Balance</th>
-            <th></th>
-          </tr></thead>
-          <tbody>
-            ${rows.length === 0
-              ? `<tr><td colspan="10" class="text-center text-gray-400 py-8 text-sm">No transactions yet. Use the form above to add the first entry.</td></tr>`
-              : rows.map((e) => {
-                  const uacsLabel = e.uacs_lines
-                    ? (() => { try { return JSON.parse(e.uacs_lines).map(l => l.desc || l.code).join(', '); } catch { return 'Multiple UACS'; } })()
-                    : (e.uacs_code ? (e.uacs_desc || UACS_CODES.find(u => u.code === e.uacs_code)?.desc || e.uacs_code) : '—');
-                  const dvCheck = e.dv_no || e.check_no
-                    ? [e.dv_no, e.check_no].filter(Boolean).join('/')
-                    : (e.ref_no || '—');
-                  const isAdvance = e._displayNum === null;
-                  return `<tr ${!isAdvance ? `draggable="true" style="cursor:grab"
-                      ondragstart="CDRView.dragStart(event,'${e.id}')"
-                      ondragend="CDRView.dragEnd(event)"
-                      ondragover="CDRView.dragOver(event)"
-                      ondragleave="CDRView.dragLeave(event)"
-                      ondrop="CDRView.drop(event,'${e.id}')"` : `style="cursor:default"`}>
-                    <td class="text-xs text-gray-400" style="white-space:nowrap">${e._displayNum !== null ? `⠿ ${e._displayNum}` : ''}</td>
-                    <td class="text-xs whitespace-nowrap">${formatDate(e.entry_date)}</td>
-                    <td class="text-xs text-gray-600">${dvCheck}</td>
-                    <td class="text-xs">${e.payee || '—'}</td>
-                    <td class="text-xs">${e.particulars || '—'}</td>
-                    <td class="text-xs">${uacsLabel}</td>
-                    <td class="col-amount text-xs">${(parseFloat(e.advances)||0) > 0 ? fmt(e.advances) : ''}</td>
-                    <td class="col-amount text-xs font-semibold text-blue-700">${(parseFloat(e.payment)||0) > 0 ? fmt(e.payment) : ''}</td>
-                    <td class="col-amount text-xs font-bold">${fmt(e.running_balance)}</td>
-                    <td><div class="flex gap-1">${(parseFloat(e.payment)||0) > 0 ? `<button class="btn btn-secondary btn-sm" onclick="CDRView.openEditEntry('${e.id}','${id}')">Edit</button>` : ''}<button class="btn btn-danger btn-sm" onclick="CDRView.deleteEntry('${e.id}','${id}')">Del</button></div></td>
-                  </tr>`;
-                }).join('')
-            }
-            ${entries.length > 0 ? `
-            <tr class="bg-gray-50 font-bold text-xs">
-              <td colspan="6" class="text-right pr-2">TOTAL</td>
-              <td class="col-amount">${fmt(totalAdv)}</td>
-              <td class="col-amount text-blue-700">${fmt(totalPay)}</td>
-              <td class="col-amount">${fmt(finalBal)}</td>
-              <td></td>
-            </tr>` : ''}
-          </tbody>
-        </table>
-      </div>`;
+    wrap.innerHTML = this._ledgerHtml(rows, entries, id, totalAdv, totalPay, finalBal);
   },
 
   // ---- Download as PDF (F4 landscape, 8.5 × 13 in) using jsPDF ----

@@ -334,6 +334,145 @@
   color: var(--atlas-red-deep); font-size: 12.5px; font-weight: 600;
 }
 
+/* ============================================================
+   MOOE / CDR SCREENS (options 4a + 5a)
+   ============================================================ */
+
+/* ---------- buttons ---------- */
+.atlas-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700; font-size: 13.5px;
+  padding: 11px 20px; border-radius: 9px;
+  cursor: pointer; border: none; white-space: nowrap;
+  transition: background .15s, box-shadow .15s;
+}
+.atlas-btn-primary {
+  background: var(--atlas-navy); color: #fff;
+  box-shadow: 0 5px 14px rgba(14,28,51,.25);
+}
+.atlas-btn-primary:hover { background: #16294a; }
+.atlas-btn-ghost {
+  background: #fff; border: 1px solid var(--atlas-border);
+  color: #334155; font-size: 12.5px; padding: 9px 14px;
+}
+.atlas-btn-ghost:hover { background: #f6f7f9; }
+.atlas-btn-gold {
+  background: #fffdf5; border: 1px solid var(--atlas-gold-deep); color: #8a6d12;
+}
+.atlas-btn-gold:hover { background: #fdf8e7; }
+
+/* Small row actions (Edit / Del / View) */
+.atlas-act {
+  border: 1px solid #dbe1ec; background: #f6f7f9; color: #334155;
+  font-family: inherit; font-weight: 600; font-size: 12px;
+  padding: 6px 13px; border-radius: 7px; cursor: pointer;
+  transition: background .15s;
+}
+.atlas-act:hover { background: #eef1f6; }
+.atlas-act-del { border-color: #f6cfcf; background: #fdecec; color: var(--atlas-red-deep); }
+.atlas-act-del:hover { background: #fbdcdc; }
+.atlas-act-row { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ---------- filters card ---------- */
+.atlas-filters-body {
+  padding: 18px 20px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 16px; align-items: end;
+}
+.atlas-filters-body.is-3up { grid-template-columns: 1fr 1fr 1fr auto; }
+.atlas-flabel {
+  display: block; font-size: 11.5px; font-weight: 700;
+  color: #334155; margin-bottom: 7px;
+}
+/* Native select styled as the mock's pill */
+.atlas-select {
+  width: 100%; appearance: none; -webkit-appearance: none;
+  background-color: #f6f7f9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a93a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  border: 1px solid #dbe1ec; border-radius: 9px;
+  padding: 10px 34px 10px 12px;
+  font-family: inherit; font-size: 13px; color: #0f172a;
+  cursor: pointer; outline: none;
+}
+.atlas-select:focus { border-color: #2f6db3; box-shadow: 0 0 0 3px rgba(47,109,179,.12); }
+.atlas-select:disabled { color: #8a93a3; cursor: default; }
+
+/* ---------- data table (records / ledger / list) ---------- */
+.atlas-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.atlas-table thead tr { background: #f7f8fa; }
+.atlas-table th {
+  text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--atlas-label);
+  padding: 11px 12px; white-space: nowrap;
+}
+.atlas-table th:first-child, .atlas-table td:first-child { padding-left: 20px; }
+.atlas-table th:last-child,  .atlas-table td:last-child  { padding-right: 20px; }
+.atlas-table td { padding: 14px 12px; font-size: 12.5px; color: #334155; }
+.atlas-table tbody tr { border-top: 1px solid #eef0f3; }
+.atlas-table tbody tr:nth-child(even) { background: #fafbfc; }
+.atlas-table tbody tr:hover { background: #f4f6f9; }
+.atlas-table .num { text-align: right; white-space: nowrap; }
+.atlas-table .strong { font-weight: 700; }
+.atlas-table .muted { color: #b3bccb; }
+.atlas-table .ada { font-weight: 700; font-size: 13px; color: var(--atlas-navy); }
+
+/* status pills */
+.atlas-pill {
+  display: inline-block; font-weight: 700; font-size: 11px;
+  padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+}
+.atlas-pill-liq   { background: #e6f6ec; color: var(--atlas-green-deep); }
+.atlas-pill-unliq { background: #fdf1e3; color: var(--atlas-amber-deep); }
+
+/* card summary line, e.g. "41 records · Total ₱… · Liquidated 27" */
+.atlas-summary { font-size: 12px; color: var(--atlas-muted); font-variant-numeric: tabular-nums; }
+.atlas-summary .n   { font-weight: 600; color: #475569; }
+.atlas-summary .liq { color: var(--atlas-green-deep); font-weight: 600; }
+.atlas-summary .unl { color: var(--atlas-amber-deep); font-weight: 600; }
+
+/* ---------- CDR meta card ---------- */
+.atlas-meta {
+  background: #fff; border: 1px solid var(--atlas-border); border-radius: 14px;
+  padding: 18px 22px;
+  display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px;
+}
+.atlas-meta > div + div { border-left: 1px solid var(--atlas-rule); padding-left: 16px; }
+.atlas-meta-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--atlas-label);
+}
+.atlas-meta-value { font-size: 16px; font-weight: 800; color: var(--atlas-navy); margin-top: 6px; }
+
+/* ---------- CDR ledger ---------- */
+.atlas-ledger-scroll { overflow-x: auto; }
+.atlas-ledger-scroll .atlas-table { min-width: 1000px; }
+/* opening cash-advance row: tinted, and it stays put when rows are reordered */
+.atlas-table tbody tr.is-advance,
+.atlas-table tbody tr.is-advance:nth-child(even) { background: #f9faf7; }
+.atlas-table tbody tr.is-advance:hover { background: #f4f6f1; }
+.atlas-ledger-num { color: #94a0b3; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.atlas-drag { color: #cbd3df; cursor: grab; margin-right: 4px; }
+.atlas-table tbody tr:hover .atlas-drag { color: #94a0b3; }
+.atlas-particulars { color: #2f6db3; font-weight: 600; }
+.atlas-advance { color: var(--atlas-green-deep); font-weight: 700; }
+.atlas-payment  { color: #2f6db3; font-weight: 600; }
+.atlas-balance  { color: var(--atlas-navy); font-weight: 700; }
+.atlas-table tfoot tr { border-top: 2px solid var(--atlas-navy); background: #f7f8fa; }
+.atlas-table tfoot td { padding: 14px 12px; font-size: 12.5px; font-weight: 800; color: var(--atlas-navy); }
+.atlas-table tfoot .t-adv { color: var(--atlas-green-deep); }
+.atlas-table tfoot .t-pay { color: #2f6db3; }
+
+.atlas-actions-row { display: flex; justify-content: flex-end; gap: 10px; }
+
+@media (max-width: 1100px) {
+  .atlas-filters-body,
+  .atlas-filters-body.is-3up { grid-template-columns: 1fr 1fr; }
+  .atlas-meta { grid-template-columns: 1fr; }
+  .atlas-meta > div + div { border-left: none; padding-left: 0; border-top: 1px solid var(--atlas-rule); padding-top: 12px; }
+}
+
 /* ---------- sidebar (navy + gold) ---------- */
 #sidebar .nav-link { color: #aeb9cb; }
 #sidebar .nav-link:hover { color: #fff; }
