@@ -5,7 +5,9 @@ const App = {
   currentView: null,
 
   views: {
-    dashboard:    { title: 'Dashboard',     subtitle: 'Fund Overview',                      obj: () => AllFundsDashboardView },
+    // deskTitle (optional) overrides the desktop header only; `title` still drives the mobile app bar
+    dashboard:    { title: 'Dashboard',     subtitle: 'Fund Overview',                      obj: () => AllFundsDashboardView,
+                    deskTitle: 'Fund Overview', deskSubtitle: 'Project A.T.L.A.S · Dulag West District' },
     funds_mooe:   { title: 'MOOE',          subtitle: 'Fund Releases',                      obj: () => FundsMOOEView },
     funds_special:{ title: 'Special Funds', subtitle: 'Fund Releases',                      obj: () => FundsSpecialView },
     cdr_mooe:     { title: 'MOOE',          subtitle: 'Cash Disbursement Register',          obj: () => CDRMOOEView },
@@ -31,7 +33,10 @@ const App = {
     const nameEl = document.getElementById('sidebar-user-name');
     const roleEl = document.getElementById('sidebar-user-role');
     if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
-    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III (Sr. Bookkeeper)' : 'School Account';
+    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III · Sr. Bookkeeper' : 'School Account';
+
+    const avatarEl = document.getElementById('sidebar-user-avatar');
+    if (avatarEl && nameEl) avatarEl.textContent = App._initials(nameEl.textContent);
 
     const mobName   = document.getElementById('mob-user-name');
     const mobRole   = document.getElementById('mob-user-role-label');
@@ -97,8 +102,8 @@ const App = {
 
     // Update header
     const v = this.views[viewName];
-    document.getElementById('page-title').textContent = v.title;
-    document.getElementById('page-subtitle').textContent = v.subtitle;
+    document.getElementById('page-title').textContent = v.deskTitle || v.title;
+    document.getElementById('page-subtitle').textContent = v.deskSubtitle || v.subtitle;
 
     const mobTitle = document.getElementById('mob-title');
     if (mobTitle) mobTitle.textContent = v.title;
@@ -190,6 +195,23 @@ const App = {
   },
 
   mobNav(view) { this.closeMobMore(); this.navigate(view); },
+
+  // First letter of the first two words — used for the sidebar avatar and school chips
+  _initials(name) {
+    return (name || '')
+      .trim().split(/\s+/).filter(w => /[A-Za-z]/.test(w))
+      .slice(0, 2).map(w => w[0].toUpperCase()).join('') || '—';
+  },
+
+  // Login screen show/hide password toggle
+  togglePassword(btn) {
+    const input = document.getElementById('login-password');
+    if (!input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    btn.style.color = show ? '#2f6db3' : '';
+  },
 
   openMobMore() {
     const sheet = document.getElementById('mob-more-sheet');

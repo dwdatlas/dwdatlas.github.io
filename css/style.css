@@ -1,8 +1,9 @@
-/* Nav active state */
+/* Nav active state — gold on navy (A.T.L.A.S redesign) */
 .nav-link.active {
-  background-color: rgba(252,209,22,0.18);
+  background-color: rgba(201,162,39,0.14);
   font-weight: 600;
-  color: #FCD116;
+  color: #e9c46a;
+  box-shadow: inset 3px 0 0 #c9a227;
 }
 
 /* Table styles */
@@ -94,3 +95,277 @@
 @media (max-width: 768px) {
   .hide-mobile { display: none; }
 }
+
+/* ============================================================
+   PROJECT A.T.L.A.S — redesign tokens (login + dashboard only)
+   Scoped to .atlas-* classes so other views are untouched.
+   ============================================================ */
+:root {
+  --atlas-navy:       #0e1c33;
+  --atlas-gold:       #e9c46a;
+  --atlas-gold-deep:  #c9a227;
+  --atlas-green:      #16a34a;
+  --atlas-green-deep: #15803d;
+  --atlas-amber:      #f59e0b;
+  --atlas-amber-deep: #b45309;
+  --atlas-red:        #ef4444;
+  --atlas-red-deep:   #dc2626;
+  --atlas-border:     #e6e8ec;
+  --atlas-rule:       #eceef1;
+  --atlas-muted:      #8a93a3;
+  --atlas-label:      #98a1ae;
+  --atlas-track:      #eef1f4;
+}
+
+.atlas-ui    { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+.atlas-serif { font-family: 'IBM Plex Serif', Georgia, serif; }
+.atlas-num   { font-variant-numeric: tabular-nums; }
+
+/* Vertical stack for the dashboard sections.
+   NOTE: keep this a class (not an inline style) — mobile.css hides
+   .afd-desktop at <=768px and an inline display would override it. */
+.atlas-stack { display: flex; flex-direction: column; gap: 18px; }
+
+/* ---------- shared card ---------- */
+.atlas-card {
+  background: #fff;
+  border: 1px solid var(--atlas-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.atlas-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--atlas-rule);
+}
+.atlas-card-title { font-size: 14.5px; font-weight: 700; color: var(--atlas-navy); }
+.atlas-card-note  { font-size: 11px; font-weight: 600; color: var(--atlas-label); }
+
+/* ---------- KPI strip ---------- */
+.atlas-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.atlas-kpi {
+  position: relative; overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--atlas-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.atlas-kpi::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--atlas-accent, transparent);
+}
+.atlas-kpi-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--atlas-label);
+}
+.atlas-kpi-value {
+  font-size: 24px; font-weight: 800; letter-spacing: -.02em;
+  margin: 8px 0 4px; color: var(--atlas-navy);
+  font-variant-numeric: tabular-nums;
+}
+.atlas-kpi-value .cents { font-size: 15px; opacity: .6; }
+.atlas-kpi-sub { font-size: 11.5px; color: var(--atlas-muted); }
+.atlas-kpi.is-attention {
+  background: linear-gradient(150deg, #fff, #fff5f5);
+  border-color: #fbd9d9;
+}
+.atlas-kpi.is-attention .atlas-kpi-label { color: #c2504a; }
+
+/* ---------- section 2: fund split + donut ---------- */
+.atlas-split-grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 18px; }
+
+.atlas-split-body { padding: 6px 18px 14px; }
+.atlas-split-row {
+  display: grid; grid-template-columns: 1.2fr 1fr 1fr 150px; gap: 10px;
+  align-items: center; padding: 13px 0;
+  border-bottom: 1px solid #f5f6f8;
+  font-variant-numeric: tabular-nums;
+}
+.atlas-split-row.is-head {
+  padding: 10px 0 8px;
+  border-bottom: 1px solid #f0f1f4;
+  font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: #aab2bf;
+}
+.atlas-split-row.is-total { padding: 13px 0 6px; border-bottom: none; font-weight: 800; }
+.atlas-split-cat { font-weight: 600; font-size: 13px; }
+.atlas-split-num { text-align: right; font-size: 12.5px; color: #475569; }
+.atlas-split-num.is-unliq { color: var(--atlas-amber-deep); }
+
+.atlas-bar-cell { display: flex; align-items: center; gap: 8px; }
+.atlas-bar { flex: 1; height: 7px; background: var(--atlas-track); border-radius: 5px; overflow: hidden; }
+.atlas-split-row.is-total .atlas-bar { height: 8px; }
+.atlas-bar-fill { height: 100%; border-radius: 5px; transition: width .6s ease-out; }
+.atlas-bar-fill.is-green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.atlas-bar-fill.is-amber { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.atlas-bar-pct { width: 26px; text-align: right; font-size: 11.5px; font-weight: 700; }
+
+/* ---------- donut ---------- */
+.atlas-donut-card { display: flex; flex-direction: column; padding: 18px; }
+.atlas-donut-sub  { font-size: 11.5px; color: var(--atlas-label); margin-bottom: 10px; }
+.atlas-donut-wrap {
+  display: flex; align-items: center; justify-content: center;
+  position: relative; margin: 4px 0 14px;
+}
+.atlas-donut-arc { transition: stroke-dasharray .6s ease-out; }
+.atlas-donut-center { position: absolute; text-align: center; }
+.atlas-donut-pct { font-size: 34px; font-weight: 800; color: var(--atlas-green-deep); line-height: 1; }
+.atlas-donut-cap {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .03em; color: var(--atlas-label);
+}
+.atlas-legend { display: flex; flex-direction: column; gap: 8px; }
+.atlas-legend-row {
+  display: flex; align-items: center; justify-content: space-between; font-size: 12px;
+}
+.atlas-legend-row span:first-child {
+  display: flex; align-items: center; gap: 7px; color: #475569;
+}
+.atlas-swatch { width: 9px; height: 9px; border-radius: 3px; }
+.atlas-legend-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------- needs attention ---------- */
+.atlas-na-head { background: #fbf3f2; padding: 15px 20px; }
+.atlas-na-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--atlas-red); box-shadow: 0 0 0 4px rgba(239,68,68,.13);
+}
+.atlas-na-note { font-size: 11px; font-weight: 600; color: #a8443c; }
+.atlas-na-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.atlas-na-table thead tr { background: #f7f8fa; }
+.atlas-na-table th {
+  text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--atlas-label); padding: 10px 12px;
+}
+.atlas-na-table th:first-child, .atlas-na-table td:first-child { padding-left: 20px; }
+.atlas-na-table th:last-child,  .atlas-na-table td:last-child  { padding-right: 20px; text-align: right; }
+.atlas-na-table td { padding: 15px 12px; font-size: 12.5px; color: #475569; }
+.atlas-na-table tbody tr { border-top: 1px solid #eef0f3; }
+.atlas-na-table tbody tr:hover { background: #fafbfc; }
+.atlas-na-school { display: flex; align-items: center; gap: 10px; }
+.atlas-na-chip {
+  width: 30px; height: 30px; flex: none; border-radius: 8px;
+  background: #eef0fe; color: #4338ca;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px;
+}
+.atlas-na-name  { font-weight: 600; font-size: 13px; color: var(--atlas-navy); }
+.atlas-na-amt   { text-align: right; font-weight: 700; }
+.atlas-na-due   { color: var(--atlas-red-deep); font-weight: 600; }
+.atlas-na-pill {
+  display: inline-block; background: #fdecec; color: var(--atlas-red-deep);
+  font-weight: 700; font-size: 11px; padding: 4px 9px; border-radius: 20px;
+}
+
+/* ---------- dashboard responsive (desktop block only) ---------- */
+@media (max-width: 1100px) {
+  .atlas-kpi-grid   { grid-template-columns: repeat(2, 1fr); }
+  .atlas-split-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   LOGIN SCREEN (option 3a)
+   ============================================================ */
+.atlas-login {
+  background: linear-gradient(160deg, #eef1f6, #e4e8f0);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+.atlas-login-card {
+  width: 100%; max-width: 360px; position: relative;
+  background: #fff;
+  border: 1px solid var(--atlas-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(14,28,51,.14);
+  padding: 34px 32px 26px;
+}
+.atlas-login-ver {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 10.5px; font-weight: 600; color: #b3bccb;
+  font-family: ui-monospace, Menlo, monospace;
+}
+.atlas-login-seal {
+  width: 66px; height: 66px; border-radius: 50%; overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(201,162,39,.35), 0 0 0 3px rgba(201,162,39,.25);
+}
+.atlas-login-seal img { width: 100%; height: 100%; object-fit: contain; }
+.atlas-login-title {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-weight: 700; font-size: 22px; color: var(--atlas-navy); letter-spacing: .01em;
+}
+.atlas-login-sys {
+  font-size: 12.5px; font-weight: 600; color: #2f6db3; margin-top: 6px; line-height: 1.35;
+}
+.atlas-login-org { font-size: 11.5px; color: var(--atlas-muted); margin-top: 7px; }
+.atlas-login-label {
+  display: block; font-size: 11.5px; font-weight: 700; color: #334155;
+  letter-spacing: .02em; margin-bottom: 7px;
+}
+.atlas-field {
+  display: flex; align-items: center; gap: 9px;
+  background: #eef1f8; border: 1px solid #dbe1ec; border-radius: 10px;
+  padding: 11px 13px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.atlas-field:focus-within { border-color: #2f6db3; box-shadow: 0 0 0 3px rgba(47,109,179,.12); }
+.atlas-field svg { flex: none; color: var(--atlas-muted); }
+.atlas-field input {
+  flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+  font-size: 13.5px; color: #0f172a; font-family: inherit;
+}
+.atlas-field input::placeholder { color: #a6b0c0; }
+.atlas-eye { background: none; border: none; padding: 0; cursor: pointer; color: #a6b0c0; }
+.atlas-eye:hover { color: #6b7688; }
+.atlas-login-btn {
+  width: 100%; border: none; cursor: pointer;
+  background: var(--atlas-navy); color: #fff;
+  font-family: inherit; font-weight: 700; font-size: 14px;
+  padding: 13px; border-radius: 10px; letter-spacing: .01em;
+  box-shadow: 0 6px 16px rgba(14,28,51,.28);
+  transition: background .15s, opacity .15s;
+}
+.atlas-login-btn:hover:not(:disabled) { background: #16294a; }
+.atlas-login-btn:disabled { opacity: .65; cursor: not-allowed; }
+.atlas-login-foot { text-align: center; margin-top: 20px; line-height: 1.5; }
+.atlas-login-foot div { font-size: 11px; color: #9aa2af; }
+.atlas-login-foot div:first-child { font-weight: 600; }
+.atlas-login-err {
+  margin-bottom: 14px; padding: 9px 12px;
+  background: #fdecec; border: 1px solid #fbd9d9; border-radius: 10px;
+  color: var(--atlas-red-deep); font-size: 12.5px; font-weight: 600;
+}
+
+/* ---------- sidebar (navy + gold) ---------- */
+#sidebar .nav-link { color: #aeb9cb; }
+#sidebar .nav-link:hover { color: #fff; }
+#sidebar .nav-link.active { color: #e9c46a; }
+
+.atlas-side-label {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: #5f6f8a;
+}
+.atlas-side-brand {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+  font-weight: 600; font-size: 14px; color: #fff; line-height: 1.2;
+}
+.atlas-side-sub  { font-size: 10.5px; color: #8996ab; letter-spacing: .02em; }
+.atlas-side-seal {
+  width: 42px; height: 42px; flex: none; border-radius: 50%; overflow: hidden;
+  background: #fff; box-shadow: 0 0 0 3px rgba(201,162,39,.25);
+}
+.atlas-side-seal img { width: 100%; height: 100%; object-fit: contain; }
+.atlas-side-avatar {
+  width: 34px; height: 34px; flex: none; border-radius: 50%;
+  background: #22304c; border: 1px solid rgba(201,162,39,.4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--atlas-gold); font-weight: 700; font-size: 12px;
+}
+.atlas-side-user { font-weight: 600; font-size: 12px; color: #fff; }
+.atlas-side-role { font-size: 10px; color: #8996ab; }
+.atlas-logout {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  margin-top: 12px; padding: 9px 10px; border-radius: 8px; border: none;
+  background: rgba(239,68,68,.08); color: #c98a86;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.atlas-logout:hover { background: rgba(239,68,68,.16); color: #f0a9a4; }
