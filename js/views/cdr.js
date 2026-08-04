@@ -409,8 +409,8 @@ const CDRView = {
         </button>
       </div>
 
-      <!-- meta card -->
-      <div class="atlas-meta">
+      <!-- meta card — Download CDR sits beside the fund type -->
+      <div class="atlas-meta has-action">
         <div>
           <div class="atlas-meta-label">School</div>
           <div class="atlas-meta-value">${school.name || '—'}</div>
@@ -423,14 +423,16 @@ const CDRView = {
           <div class="atlas-meta-label">Fund Type</div>
           <div class="atlas-meta-value">${header.fund_type || '—'}</div>
         </div>
+        <div class="atlas-meta-action">
+          <button class="atlas-btn atlas-btn-gold" onclick="CDRXlsx.download('${id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+            Download CDR
+          </button>
+        </div>
       </div>
 
       <!-- actions -->
       <div class="atlas-actions-row">
-        <button class="atlas-btn atlas-btn-gold" onclick="CDRXlsx.download('${id}')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
-          Download CDR
-        </button>
         <button class="atlas-btn atlas-btn-primary" onclick="CDRView.openCreateMulti('${id}')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add Transaction

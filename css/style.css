@@ -439,6 +439,9 @@
   display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px;
 }
 .atlas-meta > div + div { border-left: 1px solid var(--atlas-rule); padding-left: 16px; }
+/* variant with an action button in the last cell, beside the fund type */
+.atlas-meta.has-action { grid-template-columns: 1.3fr 1fr 1fr auto; align-items: center; }
+.atlas-meta.has-action > .atlas-meta-action { border-left: none; padding-left: 8px; }
 .atlas-meta-label {
   font-size: 11px; font-weight: 700; letter-spacing: .05em;
   text-transform: uppercase; color: var(--atlas-label);
@@ -469,8 +472,10 @@
 @media (max-width: 1100px) {
   .atlas-filters-body,
   .atlas-filters-body.is-3up { grid-template-columns: 1fr 1fr; }
-  .atlas-meta { grid-template-columns: 1fr; }
+  .atlas-meta,
+  .atlas-meta.has-action { grid-template-columns: 1fr; }
   .atlas-meta > div + div { border-left: none; padding-left: 0; border-top: 1px solid var(--atlas-rule); padding-top: 12px; }
+  .atlas-meta.has-action > .atlas-meta-action { padding-left: 0; }
 }
 
 /* ---------- sidebar (navy + gold) ---------- */
