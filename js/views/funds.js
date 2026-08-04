@@ -99,12 +99,16 @@ const FundsView = {
     this._schools = schoolsRes.data || [];
 
     // Populate school dropdown for admin
+    // The dropdown is keyed by school NAME, not id, and duplicate names collapse
+    // to one entry. A record whose school_id doesn't exactly match the schools
+    // table (duplicate row, different casing, stray spacing) would otherwise
+    // disappear from the list the moment you picked its school.
     const schoolSel = document.getElementById('f-school');
     if (schoolSel && !this._schoolId) {
+      const names = [...new Set(this._schools.map(s => (s.name || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
       schoolSel.innerHTML = `<option value="">All Schools</option>` +
-        [...this._schools]
-          .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
-          .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        names.map(n => `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`).join('');
     }
 
     // Populate fund type dropdown
@@ -116,26 +120,31 @@ const FundsView = {
   },
 
   async load() {
-    const school_id = this._schoolId || document.getElementById('f-school')?.value || '';
+    // For admin this holds a school NAME (see the dropdown in _initView);
+    // for a school-scoped user it is their own school id.
+    const schoolPick = this._schoolId || document.getElementById('f-school')?.value || '';
     const year      = document.getElementById('f-year')?.value   || '';
     const status    = document.getElementById('f-status')?.value || '';
     const fundType  = document.getElementById('f-fund')?.value   || '';
 
     const filters = {};
-    if (school_id) filters.school_id = school_id;
+    // Only a school-scoped user filters by id at the source. For admin the
+    // school filter is applied below, by name, so id mismatches can't hide rows.
+    if (this._schoolId) filters.school_id = this._schoolId;
     if (year)      filters.year = year;
     if (status)    filters.status = status;
 
     const { data } = await DB.getFunds(filters);
     let rows = data || [];
+
+    if (!this._schoolId && schoolPick) rows = this._matchSchool(rows, schoolPick);
     if (fundType) rows = rows.filter(r => (r.fund_type || '').toLowerCase().includes(fundType.toLowerCase()));
     if (this._category === 'mooe')    rows = rows.filter(r => DashboardView._isMOOE(r.fund_type));
     if (this._category === 'special') rows = rows.filter(r => !DashboardView._isMOOE(r.fund_type));
 
     // List alphabetically by school, then oldest ADA first within each school.
     // Sorting `rows` here covers both the desktop table and the mobile cards.
-    const schoolNameOf = (r) =>
-      (this._schools.find(s => s.id === r.school_id)?.name || r.school_id || '').toString();
+    const schoolNameOf = (r) => String(this._schoolNameOf(r));
     rows = [...rows].sort((a, b) =>
       schoolNameOf(a).localeCompare(schoolNameOf(b), 'en', { sensitivity: 'base' }) ||
       (a.ada_date || '').localeCompare(b.ada_date || ''));
@@ -172,7 +181,7 @@ const FundsView = {
       </tr></thead>
       <tbody>
         ${rows.map(r => {
-          const school = this._schools.find(s=>s.id===r.school_id);
+          const schoolLabel = this._schoolNameOf(r);
           const badge = r.status === 'liquidated'
             ? `<span class="badge badge-liquidated">Liquidated</span>`
             : `<span class="badge badge-missing">Unliquidated</span>`;
@@ -181,7 +190,7 @@ const FundsView = {
             <td class="font-mono text-xs font-semibold">${r.ada_no || '—'}</td>
             <td class="text-xs whitespace-nowrap">${formatDate(r.ada_date)}</td>
             <td class="text-xs">${r.fund_type || '—'}</td>
-            ${!this._schoolId ? `<td class="text-xs">${school?.name || r.school_id || '—'}</td>` : ''}
+            ${!this._schoolId ? `<td class="text-xs">${schoolLabel}</td>` : ''}
             ${this._category === 'special' ? `<td class="text-xs">${r.bank || '—'}</td>` : ''}
             <td class="col-amount font-semibold">${fmt(r.amount)}</td>
             <td class="col-center">${badge}</td>
@@ -199,6 +208,48 @@ const FundsView = {
     </table>`;
 
     if (mobEl) mobEl.innerHTML = this._buildMobCards(rows, isAdmin);
+  },
+
+  _norm(v) { return (v == null ? '' : String(v)).trim().toLowerCase(); },
+
+  // Resolve a record's school name, tolerating casing/spacing differences in
+  // school_id. Falls back to the raw id so a stray record is still visible.
+  _schoolNameOf(r) {
+    const rid = this._norm(r.school_id);
+    const s = this._schools.find(x => this._norm(x.id) === rid);
+    return s ? s.name : (r.school_id || '—');
+  },
+
+  // Keep every record belonging to the chosen school name. Matches on the
+  // school's name, on any id registered under that name, and on the record's
+  // raw school_id — so a record survives even when its id doesn't exactly
+  // match the schools table.
+  _matchSchool(rows, schoolName) {
+    const want = this._norm(schoolName);
+
+    const idsForName = new Set(
+      this._schools
+        .filter(s => this._norm(s.name) === want)
+        .map(s => this._norm(s.id))
+    );
+
+    const kept = rows.filter(r => {
+      const rid = this._norm(r.school_id);
+      if (idsForName.has(rid) || rid === want) return true;
+      const s = this._schools.find(x => this._norm(x.id) === rid);
+      return s ? this._norm(s.name) === want : false;
+    });
+
+    // Surface the underlying data problem instead of silently papering over it
+    const strays = kept.filter(r => !this._schools.some(s => s.id === r.school_id));
+    if (strays.length) {
+      console.warn(
+        `[A.T.L.A.S] ${strays.length} record(s) for "${schoolName}" have a school_id ` +
+        `that does not match the schools table. Worth correcting in Setup:`,
+        strays.map(r => ({ ada_no: r.ada_no, fund_type: r.fund_type, school_id: r.school_id }))
+      );
+    }
+    return kept;
   },
 
   _setChip(type, val) {
@@ -220,7 +271,7 @@ const FundsView = {
 
   _buildMobCards(rows, isAdmin) {
     return rows.map(r => {
-      const school  = this._schools.find(s => s.id === r.school_id);
+      const schoolLabel = this._schoolNameOf(r);
       const isLiq   = r.status === 'liquidated';
       const pctColor = isLiq ? '#16a34a' : '#b45309';
       const pctBg    = isLiq ? '#dcfce7' : '#fef3c7';
@@ -229,7 +280,7 @@ const FundsView = {
           <span class="funds-mob-name">${r.fund_type || 'Unknown Type'}</span>
           <span class="funds-mob-pct" style="color:${pctColor};background:${pctBg}">${isLiq ? 'Liquidated' : 'Unliquidated'}</span>
         </div>
-        ${!this._schoolId ? `<div style="font-size:12px;color:#6b7280;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${school?.name || r.school_id || '—'}</div>` : ''}
+        ${!this._schoolId ? `<div style="font-size:12px;color:#6b7280;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${schoolLabel}</div>` : ''}
         <div class="funds-mob-stats">
           <div>
             <div class="funds-mob-slabel">Amount</div>
@@ -461,7 +512,7 @@ const FundsView = {
 
     const yr    = new Date().getFullYear();
     const years = this._category === 'special' ? [yr, yr - 1] : [yr];
-    const school = this._schools.find(s => s.id === rec.school_id);
+    const schoolLabel = this._schoolNameOf(rec);
 
     const ftOpts = (ftData || []).map(t =>
       `<option value="${t.name}" ${rec.fund_type===t.name?'selected':''}>${t.name}</option>`
@@ -472,7 +523,7 @@ const FundsView = {
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div class="col-span-2">
           <label class="form-label">School</label>
-          <div class="form-input bg-gray-50 text-gray-700 text-sm">${school?.name || rec.school_id}</div>
+          <div class="form-input bg-gray-50 text-gray-700 text-sm">${schoolLabel}</div>
         </div>
         <div>
           <label class="form-label">ADA Number *</label>
