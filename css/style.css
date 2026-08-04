@@ -335,7 +335,22 @@
 }
 
 /* ---------- sidebar (navy + gold) ---------- */
-#sidebar .nav-link { color: #aeb9cb; }
+/* Sidebar sized to the approved 238px spec (was Tailwind's w-64 / 256px).
+   ID selectors so they beat the w-64 and lg:ml-64 utility classes. */
+#sidebar { width: 238px; }
+@media (min-width: 1024px) {
+  #main-wrapper { margin-left: 238px; }
+}
+
+/* Nav items: tightened rhythm. The inline font-size:14px was removed from
+   each link in index.html so this rule can take effect. */
+#sidebar .nav-link {
+  color: #aeb9cb;
+  font-size: 12.75px;
+  padding: 5px 20px;
+  gap: 10px;
+}
+#sidebar .nav-link svg { width: 15px; height: 15px; }
 #sidebar .nav-link:hover { color: #fff; }
 #sidebar .nav-link.active { color: #e9c46a; }
 
