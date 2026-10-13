@@ -22,7 +22,10 @@ const CheckIssuedView = {
         <select id="ci-year"     class="form-select" style="min-width:120px"><option value="">All Years</option></select>
         <select id="ci-fundtype" class="form-select" style="min-width:200px"><option value="">All Fund Types</option></select>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="CheckIssuedView.downloadExcel()">Download Excel</button>
+      <button class="atlas-btn atlas-btn-gold" onclick="CheckIssuedView.downloadExcel()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+        Download Report
+      </button>
     </div>
     <div class="section-card">
       <div class="section-card-header">
