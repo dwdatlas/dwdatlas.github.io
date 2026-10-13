@@ -225,8 +225,8 @@ const CDRXlsx = {
         ws.cell(certRow + 3, 3).value(school.designation || '');
       }
       if (recvRow) {
-        ws.cell(recvRow + 2, 9).value('JO ANN MARIE P. CAGARA');
-        ws.cell(recvRow + 3, 9).value('ADAS III (Senior Bookkeeper)');
+        ws.cell(recvRow + 2, 9).value(BOOKKEEPER);
+        ws.cell(recvRow + 3, 9).value(BOOKKEEPER_TITLE);
       }
 
       // ── Download ──

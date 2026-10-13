@@ -32,8 +32,8 @@ const App = {
 
     const nameEl = document.getElementById('sidebar-user-name');
     const roleEl = document.getElementById('sidebar-user-role');
-    if (nameEl && user) nameEl.textContent = user.role === 'admin' ? 'Jo Ann Marie P. Cagara' : (user.school_name || user.username);
-    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? 'ADAS III · Sr. Bookkeeper' : 'School Account';
+    if (nameEl && user) nameEl.textContent = user.role === 'admin' ? BOOKKEEPER : (user.school_name || user.username);
+    if (roleEl && user) roleEl.textContent = user.role === 'admin' ? BOOKKEEPER_TITLE : 'School Account';
 
     const avatarEl = document.getElementById('sidebar-user-avatar');
     if (avatarEl && nameEl) avatarEl.textContent = App._initials(nameEl.textContent);
@@ -43,8 +43,8 @@ const App = {
     const mobAvatar = document.getElementById('mob-user-avatar');
     const mobAdmin  = document.getElementById('mob-admin-items');
     if (user) {
-      const displayName = user.role === 'admin' ? 'Jo Ann Marie Cagara' : (user.school_name || user.username);
-      const displayRole = user.role === 'admin' ? 'Bookkeeper' : 'School Account';
+      const displayName = user.role === 'admin' ? BOOKKEEPER : (user.school_name || user.username);
+      const displayRole = user.role === 'admin' ? BOOKKEEPER_TITLE : 'School Account';
       if (mobName)   mobName.textContent   = displayName;
       if (mobRole)   mobRole.textContent   = displayRole;
       if (mobAvatar) mobAvatar.textContent = displayName.charAt(0).toUpperCase();

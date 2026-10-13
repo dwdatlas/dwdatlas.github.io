@@ -11,8 +11,8 @@ const APP_NAME = 'Dulag West District MOOE Dashboard';
 const DISTRICT = 'Dulag West District';
 const DIVISION = 'Division of Leyte';
 const REGION = 'Region VIII';
-const BOOKKEEPER = 'JO ANN MARIE P. CAGARA';
-const BOOKKEEPER_TITLE = 'ADAS III (Senior Bookkeeper)';
+let BOOKKEEPER = localStorage.getItem('atlas_bookkeeper_name') || 'JO ANN MARIE P. CAGARA';
+let BOOKKEEPER_TITLE = localStorage.getItem('atlas_bookkeeper_title') || 'ADAS III (Senior Bookkeeper)';
 
 const FUND_TYPES = [];
 

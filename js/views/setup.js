@@ -6,6 +6,9 @@ const SetupView = {
     const url = localStorage.getItem('sb_url') || '';
     const key = localStorage.getItem('sb_key') || '';
     const isConnected = !!(url && key);
+    const esc = value => String(value || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     return `
     <div class="page-header">
@@ -108,6 +111,25 @@ const SetupView = {
       </div>
       <div class="px-5 pb-4 border-t pt-3 bg-gray-50">
         <p class="text-xs text-gray-500">Shows the last 50 logins across all users and devices.</p>
+      </div>
+    </div>
+
+    <!-- Bookkeeper Settings -->
+    <div class="section-card mb-4">
+      <div class="section-card-header"><h3>Bookkeeper Settings</h3></div>
+      <div class="section-card-body">
+        <form id="bookkeeper-form" onsubmit="SetupView.saveBookkeeper(event)" class="max-w-lg">
+          <div class="mb-3">
+            <label class="form-label">Bookkeeper Name</label>
+            <input id="bookkeeper-name" type="text" class="form-input" value="${esc(BOOKKEEPER)}" required />
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Designation</label>
+            <input id="bookkeeper-title" type="text" class="form-input" value="${esc(BOOKKEEPER_TITLE)}" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Save Bookkeeper</button>
+        </form>
+        <p class="text-xs text-gray-400 mt-2">Used in CDRs, generated reports, and the administrator profile.</p>
       </div>
     </div>
 
@@ -460,6 +482,19 @@ const SetupView = {
     Auth.changeAdminCredentials(username, password);
     App.toast('Credentials updated! Use them on next login.');
     document.getElementById('change-creds-form').reset();
+  },
+
+  saveBookkeeper(e) {
+    e.preventDefault();
+    const name = document.getElementById('bookkeeper-name').value.trim();
+    const title = document.getElementById('bookkeeper-title').value.trim();
+    if (!name || !title) { App.toast('Enter the bookkeeper name and designation.', 'error'); return; }
+    localStorage.setItem('atlas_bookkeeper_name', name);
+    localStorage.setItem('atlas_bookkeeper_title', title);
+    BOOKKEEPER = name;
+    BOOKKEEPER_TITLE = title;
+    App.toast('Bookkeeper settings saved. Reloading…');
+    setTimeout(() => location.reload(), 600);
   },
 
   disconnectSupabase() {
