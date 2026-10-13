@@ -22,7 +22,7 @@ const CancelCheckView = {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
           Download Report
         </button>
-        <button class="btn btn-primary btn-sm" onclick="CancelCheckView.openForm()">+ Add</button>
+        <button class="atlas-btn btn-primary" onclick="CancelCheckView.openForm()">+ Add</button>
       </div>
     </div>
     <div class="section-card">
