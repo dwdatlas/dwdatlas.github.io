@@ -394,12 +394,21 @@ const CDRView = {
   // ---- Detail view (full-page, inline form) ----
   async showDetail(id) {
     this._detailId = id;
-    const [headerRes, entriesRes] = await Promise.all([DB.getCDRHeader(id), DB.getCDREntries(id)]);
+    const headerRes = await DB.getCDRHeader(id);
     const header = headerRes.data;
+    if (!header) { App.toast('CDR not found', 'error'); return; }
+
+    // Reconcile older MOOE CDRs too. Funds may have been entered before
+    // automatic synchronization was introduced, so opening the register
+    // backfills or refreshes its single combined Operating Advances entry.
+    if (DashboardView._isMOOE(header.fund_type) && typeof FundsView !== 'undefined') {
+      await FundsView._syncMOOEToExistingCDR(header);
+    }
+
+    const entriesRes = await DB.getCDREntries(id);
     const entries = entriesRes.data || [];
     this._detailEntries = entries;
     this._detailHeader  = header;
-    if (!header) { App.toast('CDR not found', 'error'); return; }
 
     const school = this._getSchool(header.school_id);
     const el = document.getElementById('view-container');
