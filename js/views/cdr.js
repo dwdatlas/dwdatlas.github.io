@@ -323,10 +323,12 @@ const CDRView = {
     const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
 
     // Find matching Fund Release for both MOOE and Special Funds
-    const { data: funds } = await DB.getFunds({ school_id: schoolId });
+    const { data: funds } = await DB.getFunds({ school_id: schoolId, year });
     const matched = (funds || []).filter(f => normalize(f.fund_type) === normalize(fundType));
     matched.sort((a, b) => (b.ada_date || '').localeCompare(a.ada_date || ''));
     const matchingFund = matched[0] || null;
+    const combinedAmount = matched.reduce((sum, fund) => sum + (parseFloat(fund.amount) || 0), 0);
+    const combinedRefs = [...new Set(matched.map(fund => String(fund.ada_no || '').trim()).filter(Boolean))].join(' / ');
 
     // Auto-derive quarter from matching fund's fund_type name or ada_date
     let quarter = 'Q1';
@@ -367,11 +369,11 @@ const CDRView = {
         id:          DB.newId(),
         cdr_id:      row.id,
         entry_date:  matchingFund.ada_date,
-        ref_no:      matchingFund.ada_no || '',
+        ref_no:      combinedRefs,
         particulars,
         uacs_code:   '',
         uacs_desc:   '',
-        advances:    parseFloat(matchingFund.amount) || 0,
+        advances:    combinedAmount,
         payment:     0,
         sort_order:  Date.now(),
       });

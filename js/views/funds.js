@@ -450,6 +450,70 @@ const FundsView = {
     });
   },
 
+  _fundQuarter(row) {
+    if (row?.quarter) return String(row.quarter).toUpperCase();
+    const name = String(row?.fund_type || '').toLowerCase();
+    if (name.includes('1st quarter')) return 'Q1';
+    if (name.includes('2nd quarter')) return 'Q2';
+    if (name.includes('3rd quarter')) return 'Q3';
+    if (name.includes('4th quarter')) return 'Q4';
+    return '';
+  },
+
+  async _syncMOOEToExistingCDR(seed) {
+    if (!seed?.school_id || !seed?.year || !seed?.fund_type) return false;
+    const norm = value => String(value || '').trim().toLowerCase();
+    const quarter = this._fundQuarter(seed);
+    const [{ data: funds }, { data: headers }] = await Promise.all([
+      DB.getFunds({ school_id: seed.school_id, year: seed.year }),
+      DB.getCDRHeaders({ school_id: seed.school_id, year: seed.year }),
+    ]);
+    const matchingFunds = (funds || []).filter(f =>
+      Number(f.year) === Number(seed.year) &&
+      norm(f.fund_type) === norm(seed.fund_type) &&
+      this._fundQuarter(f) === quarter
+    );
+    const matchingHeaders = (headers || []).filter(h =>
+      Number(h.year) === Number(seed.year) &&
+      norm(h.fund_type) === norm(seed.fund_type) &&
+      String(h.quarter || '').toUpperCase() === quarter
+    );
+    if (!matchingHeaders.length) return false;
+
+    const total = matchingFunds.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
+    const refs = [...new Set(matchingFunds.map(f => String(f.ada_no || '').trim()).filter(Boolean))].join(' / ');
+    const dates = matchingFunds.map(f => f.ada_date).filter(Boolean).sort();
+    const entryDate = dates[dates.length - 1] || `${seed.year}-01-01`;
+    const ordinal = { Q1: '1st', Q2: '2nd', Q3: '3rd', Q4: '4th' };
+
+    for (const header of matchingHeaders) {
+      const { data: entries } = await DB.getCDREntries(header.id);
+      const advances = (entries || []).filter(e => (parseFloat(e.advances) || 0) > 0);
+      if (total > 0) {
+        const primary = advances[0];
+        await DB.upsertCDREntry({
+          ...(primary || {}),
+          id: primary?.id || DB.newId(),
+          cdr_id: header.id,
+          entry_date: entryDate,
+          ref_no: refs,
+          particulars: `Operating Advances for ${ordinal[quarter] || quarter} Quarter`,
+          uacs_code: '',
+          uacs_desc: '',
+          advances: total,
+          payment: 0,
+          sort_order: primary?.sort_order || Date.now(),
+        });
+        for (const extra of advances.slice(1)) await DB.deleteCDREntry(extra.id);
+      } else {
+        for (const advance of advances) await DB.deleteCDREntry(advance.id);
+      }
+      const { data: syncedEntries } = await DB.getCDREntries(header.id);
+      await DB.upsertCDRHeader({ id: header.id, entry_count: (syncedEntries || []).length });
+    }
+    return true;
+  },
+
   async saveBatch(e) {
     e.preventDefault();
     const fundType = document.getElementById('fb-fund-type').value;
@@ -493,6 +557,7 @@ const FundsView = {
 
       const { error } = await DB.upsertFund(row);
       if (error) { App.toast(`Error saving ${s.name}: ${error?.message || error}`, 'error'); return; }
+      if (this._category === 'mooe') await this._syncMOOEToExistingCDR(row);
       saved++;
     }
 
@@ -608,16 +673,11 @@ const FundsView = {
     const { error } = await DB.upsertFund(row);
     if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }
 
-    // Sync updated amount into the advance entry of any linked CDR
-    const norm = s => (s || '').trim().toLowerCase();
-    const { data: headers } = await DB.getCDRHeaders({ school_id: row.school_id });
-    const linked = (headers || []).filter(h =>
-      h.fund_id === id || norm(h.fund_type) === norm(row.fund_type)
-    );
-    for (const h of linked) {
-      const { data: entries } = await DB.getCDREntries(h.id);
-      const adv = (entries || []).find(e => parseFloat(e.advances) > 0);
-      if (adv) await DB.upsertCDREntry({ ...adv, advances: row.amount });
+    if (this._category === 'mooe') {
+      if (rec && (rec.fund_type !== row.fund_type || rec.quarter !== row.quarter || Number(rec.year) !== Number(row.year))) {
+        await this._syncMOOEToExistingCDR(rec);
+      }
+      await this._syncMOOEToExistingCDR(row);
     }
 
     App.closeModal();
@@ -627,7 +687,10 @@ const FundsView = {
 
   async deleteFund(id) {
     if (!confirm('Delete this fund record?')) return;
+    const { data: funds } = await DB.getFunds();
+    const removed = (funds || []).find(f => f.id === id);
     await DB.deleteFund(id);
+    if (this._category === 'mooe' && removed) await this._syncMOOEToExistingCDR(removed);
     App.toast('Record deleted.');
     await this.load();
   },
