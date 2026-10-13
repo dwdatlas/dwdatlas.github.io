@@ -77,9 +77,10 @@ const CDRView = {
   afterRender() { this._initView(); },
 
   async _initView() {
-    const [schoolsRes, ftRes] = await Promise.all([
+    const [schoolsRes, ftRes, fundsRes] = await Promise.all([
       DB.getSchools(),
       DB.getFundTypes(this._category),
+      DB.getFunds(this._schoolId ? { school_id: this._schoolId } : {}),
     ]);
     this._schools = schoolsRes.data || [];
 
@@ -97,8 +98,15 @@ const CDRView = {
 
     // Populate fund type dropdown
     const ftSel = document.getElementById('cdr-filter-fundtype');
+    const categoryMatch = name => this._category === 'mooe'
+      ? DashboardView._isMOOE(name)
+      : !DashboardView._isMOOE(name);
+    const fundNames = [...new Set([
+      ...(ftRes.data || []).map(t => t.name),
+      ...(fundsRes.data || []).filter(f => categoryMatch(f.fund_type)).map(f => f.fund_type),
+    ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
     if (ftSel) ftSel.innerHTML = `<option value="">All Fund Types</option>` +
-      (ftRes.data || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+      fundNames.map(name => `<option value="${name}">${name}</option>`).join('');
 
     this.load();
   },
@@ -234,8 +242,7 @@ const CDRView = {
     const yr = new Date().getFullYear();
     const years = this._category === 'mooe' ? [2026] : [2026, 2025];
 
-    const { data: ftData } = await DB.getFundTypes(this._category);
-    const ftOpts = (ftData || []).map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+    const ftOpts = await this._createFundTypeOptions(this._schoolId || '');
 
     const html = `
     <form id="cdr-create-form" onsubmit="CDRView.saveHeader(event)">
@@ -243,10 +250,10 @@ const CDRView = {
         <div class="col-span-2">
           <label class="form-label">School *</label>
           ${this._schoolId
-            ? `<select id="cdr-school" class="form-select" required>
+            ? `<select id="cdr-school" class="form-select" required onchange="CDRView.refreshCreateFundTypes()">
                  <option value="${this._schoolId}">${schools.find(s => s.id === this._schoolId)?.name || 'My School'}</option>
                </select>`
-            : `<select id="cdr-school" class="form-select" required>
+            : `<select id="cdr-school" class="form-select" required onchange="CDRView.refreshCreateFundTypes()">
                  <option value="">Select school…</option>
                  ${schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
                </select>`}
@@ -259,7 +266,7 @@ const CDRView = {
         </div>
         <div class="col-span-2">
           <label class="form-label">Fund Type</label>
-          <select id="cdr-fund-type" class="form-select">
+          <select id="cdr-fund-type" class="form-select" required>
             <option value="">-- Select Fund Type --</option>
             ${ftOpts}
           </select>
@@ -271,6 +278,30 @@ const CDRView = {
       </div>
     </form>`;
     App.openModal('New Cash Disbursement Register', html);
+  },
+
+  async _createFundTypeOptions(schoolId) {
+    const [typesRes, fundsRes] = await Promise.all([
+      DB.getFundTypes(this._category),
+      schoolId ? DB.getFunds({ school_id: schoolId }) : Promise.resolve({ data: [] }),
+    ]);
+    const categoryMatch = name => this._category === 'mooe'
+      ? DashboardView._isMOOE(name)
+      : !DashboardView._isMOOE(name);
+    const names = [...new Set([
+      ...(fundsRes.data || []).filter(f => categoryMatch(f.fund_type)).map(f => f.fund_type),
+      ...(typesRes.data || []).map(t => t.name),
+    ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return names.map(name => `<option value="${name}">${name}</option>`).join('');
+  },
+
+  async refreshCreateFundTypes() {
+    const select = document.getElementById('cdr-fund-type');
+    if (!select) return;
+    const schoolId = document.getElementById('cdr-school')?.value || '';
+    select.innerHTML = `<option value="">${schoolId ? 'Loading fund releases...' : '-- Select school first --'}</option>`;
+    if (!schoolId) return;
+    select.innerHTML = `<option value="">-- Select Fund Type --</option>` + await this._createFundTypeOptions(schoolId);
   },
 
   async saveHeader(e) {
