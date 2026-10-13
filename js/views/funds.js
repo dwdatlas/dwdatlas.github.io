@@ -491,6 +491,10 @@ const FundsView = {
       const advances = (entries || []).filter(e => (parseFloat(e.advances) || 0) > 0);
       if (total > 0) {
         const primary = advances[0];
+        const existingSortOrders = (entries || [])
+          .map(e => Number(e.sort_order))
+          .filter(Number.isFinite);
+        const firstSortOrder = existingSortOrders.length ? Math.min(...existingSortOrders) - 1 : 0;
         await DB.upsertCDREntry({
           ...(primary || {}),
           id: primary?.id || DB.newId(),
@@ -502,7 +506,7 @@ const FundsView = {
           uacs_desc: '',
           advances: total,
           payment: 0,
-          sort_order: primary?.sort_order || Date.now(),
+          sort_order: firstSortOrder,
         });
         for (const extra of advances.slice(1)) await DB.deleteCDREntry(extra.id);
       } else {
