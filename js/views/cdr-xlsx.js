@@ -41,11 +41,12 @@ const CDRXlsx = {
       const wb  = await XlsxPopulate.fromDataAsync(buf);
       const ws  = wb.sheet(0);
 
-      // Keep the tab name in sync with the actual school/quarter being
-      // generated — the template's saved sheet name is otherwise stale.
-      const shortName = school.short_name || school.name || 'School';
-      const qNumTab   = (header.quarter || 'Q1').replace('Q', '');
-      const targetName = `${shortName}-Q${qNumTab}`;
+      // Keep the tab name in sync with the school being generated. Excel
+      // limits worksheet names to 31 characters and disallows these symbols.
+      const targetName = (school.short_name || school.name || 'School')
+        .replace(/[\\/?*:[\]]/g, '')
+        .trim()
+        .slice(0, 31) || 'School';
 
       // IMPORTANT: the template file carries extra leftover sheets from
       // whenever it was last saved (each with real filled CDR data for
