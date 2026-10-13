@@ -26,7 +26,7 @@ const CDRXlsx = {
         DB.getCDRHeader(headerId),
         DB.getCDREntries(headerId),
         DB.getSchools(),
-        fetch('assets/cdr_template.xlsx?v=3'),
+        fetch('assets/cdr_template.xlsx?v=4'),
       ]);
 
       const header = headerRes.data;
@@ -40,6 +40,22 @@ const CDRXlsx = {
       const buf = await tplResp.arrayBuffer();
       const wb  = await XlsxPopulate.fromDataAsync(buf);
       const ws  = wb.sheet(0);
+
+      // Keep the tab name in sync with the actual school/quarter being
+      // generated — the template's saved sheet name is otherwise stale.
+      const shortName = school.short_name || school.name || 'School';
+      const qNumTab   = (header.quarter || 'Q1').replace('Q', '');
+      const targetName = `${shortName}-Q${qNumTab}`;
+
+      // IMPORTANT: the template file carries extra leftover sheets from
+      // whenever it was last saved (each with real filled CDR data for
+      // another school/quarter). Delete every sheet except the one we're
+      // using and UACS so that data never ships inside a download.
+      wb.sheets().forEach(s => {
+        if (s !== ws && s.name() !== 'UACS') wb.deleteSheet(s.name());
+      });
+      ws.name(targetName);
+
 
       // Search cols 1-12; exact=true requires full cell match
       const findRow = (text, from, to, exact) => {
@@ -213,14 +229,17 @@ const CDRXlsx = {
       }
 
       // ── Download ──
-      const safeName = (school.short_name || school.name || 'School').replace(/[\s/\\]+/g, '_');
+      const safeName = (school.name || school.short_name || 'School')
+        .trim()
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/\s+/g, ' ');
       const qNum = (header.quarter || 'Q1').replace('Q', '');
       const out  = await wb.outputAsync();
       const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href     = url;
-      a.download = `CDR_${header.year}_${safeName}_Q${qNum}.xlsx`;
+      a.download = `${safeName}_CDR_${header.year}_Q${qNum}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
       App.toast('Excel downloaded!');
