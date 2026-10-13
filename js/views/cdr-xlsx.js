@@ -22,10 +22,11 @@ const CDRXlsx = {
 
       App.toast('Building Excel…');
 
-      const [headerRes, entriesRes, schoolsRes, tplResp] = await Promise.all([
+      const [headerRes, entriesRes, schoolsRes, bookkeepersRes, tplResp] = await Promise.all([
         DB.getCDRHeader(headerId),
         DB.getCDREntries(headerId),
         DB.getSchools(),
+        DB.getBookkeepers(),
         fetch('assets/cdr_template.xlsx?v=5'),
       ]);
 
@@ -34,6 +35,9 @@ const CDRXlsx = {
       if (!tplResp.ok) throw new Error('Template not found');
 
       const school  = (schoolsRes.data || []).find(s => s.id === header.school_id) || {};
+      const assignedBookkeeper = (bookkeepersRes.data || []).find(b => b.id === school.bookkeeper_id) || {};
+      const bookkeeperName = assignedBookkeeper.name || BOOKKEEPER;
+      const bookkeeperTitle = assignedBookkeeper.designation || BOOKKEEPER_TITLE;
       const entries = (entriesRes.data || []).slice()
         .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
@@ -225,8 +229,8 @@ const CDRXlsx = {
         ws.cell(certRow + 3, 3).value(school.designation || '');
       }
       if (recvRow) {
-        ws.cell(recvRow + 2, 9).value(BOOKKEEPER);
-        ws.cell(recvRow + 3, 9).value(BOOKKEEPER_TITLE);
+        ws.cell(recvRow + 2, 9).value(bookkeeperName);
+        ws.cell(recvRow + 3, 9).value(bookkeeperTitle);
       }
 
       // ── Download ──

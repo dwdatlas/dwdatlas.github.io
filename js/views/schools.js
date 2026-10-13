@@ -26,8 +26,10 @@ const SchoolsView = {
   afterRender() { this.load(); },
 
   async load() {
-    const { data } = await DB.getSchools();
-    const schools = data || [];
+    const [schoolsRes, bookkeepersRes] = await Promise.all([DB.getSchools(), DB.getBookkeepers()]);
+    const schools = schoolsRes.data || [];
+    const bookkeepers = bookkeepersRes.data || [];
+    const bookkeeperName = id => bookkeepers.find(b => b.id === id)?.name || 'Not assigned';
     const isAdmin = typeof Auth !== 'undefined' ? Auth.isAdmin() : false;
     const el = document.getElementById('schools-body');
     if (!el) return;
@@ -42,7 +44,7 @@ const SchoolsView = {
     <table class="data-table">
       <thead><tr>
         <th>#</th><th>School Name</th><th>Short Name</th>
-        <th>School Head</th><th>Designation</th>
+        <th>School Head</th><th>Designation</th><th>Bookkeeper</th>
         <th>Confirmation Letter Expiry</th>${isAdmin ? '<th>Actions</th>' : ''}
       </tr></thead>
       <tbody>
@@ -63,6 +65,7 @@ const SchoolsView = {
             <td class="text-xs text-gray-600">${s.short_name || '—'}</td>
             <td>${s.school_head || '—'}</td>
             <td class="text-xs text-gray-600">${s.designation || '—'}</td>
+            <td class="text-xs text-gray-600">${bookkeeperName(s.bookkeeper_id)}</td>
             <td>${expiryBadge}</td>
             ${isAdmin ? `<td>
               <div class="flex gap-1">
@@ -76,9 +79,10 @@ const SchoolsView = {
     </table>`;
   },
 
-  openForm(id) {
-    DB.getSchools().then(({ data }) => {
-      const schools = data || [];
+  async openForm(id) {
+      const [schoolsRes, bookkeepersRes] = await Promise.all([DB.getSchools(), DB.getBookkeepers()]);
+      const schools = schoolsRes.data || [];
+      const bookkeepers = bookkeepersRes.data || [];
       const s = id ? schools.find(x => x.id === id) : null;
 
       const html = `
@@ -108,6 +112,13 @@ const SchoolsView = {
             <label class="form-label">Confirmation Letter Expiry Date</label>
             <input id="s-expiry" type="date" class="form-input" value="${s?.confirmation_expiry || ''}" />
           </div>
+          <div class="col-span-2">
+            <label class="form-label">Assigned Bookkeeper</label>
+            <select id="s-bookkeeper" class="form-select">
+              <option value="">Not assigned</option>
+              ${bookkeepers.map(b => `<option value="${b.id}" ${s?.bookkeeper_id === b.id ? 'selected' : ''}>${b.name} — ${b.designation}</option>`).join('')}
+            </select>
+          </div>
         </div>
         <div class="flex gap-2 justify-end">
           <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Cancel</button>
@@ -116,7 +127,6 @@ const SchoolsView = {
       </form>`;
 
       App.openModal(s ? 'Edit School' : 'Add School', html);
-    });
   },
 
   async saveSchool(e, id) {
@@ -129,6 +139,7 @@ const SchoolsView = {
       school_head: document.getElementById('s-head').value.trim(),
       designation: document.getElementById('s-desig').value.trim(),
       confirmation_expiry: document.getElementById('s-expiry').value || null,
+      bookkeeper_id: document.getElementById('s-bookkeeper').value || null,
     };
     const { error } = await DB.upsertSchool(row);
     if (error) { App.toast('Error: ' + (error?.message || error), 'error'); return; }

@@ -117,19 +117,8 @@ const SetupView = {
     <!-- Bookkeeper Settings -->
     <div class="section-card mb-4">
       <div class="section-card-header"><h3>Bookkeeper Settings</h3></div>
-      <div class="section-card-body">
-        <form id="bookkeeper-form" onsubmit="SetupView.saveBookkeeper(event)" class="max-w-lg">
-          <div class="mb-3">
-            <label class="form-label">Bookkeeper Name</label>
-            <input id="bookkeeper-name" type="text" class="form-input" value="${esc(BOOKKEEPER)}" required />
-          </div>
-          <div class="mb-4">
-            <label class="form-label">Designation</label>
-            <input id="bookkeeper-title" type="text" class="form-input" value="${esc(BOOKKEEPER_TITLE)}" required />
-          </div>
-          <button type="submit" class="btn btn-primary">Save Bookkeeper</button>
-        </form>
-        <p class="text-xs text-gray-400 mt-2">Used in CDRs, generated reports, and the administrator profile.</p>
+      <div id="bookkeepers-list" class="section-card-body">
+        <div class="flex justify-center py-6"><div class="spinner"></div></div>
       </div>
     </div>
 
@@ -228,7 +217,7 @@ const SetupView = {
   },
 
   async afterRender() {
-    await Promise.all([this.loadUsers(), this.loadFundTypes(), this.loadLoginHistory()]);
+    await Promise.all([this.loadUsers(), this.loadFundTypes(), this.loadLoginHistory(), this.loadBookkeepers()]);
   },
 
   async loadLoginHistory() {
@@ -484,17 +473,51 @@ const SetupView = {
     document.getElementById('change-creds-form').reset();
   },
 
-  saveBookkeeper(e) {
+  async loadBookkeepers() {
+    const el = document.getElementById('bookkeepers-list');
+    if (!el) return;
+    const { data, error } = await DB.getBookkeepers();
+    if (error) {
+      el.innerHTML = `<p class="text-sm text-red-600">Bookkeeper table is not ready. Run the updated Database Schema SQL first.</p>`;
+      return;
+    }
+    const rows = data || [];
+    const defaults = [
+      rows.find(r => r.sort_order === 1) || { id: 'bookkeeper_1', name: BOOKKEEPER, designation: BOOKKEEPER_TITLE, sort_order: 1 },
+      rows.find(r => r.sort_order === 2) || { id: 'bookkeeper_2', name: '', designation: '', sort_order: 2 },
+    ];
+    el.innerHTML = `<form id="bookkeepers-form" onsubmit="SetupView.saveBookkeepers(event)" class="max-w-2xl">
+      ${defaults.map((b, i) => `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 p-4 bg-gray-50 rounded-lg">
+        <input type="hidden" data-bk-id value="${b.id}">
+        <div><label class="form-label">Bookkeeper ${i + 1} Name</label><input data-bk-name class="form-input" value="${this._esc(b.name || '')}" ${i === 0 ? 'required' : ''}></div>
+        <div><label class="form-label">Designation</label><input data-bk-title class="form-input" value="${this._esc(b.designation || '')}" ${i === 0 ? 'required' : ''}></div>
+      </div>`).join('')}
+      <button type="submit" class="btn btn-primary">Save Bookkeepers</button>
+      <p class="text-xs text-gray-400 mt-2">Saved in Supabase and used according to each school's assignment.</p>
+    </form>`;
+  },
+
+  _esc(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  },
+
+  async saveBookkeepers(e) {
     e.preventDefault();
-    const name = document.getElementById('bookkeeper-name').value.trim();
-    const title = document.getElementById('bookkeeper-title').value.trim();
-    if (!name || !title) { App.toast('Enter the bookkeeper name and designation.', 'error'); return; }
-    localStorage.setItem('atlas_bookkeeper_name', name);
-    localStorage.setItem('atlas_bookkeeper_title', title);
-    BOOKKEEPER = name;
-    BOOKKEEPER_TITLE = title;
-    App.toast('Bookkeeper settings saved. Reloading…');
-    setTimeout(() => location.reload(), 600);
+    const groups = [...e.target.querySelectorAll('.grid')];
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      const name = group.querySelector('[data-bk-name]').value.trim();
+      const designation = group.querySelector('[data-bk-title]').value.trim();
+      if (i === 0 && (!name || !designation)) { App.toast('Bookkeeper 1 is required.', 'error'); return; }
+      if (!name && !designation) continue;
+      const { error } = await DB.upsertBookkeeper({
+        id: group.querySelector('[data-bk-id]').value,
+        name, designation, sort_order: i + 1, active: true,
+      });
+      if (error) { App.toast('Error: ' + (error.message || error), 'error'); return; }
+    }
+    App.toast('Bookkeepers saved in Supabase.');
+    await this.loadBookkeepers();
   },
 
   disconnectSupabase() {
@@ -606,6 +629,17 @@ const SetupView = {
     return `-- Dulag West District MOOE Dashboard
 -- Run this in Supabase SQL Editor
 
+-- Bookkeepers
+create table if not exists bookkeepers (
+  id text primary key,
+  name text not null,
+  designation text not null,
+  sort_order integer default 1,
+  active boolean default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 -- Schools / Accountable Officers
 create table if not exists schools (
   id text primary key,
@@ -614,10 +648,12 @@ create table if not exists schools (
   school_code text,
   school_head text,
   designation text,
+  bookkeeper_id text references bookkeepers(id) on delete set null,
   confirmation_expiry date,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+alter table schools add column if not exists bookkeeper_id text references bookkeepers(id) on delete set null;
 
 -- Fund Releases (MOOE + Special Funds)
 create table if not exists downloaded_funds (
@@ -724,6 +760,7 @@ create table if not exists login_log (
 
 -- Enable Row Level Security and allow all operations
 alter table schools enable row level security;
+alter table bookkeepers enable row level security;
 alter table downloaded_funds enable row level security;
 alter table disbursements enable row level security;
 alter table cdr_headers enable row level security;
@@ -732,6 +769,7 @@ alter table resources enable row level security;
 alter table bank_reconciliation enable row level security;
 
 drop policy if exists "Allow all" on schools;
+drop policy if exists "Allow all" on bookkeepers;
 drop policy if exists "Allow all" on downloaded_funds;
 drop policy if exists "Allow all" on disbursements;
 drop policy if exists "Allow all" on cdr_headers;
@@ -740,6 +778,7 @@ drop policy if exists "Allow all" on resources;
 drop policy if exists "Allow all" on bank_reconciliation;
 
 create policy "Allow all" on schools for all using (true) with check (true);
+create policy "Allow all" on bookkeepers for all using (true) with check (true);
 create policy "Allow all" on downloaded_funds for all using (true) with check (true);
 create policy "Allow all" on disbursements for all using (true) with check (true);
 create policy "Allow all" on cdr_headers for all using (true) with check (true);

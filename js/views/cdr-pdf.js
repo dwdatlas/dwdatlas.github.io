@@ -17,8 +17,8 @@ const CDRPdf = {
   },
 
   async _getData(id) {
-    const [headerRes, entriesRes, schoolsRes] = await Promise.all([
-      DB.getCDRHeader(id), DB.getCDREntries(id), DB.getSchools(),
+    const [headerRes, entriesRes, schoolsRes, bookkeepersRes] = await Promise.all([
+      DB.getCDRHeader(id), DB.getCDREntries(id), DB.getSchools(), DB.getBookkeepers(),
     ]);
     const header  = headerRes.data;
     let   entries = entriesRes.data || [];
@@ -26,6 +26,7 @@ const CDRPdf = {
     if (!header) { App.toast('CDR not found', 'error'); return null; }
 
     const school = schools.find(s => s.id === header.school_id) || {};
+    const bookkeeper = (bookkeepersRes.data || []).find(b => b.id === school.bookkeeper_id) || {};
 
     // Cash advance injection — same logic as printCDR / downloadPDF
     const hasAdvanceEntry = entries.some(e => (parseFloat(e.advances) || 0) > 0);
@@ -71,16 +72,16 @@ const CDRPdf = {
       recap[code].total += p;
     });
 
-    return { header, entries, school, rows, totalAdv, totalPay, finalBal, tOff, tGen, tJan, recap };
+    return { header, entries, school, bookkeeper, rows, totalAdv, totalPay, finalBal, tOff, tGen, tJan, recap };
   },
 
   _buildHTML(data) {
-    const { header, entries, school, rows, totalAdv, totalPay, finalBal, tOff, tGen, tJan, recap } = data;
+    const { header, entries, school, bookkeeper, rows, totalAdv, totalPay, finalBal, tOff, tGen, tJan, recap } = data;
     const fp  = n => this._fp(n);
     const fd  = d => this._fd(d);
     const sName = (school.name || '').toUpperCase();
-    const bk    = typeof BOOKKEEPER       !== 'undefined' ? BOOKKEEPER       : '';
-    const bkT   = typeof BOOKKEEPER_TITLE !== 'undefined' ? BOOKKEEPER_TITLE : '';
+    const bk    = bookkeeper.name || (typeof BOOKKEEPER !== 'undefined' ? BOOKKEEPER : '');
+    const bkT   = bookkeeper.designation || (typeof BOOKKEEPER_TITLE !== 'undefined' ? BOOKKEEPER_TITLE : '');
     const COL_OFF='5020301000', COL_GEN='5021299000', COL_JAN='5021202000';
 
     const th = s => `border:1px solid #000;background:#f0f0f0;font-size:5.5pt;padding:1.5px 2px;vertical-align:middle;text-align:center`;

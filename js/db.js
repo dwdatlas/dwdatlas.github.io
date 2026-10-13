@@ -107,6 +107,26 @@ const DB = (() => {
   }
 
   // ============================================================
+  // BOOKKEEPERS
+  // ============================================================
+  async function getBookkeepers() {
+    if (useLocal) return lsAll('bookkeepers');
+    const { data, error } = await sb.from('bookkeepers').select('*').order('sort_order');
+    if (!error && data) lsSet('bookkeepers', data);
+    return { data: data || [], error };
+  }
+  async function upsertBookkeeper(row) {
+    if (useLocal) {
+      const rows = lsGet('bookkeepers');
+      const idx = rows.findIndex(r => r.id === row.id);
+      if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('bookkeepers', rows); return { data: rows[idx], error: null }; }
+      return lsInsert('bookkeepers', row);
+    }
+    const { data, error } = await sb.from('bookkeepers').upsert(row).select().single();
+    return { data, error };
+  }
+
+  // ============================================================
   // DISBURSEMENTS (MOOE monitoring)
   // ============================================================
   async function getDisbursements(filters = {}) {
@@ -548,12 +568,14 @@ const DB = (() => {
   async function preload() {
     if (useLocal) return;
     try {
-      const [schoolsRes, fundsRes] = await Promise.all([
+      const [schoolsRes, fundsRes, bookkeepersRes] = await Promise.all([
         sb.from('schools').select('*').order('name'),
         sb.from('downloaded_funds').select('*').order('ada_date'),
+        sb.from('bookkeepers').select('*').order('sort_order'),
       ]);
       if (!schoolsRes.error && schoolsRes.data) { _schoolsCache = schoolsRes.data; lsSet('schools', schoolsRes.data); }
       if (!fundsRes.error && fundsRes.data) lsSet('funds', fundsRes.data);
+      if (!bookkeepersRes.error && bookkeepersRes.data) lsSet('bookkeepers', bookkeepersRes.data);
 
       const [disbRes, cdrRes, cancelRes] = await Promise.all([
         sb.from('disbursements').select('*').order('ada_date', { ascending: false }),
@@ -572,6 +594,7 @@ const DB = (() => {
     init, isLocal: () => useLocal, preload,
     // schools
     getSchools, upsertSchool, deleteSchool,
+    getBookkeepers, upsertBookkeeper,
     // disbursements
     getDisbursements, upsertDisbursement, deleteDisbursement,
     // cdr
