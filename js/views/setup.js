@@ -770,6 +770,7 @@ alter table cdr_headers enable row level security;
 alter table cdr_entries enable row level security;
 alter table resources enable row level security;
 alter table bank_reconciliation enable row level security;
+alter table cancelled_checks enable row level security;
 
 drop policy if exists "Allow all" on schools;
 drop policy if exists "Allow all" on bookkeepers;
@@ -779,6 +780,7 @@ drop policy if exists "Allow all" on cdr_headers;
 drop policy if exists "Allow all" on cdr_entries;
 drop policy if exists "Allow all" on resources;
 drop policy if exists "Allow all" on bank_reconciliation;
+drop policy if exists "Allow all" on cancelled_checks;
 
 create policy "Allow all" on schools for all using (true) with check (true);
 create policy "Allow all" on bookkeepers for all using (true) with check (true);
@@ -788,6 +790,7 @@ create policy "Allow all" on cdr_headers for all using (true) with check (true);
 create policy "Allow all" on cdr_entries for all using (true) with check (true);
 create policy "Allow all" on resources for all using (true) with check (true);
 create policy "Allow all" on bank_reconciliation for all using (true) with check (true);
+create policy "Allow all" on cancelled_checks for all using (true) with check (true);
 
 alter table login_log enable row level security;
 drop policy if exists "Allow all" on login_log;
