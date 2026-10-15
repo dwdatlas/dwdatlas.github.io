@@ -431,26 +431,50 @@ const DB = (() => {
   ];
 
   async function getFundTypes(category = '') {
-    let rows = lsGet('fund_types');
-    if (!rows.length) {
-      lsSet('fund_types', DEFAULT_FUND_TYPES);
-      rows = DEFAULT_FUND_TYPES;
+    if (useLocal) {
+      let rows = lsGet('fund_types');
+      if (!rows.length) {
+        lsSet('fund_types', DEFAULT_FUND_TYPES);
+        rows = DEFAULT_FUND_TYPES;
+      }
+      if (category) rows = rows.filter(r => r.category === category);
+      rows.sort((a, b) => a.name.localeCompare(b.name));
+      return { data: rows, error: null };
     }
-    if (category) rows = rows.filter(r => r.category === category);
-    rows.sort((a, b) => a.name.localeCompare(b.name));
-    return { data: rows, error: null };
+    let q = sb.from('fund_types').select('*').order('name');
+    if (category) q = q.eq('category', category);
+    const { data, error } = await q;
+    if (!error && data) {
+      if (!category) lsSet('fund_types', data);
+      return { data, error: null };
+    }
+    const cached = lsGet('fund_types');
+    return { data: category ? cached.filter(r => r.category === category) : cached, error };
   }
   async function upsertFundType(row) {
-    const rows = lsGet('fund_types');
     row.id = row.id || newId();
-    const idx = rows.findIndex(r => r.id === row.id);
-    if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('fund_types', rows); return { data: rows[idx], error: null }; }
-    rows.push(row);
-    lsSet('fund_types', rows);
-    return { data: row, error: null };
+    if (useLocal) {
+      const rows = lsGet('fund_types');
+      const idx = rows.findIndex(r => r.id === row.id);
+      if (idx > -1) { rows[idx] = { ...rows[idx], ...row }; lsSet('fund_types', rows); return { data: rows[idx], error: null }; }
+      rows.push(row);
+      lsSet('fund_types', rows);
+      return { data: row, error: null };
+    }
+    const { data, error } = await sb.from('fund_types').upsert(row).select().single();
+    if (!error && data) {
+      const rows = lsGet('fund_types');
+      const idx = rows.findIndex(r => r.id === data.id);
+      if (idx > -1) rows[idx] = data; else rows.push(data);
+      lsSet('fund_types', rows);
+    }
+    return { data, error };
   }
   async function deleteFundType(id) {
-    return lsDelete('fund_types', id);
+    if (useLocal) return lsDelete('fund_types', id);
+    const { error } = await sb.from('fund_types').delete().eq('id', id);
+    if (!error) lsDelete('fund_types', id);
+    return { error };
   }
 
   // ============================================================
@@ -568,14 +592,16 @@ const DB = (() => {
   async function preload() {
     if (useLocal) return;
     try {
-      const [schoolsRes, fundsRes, bookkeepersRes] = await Promise.all([
+      const [schoolsRes, fundsRes, bookkeepersRes, fundTypesRes] = await Promise.all([
         sb.from('schools').select('*').order('name'),
         sb.from('downloaded_funds').select('*').order('ada_date'),
         sb.from('bookkeepers').select('*').order('sort_order'),
+        sb.from('fund_types').select('*').order('name'),
       ]);
       if (!schoolsRes.error && schoolsRes.data) { _schoolsCache = schoolsRes.data; lsSet('schools', schoolsRes.data); }
       if (!fundsRes.error && fundsRes.data) lsSet('funds', fundsRes.data);
       if (!bookkeepersRes.error && bookkeepersRes.data) lsSet('bookkeepers', bookkeepersRes.data);
+      if (!fundTypesRes.error && fundTypesRes.data) lsSet('fund_types', fundTypesRes.data);
 
       const [disbRes, cdrRes, cancelRes] = await Promise.all([
         sb.from('disbursements').select('*').order('ada_date', { ascending: false }),

@@ -316,7 +316,8 @@ const SetupView = {
     const name = document.getElementById('ft-name').value.trim();
     const category = document.getElementById('ft-category').value;
     if (!name) return;
-    await DB.upsertFundType({ name, category });
+    const { error } = await DB.upsertFundType({ name, category });
+    if (error) { App.toast('Could not save to Supabase: ' + (error.message || error), 'error'); return; }
     document.getElementById('ft-name').value = '';
     App.toast('Fund type added!');
     await this.loadFundTypes();
@@ -324,7 +325,8 @@ const SetupView = {
 
   async deleteFundType(id) {
     if (!confirm('Delete this fund type?')) return;
-    await DB.deleteFundType(id);
+    const { error } = await DB.deleteFundType(id);
+    if (error) { App.toast('Could not delete from Supabase: ' + (error.message || error), 'error'); return; }
     App.toast('Fund type deleted.');
     await this.loadFundTypes();
   },
@@ -361,7 +363,8 @@ const SetupView = {
     const name     = document.getElementById('edit-ft-name').value.trim();
     const category = document.getElementById('edit-ft-category').value;
     if (!name) return;
-    await DB.upsertFundType({ id, name, category });
+    const { error } = await DB.upsertFundType({ id, name, category });
+    if (error) { App.toast('Could not update Supabase: ' + (error.message || error), 'error'); return; }
     App.closeModal();
     App.toast('Fund type updated!');
     await this.loadFundTypes();
